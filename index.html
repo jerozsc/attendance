@@ -327,7 +327,7 @@ td{color:var(--text)}
 // 在 Supabase 后台 → Settings → API 中获取
 // ============================================================
 var SUPABASE_URL = 'https://ymuctuibvvsarwtqmxcw.supabase.co';
-var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltdWN0dWlidnZzYXJ3dHFteGN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NTg2NTcsImV4cCI6MjA4OTUzNDY1N30.vsnXPav5ZHoa5ldS9bKwphMWTa-TTCBDvGu9hX_9WDQ';
+var SUPABASE_ANON_KEY = 'sb_publishable_wcQOhFspiXXs6ZJRLcyV2A_JbSdFA0-';
 
 var SB = null;
 var CLOUD_MODE = false;
@@ -427,7 +427,7 @@ var SKEY_R='att_remember';
 var LOCAL_ATT='att_data_local';
 
 // 管理员邮箱列表（云端模式用）
-var ADMIN_EMAILS=['admin@attendance.com'];
+var ADMIN_EMAILS=['2418219073@qq.com'];
 
 // ===================== LOCAL STORAGE HELPERS =====================
 function loadLocalAtt(){try{var r=localStorage.getItem(LOCAL_ATT);return r?JSON.parse(r):{}}catch(e){return{}}}
@@ -437,29 +437,29 @@ function saveLocalAtt(a){localStorage.setItem(LOCAL_ATT,JSON.stringify(a))}
 // 注册（云端）
 async function cloudRegister(username, password, displayName){
   if(!CLOUD_MODE) return {error:'未配置云端'};
-  var email = username+'@attendance.app';
+  var email = username.indexOf('@')>=0 ? username : username+'@attendance.app';
   var {data,error} = await SB.auth.signUp({
     email: email,
     password: password,
     options: {data:{display_name:displayName,username:username}}
   });
   if(error) return {error:error.message};
-  // 更新 profile 中的 username
   if(data.user){
     await SB.from('profiles').update({username:username,display_name:displayName}).eq('id',data.user.id);
   }
   return {data:data};
 }
 
+
 // 登录（云端）
 async function cloudLogin(username, password){
   if(!CLOUD_MODE) return {error:'未配置云端'};
-  var email = username+'@attendance.app';
+  // 如果输入的是邮箱就直接用，不是就拼接 @attendance.app
+  var email = username.indexOf('@')>=0 ? username : username+'@attendance.app';
   var {data,error} = await SB.auth.signInWithPassword({email:email,password:password});
   if(error) return {error:error.message};
-  // 获取 profile
   var {data:profile} = await SB.from('profiles').select('*').eq('id',data.user.id).single();
-  var isAdminUser = ADMIN_EMAILS.indexOf(data.user.email)>=0;
+  var isAdminUser = profile&&profile.role==='admin';
   var user = {
     id: data.user.id,
     username: profile?profile.username:username,
@@ -468,6 +468,7 @@ async function cloudLogin(username, password){
   };
   return {user:user};
 }
+
 
 // 退出（云端）
 async function cloudLogout(){
@@ -632,6 +633,7 @@ async function doLogin(){
   btn.disabled=true;btn.textContent='登录中...';
 
   if(CLOUD_MODE){
+    var email = u.indexOf('@')>=0 ? u : u+'@attendance.app';
     var result = await cloudLogin(u,p);
     btn.disabled=false;btn.textContent='登 录';
     if(result.error){alert('登录失败: '+result.error);return}
