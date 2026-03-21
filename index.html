@@ -783,6 +783,7 @@ td{color:var(--text)}
       <div class="hours-grid" id="mHours"></div>
     </div>
     <div class="mo-ft">
+      <button class="btn-c" id="mClear" style="color:var(--red);border-color:var(--red)">清空</button>
       <button class="btn-c" id="mCancel">取消</button>
       <button class="btn-ok" id="mSave">确认</button>
     </div>
@@ -1419,6 +1420,14 @@ async function cloudDeleteUser(userId){
 
 // ===================== INIT =====================
 (function init(){
+  // ★ 新增：先执行弹窗初始化（无论是否登录）
+  buildHours();
+  document.getElementById('mClose').addEventListener('click',closeModal);
+  document.getElementById('mCancel').addEventListener('click',closeModal);
+  document.getElementById('mSave').addEventListener('click',saveAtt);
+  document.getElementById('mClear').addEventListener('click',clearAtt);
+  document.getElementById('modal').addEventListener('click',function(e){if(e.target.id==='modal')closeModal()});
+
 // ★ 新增：检查是否有保存的登录状态
   try{
     var savedState = localStorage.getItem('att_login_state');
@@ -1523,10 +1532,7 @@ document.getElementById('nextM').addEventListener('click',function(){
 
   document.getElementById('btnExport').addEventListener('click',exportXlsx);
 
-  document.getElementById('mClose').addEventListener('click',closeModal);
-  document.getElementById('mCancel').addEventListener('click',closeModal);
-  document.getElementById('mSave').addEventListener('click',saveAtt);
-  document.getElementById('modal').addEventListener('click',function(e){if(e.target.id==='modal')closeModal()});
+  
 
   document.querySelectorAll('.tab').forEach(function(t){
     t.addEventListener('click',function(){
@@ -1540,7 +1546,7 @@ document.getElementById('nextM').addEventListener('click',function(){
 
   document.getElementById('btnAShow').addEventListener('click',renderAAtt);
   document.getElementById('btnAExport').addEventListener('click',exportAdminXlsx);
-  buildHours();
+  
 /*
   var ay=document.getElementById('aYear'),am=document.getElementById('aMonth');
   for(var y=2024;y<=2030;y++)ay.innerHTML+='<option value="'+y+'"'+(y===new Date().getFullYear()?' selected':'')+'>'+y+'</option>';
@@ -1867,7 +1873,27 @@ function renderCal(){
   }
   h+='<div class="'+cls+'" data-day="'+d+'" onclick="handleDayClick(event,'+d+')" onmousedown="startSelect('+d+')" onmouseover="continueSelect('+d+')">';
   h+='<div class="row1"><span class="dn">'+d+'</span><span class="ln">'+ls+'</span></div>';
-  h+='<div class="tp '+tc+'">'+tp+'</div>';
+  //h+='<div class="tp '+tc+'">'+tp+'</div>';
+// 只有"上班"类型且有上班时长时才显示"上班"，其他类型正常显示
+var showType = '';
+if(rec){
+  if(rec.type === '上班' && rec.hours > 0){
+    showType = '上班';
+  } else if(rec.type !== '上班'){
+    showType = rec.type;  // 法休、年假、事假、病假、休息正常显示
+  }
+} else {
+  // 没有记录时，显示默认类型（法休或休息）
+  if(defT.indexOf('法休') >= 0){
+    showType = '法休';
+  } else if(defT === '休息'){
+    showType = '休息';
+  }
+}
+if(showType){
+  h+='<div class="tp '+tc+'">'+showType+'</div>';
+}
+
   if(hr)h+='<div class="hr">'+hr+'H</div>';
   h+='</div>';
 }
@@ -2186,6 +2212,8 @@ function openModal(d){
 
 function closeModal(){document.getElementById('modal').classList.add('hidden');selDate=null}
 
+//======================================================
+//保存函数
 async function saveAtt(){
   if(!selDate) return;
   var tp = document.querySelector('input[name="atype"]:checked').value;
@@ -2204,6 +2232,41 @@ async function saveAtt(){
   renderCal();
   calcStats();
 }
+
+//======================================================
+//清空函数
+async function clearAtt(){
+  if(!selDate) return;
+
+  var k = vYear + '-' + vMonth + '-' + selDate;
+
+  if(!confirm('确定清空该日期的考勤记录？')){
+    return;
+  }
+
+  showLoading('正在清空...');
+
+  // 清空本地数据
+  var local = loadLocalAtt();
+  if(local[curUser.id] && local[curUser.id][k]){
+    delete local[curUser.id][k];
+    saveLocalAtt(local);
+  }
+
+  // 清空云端数据
+  if(CLOUD_MODE && curUser.id){
+    var dateStr = vYear + '-' + String(vMonth).padStart(2,'0') + '-' + String(selDate).padStart(2,'0');
+    await SB.from('attendance').delete()
+      .eq('user_id', curUser.id)
+      .eq('record_date', dateStr);
+  }
+
+  hideLoading();
+  closeModal();
+  renderCal();
+  calcStats();
+}
+
 
 
 // ===================== ADMIN =====================
