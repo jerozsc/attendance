@@ -1419,6 +1419,26 @@ async function cloudDeleteUser(userId){
 
 // ===================== INIT =====================
 (function init(){
+// ★ 新增：检查是否有保存的登录状态
+  try{
+    var savedState = localStorage.getItem('att_login_state');
+    if(savedState){
+      curUser = JSON.parse(savedState);
+      isAdmin = (curUser.role === 'admin');
+
+      if(isAdmin){
+        showV('admin');
+        renderAdmin();
+        return; // 直接返回，不执行后续登录相关逻辑
+      } else {
+        vYear = new Date().getFullYear();
+        vMonth = new Date().getMonth() + 1;
+        showV('dash');
+        render();
+        return; // 直接返回
+      }
+    }
+  }catch(e){}
   try{
     var rem=JSON.parse(localStorage.getItem(SKEY_R));
     if(rem&&rem.username&&rem.password){
@@ -1652,6 +1672,9 @@ async function doLogin(){
     hideLoading();
   }
 
+// ★ 新增：保存登录状态
+  localStorage.setItem('att_login_state', JSON.stringify(curUser));
+
   if(rem){localStorage.setItem(SKEY_R,JSON.stringify({username:u,password:p}))}
   else{localStorage.removeItem(SKEY_R)}
 
@@ -1704,9 +1727,14 @@ async function logout(){
   showLoading('正在退出...');
   await cloudLogout();
   curUser=null;isAdmin=false;
+
+  // ★ 新增：清除登录状态
+  localStorage.removeItem('att_login_state');
+
   hideLoading();
   showV('login');
 }
+
 
 // ===================== PERSONAL PASSWORD MODAL =====================
 function openPwdModal(){
