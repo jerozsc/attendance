@@ -920,22 +920,16 @@ td{color:var(--text)}
     </div>
     <div class="mo-bd" style="padding:24px">
       <div style="background:var(--green-bg);border:1px solid var(--green-b);border-radius:12px;padding:16px;margin-bottom:16px">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">平时加班费</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">平时加班费：<span id="weekdayCalc" style="color:var(--green);font-weight:600">0H×¥0.00/H</span></div>
         <div style="font-size:28px;font-weight:700;color:var(--green)">
           ¥<span id="salaryWeekday">0.00</span>
-        </div>
-        <div style="font-size:11px;color:var(--text3);margin-top:6px">
-          <span id="weekdayHours">0</span>H × ¥<span id="weekdayRate">0.00</span>/H
         </div>
       </div>
 
       <div style="background:var(--orange-bg);border:1px solid var(--orange-b);border-radius:12px;padding:16px;margin-bottom:16px">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">周末加班费</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">周末加班费：<span id="weekendCalc" style="color:var(--orange);font-weight:600">0H×¥0.00/H</span></div>
         <div style="font-size:28px;font-weight:700;color:var(--orange)">
           ¥<span id="salaryWeekend">0.00</span>
-        </div>
-        <div style="font-size:11px;color:var(--text3);margin-top:6px">
-          <span id="weekendHours">0</span>H × ¥<span id="weekendRate">0.00</span>/H
         </div>
       </div>
 
@@ -951,6 +945,7 @@ td{color:var(--text)}
     </div>
   </div>
 </div>
+
 
 
 <script>
@@ -1050,20 +1045,19 @@ function openSalaryModal(){
   var weekendSalary = weekendHours * weekendRate;
   var totalSalary = weekdaySalary + weekendSalary;
 
-  // 显示数据
-  document.getElementById('weekdayHours').textContent = weekdayHours;
-  document.getElementById('weekdayRate').textContent = weekdayRate.toFixed(2);
+  // 显示计算公式（标题后面）
+  document.getElementById('weekdayCalc').textContent = weekdayHours + 'H×¥' + weekdayRate.toFixed(2) + '/H';
+  document.getElementById('weekendCalc').textContent = weekendHours + 'H×¥' + weekendRate.toFixed(2) + '/H';
+
+  // 显示金额
   document.getElementById('salaryWeekday').textContent = weekdaySalary.toFixed(2);
-
-  document.getElementById('weekendHours').textContent = weekendHours;
-  document.getElementById('weekendRate').textContent = weekendRate.toFixed(2);
   document.getElementById('salaryWeekend').textContent = weekendSalary.toFixed(2);
-
   document.getElementById('salaryTotal').textContent = totalSalary.toFixed(2);
 
   // 显示弹窗
   document.getElementById('salaryModal').classList.remove('hidden');
 }
+
 
 function closeSalaryModal(){
   document.getElementById('salaryModal').classList.add('hidden');
