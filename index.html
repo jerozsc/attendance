@@ -412,6 +412,44 @@ td{color:var(--text)}
 }
 .quick-btn:hover{border-color:var(--accent);color:var(--accent)}
 
+/* ===== 右键菜单样式 ===== */
+.context-menu {
+  position: fixed;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  z-index: 10000;
+  min-width: 160px;
+  padding: 6px 0;
+  display: none;
+}
+.context-menu.show {
+  display: block;
+}
+.menu-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text);
+  transition: background 0.15s;
+}
+.menu-item:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+.menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+/* 菜单触发按钮样式 */
+.menu-trigger {
+  font-size: 18px;
+  padding: 6px 12px;
+  letter-spacing: 1px;
+}
+
 
 /* 移动端适配 */
 @media(max-width:900px){
@@ -443,6 +481,41 @@ td{color:var(--text)}
   .cal-nav .mo{font-size:16px;min-width:auto;white-space:nowrap}
   .nb{width:34px;height:34px;font-size:16px;border-radius:8px}
   #refreshHoliday{font-size:12px!important}
+
+/* ===== 管理员后台移动端适配 ===== */
+
+/* 问题1修复：账号管理表格容器溢出 */
+#uTbl {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#uTbl table {
+  min-width: 500px; /* 设置最小宽度确保内容不被压缩 */
+}
+
+/* 问题2修复：考勤查看区域的筛选栏换行 */
+.msel {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.msel select,
+.msel input[type="text"] {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.msel .btn-s,
+.msel .ab {
+  flex-shrink: 0;
+}
+
+/* 管理后台整体区域溢出控制 */
+.as {
+  overflow-x: auto;
+}
+
 }
 
 @media(max-width:400px){
@@ -469,6 +542,42 @@ td{color:var(--text)}
   .cal-nav .mo{font-size:14px}
   .nb{width:30px;height:30px;font-size:14px;border-radius:6px}
   #refreshHoliday{font-size:11px!important}
+
+/* ===== 管理员后台超小屏适配 ===== */
+
+/* 表格进一步缩小最小宽度 */
+#uTbl table {
+  min-width: 360px;
+}
+
+#uTbl table th,
+#uTbl table td {
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+/* 考勤查看筛选栏进一步紧凑 */
+.msel {
+  gap: 6px;
+}
+
+.msel select {
+  padding: 5px 6px;
+  font-size: 11px;
+  min-width: 60px;
+}
+
+.msel input[type="text"] {
+  padding: 5px 8px;
+  font-size: 11px;
+}
+
+.msel .btn-s,
+.msel .ab {
+  padding: 5px 10px;
+  font-size: 11px;
+}
+
 }
 
 
@@ -494,7 +603,7 @@ td{color:var(--text)}
     <p class="sub">登录以管理您的考勤记录</p>
     <div id="loginHint" class="hint hidden">当前没有账号，请先 <a id="hintToReg" style="cursor:pointer;text-decoration:underline">注册新账号</a></div>
     <div style="margin-top:16px">
-      <div class="fg"><label>账号</label><input type="text" id="lUser" autocomplete="username" placeholder="请输入账号（将作为邮箱使用）"></div>
+      <div class="fg"><label>账号</label><input type="text" id="lUser" autocomplete="username" placeholder="请输入账号"></div>
       <div class="fg"><label>密码</label><input type="password" id="lPass" autocomplete="current-password" placeholder="请输入密码"></div>
       <div class="remember-row"><input type="checkbox" id="lRemember"><label for="lRemember">记住账号密码，下次自动登录</label></div>
       <button class="btn" id="btnLogin">登 录</button>
@@ -509,7 +618,7 @@ td{color:var(--text)}
     <div style="text-align:center"><span class="cloud-badge">☁️ 云端数据同步</span></div>
     <h1>注册新账号</h1>
     <p class="sub">填写信息创建您的账号</p>
-    <div class="fg"><label>账号</label><input type="text" id="rUser" autocomplete="username" placeholder="请输入账号（将作为登录邮箱）"></div>
+    <div class="fg"><label>账号</label><input type="text" id="rUser" autocomplete="username" placeholder="请输入账号"></div>
     <div class="fg"><label>密码</label><input type="password" id="rPass" autocomplete="new-password" placeholder="请输入密码（至少6位）"></div>
     <div class="fg"><label>姓名</label><input type="text" id="rName" placeholder="请输入姓名"></div>
     <button class="btn" id="btnReg">注 册</button>
@@ -520,10 +629,11 @@ td{color:var(--text)}
 <!-- DASHBOARD -->
 <div id="dashView" class="dash hidden">
   <header class="dash-hd">
-    <h2>📊 考勤管理系统</h2>
+    <h2 style="cursor:pointer" onclick="openSalaryModal()" title="点击查看加班费">📊 考勤管理系统</h2>
     <div class="right">
       <span class="uname" id="dashName"></span>
-      <button class="btn-s" id="btnLogout">退出登录</button>
+      <!-- <button class="btn-s" id="btnLogout">退出登录</button>-->
+      <button class="btn-s menu-trigger" id="menuTrigger" onclick="toggleMenu(event)">☰</button>
     </div>
   </header>
   <div class="main">
@@ -621,8 +731,9 @@ td{color:var(--text)}
 <!-- ADMIN -->
 <div id="adminView" class="adm hidden">
   <header class="adm-hd">
-    <h2>⚙️ 超级管理员后台</h2>
-    <button class="btn-s" id="btnALogout">退出登录</button>
+    <h2>⚙️ 管理员后台</h2>
+    <!--<button class="btn-s" id="btnALogout">退出登录</button>-->
+    <button class="btn-s menu-trigger" id="adminMenuTrigger" onclick="toggleMenu(event)">☰</button>
   </header>
   <div class="adm-main">
     <div class="tabs" id="adminTabs">
@@ -678,6 +789,16 @@ td{color:var(--text)}
   </div>
 </div>
 
+<!-- 菜单显示 -->
+<div id="contextMenu" class="context-menu">
+  <div class="menu-item" onclick="openOvertimeSettings()">加班工资设置</div>
+  <div class="menu-divider"></div>
+  <div class="menu-item" onclick="openPwdModal()">修改密码</div>
+  <div class="menu-divider"></div>
+  <div class="menu-item" onclick="logout()">退出登录</div>
+</div>
+
+
 <!-- 编辑账号弹窗 -->
 <div id="editModal" class="mo-bg hidden">
   <div class="mo-ct">
@@ -703,6 +824,135 @@ td{color:var(--text)}
   </div>
 </div>
 
+<!-- 个人密码修改弹窗 -->
+<div id="pwdModal" class="mo-bg hidden">
+  <div class="mo-ct">
+    <div class="mo-hd">
+      <h3>个人信息</h3>
+      <button class="mo-x" id="pwdClose">×</button>
+    </div>
+    <div class="mo-bd">
+      <div class="edit-row">
+        <label>账号</label>
+        <input type="text" id="pwdUsername" readonly style="background:var(--surface2);cursor:not-allowed;opacity:0.7">
+      </div>
+      <div class="edit-row">
+        <label>姓名</label>
+        <input type="text" id="pwdDisplayName" readonly style="background:var(--surface2);cursor:not-allowed;opacity:0.7">
+      </div>
+      <div class="edit-row">
+        <label>新密码</label>
+        <input type="password" id="pwdNewPassword" placeholder="请输入新密码（至少6位）">
+      </div>
+      <div class="edit-row">
+        <label>确认密码</label>
+        <input type="password" id="pwdConfirmPassword" placeholder="请再次输入新密码">
+      </div>
+    </div>
+    <div class="mo-ft">
+      <button class="btn-c" id="pwdCancel">取消</button>
+      <button class="btn-ok" id="pwdSave">确认修改</button>
+    </div>
+    <p style="text-align:center;color:var(--text3);font-size:12px;padding:0 24px 16px">如果需要对账号和姓名进行修改请联系管理员</p>
+  </div>
+</div>
+
+<!-- 周末选择弹窗 -->
+<div id="weekendModal" class="mo-bg hidden">
+  <div class="mo-ct" style="width:320px">
+    <div class="mo-hd">
+      <h3>当月周末选择</h3>
+      <button class="mo-x" id="weekendClose">×</button>
+    </div>
+    <div class="mo-bd">
+      <div class="rg" style="flex-direction:column;gap:10px">
+        <div class="ro" style="width:100%">
+          <input type="radio" name="weekendOpt" value="all" id="wkAll" checked>
+          <label for="wkAll" style="width:100%;padding:12px">选择全部周末</label>
+        </div>
+        <div class="ro" style="width:100%">
+          <input type="radio" name="weekendOpt" value="sat" id="wkSat">
+          <label for="wkSat" style="width:100%;padding:12px">选择周六</label>
+        </div>
+        <div class="ro" style="width:100%">
+          <input type="radio" name="weekendOpt" value="sun" id="wkSun">
+          <label for="wkSun" style="width:100%;padding:12px">选择周日</label>
+        </div>
+      </div>
+    </div>
+    <div class="mo-ft">
+      <button class="btn-c" id="weekendCancel">取消</button>
+      <button class="btn-ok" id="weekendConfirm">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 加班工资设置弹窗 -->
+<div id="overtimeModal" class="mo-bg hidden">
+  <div class="mo-ct">
+    <div class="mo-hd">
+      <h3>加班工资设置</h3>
+      <button class="mo-x" onclick="closeOvertimeModal()">×</button>
+    </div>
+    <div class="mo-bd">
+      <div class="edit-row">
+        <label style="min-width: 120px;">平时加班 (元/小时)</label>
+        <input type="number" id="weekdayOvertimeRate" placeholder="请输入" min="0" step="0.01">
+      </div>
+      <div class="edit-row">
+        <label style="min-width: 120px;">周末加班 (元/小时)</label>
+        <input type="number" id="weekendOvertimeRate" placeholder="请输入" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="mo-ft">
+      <button class="btn-c" onclick="closeOvertimeModal()">取消</button>
+      <button class="btn-ok" onclick="saveOvertimeSettings()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 加班费统计弹窗 -->
+<div id="salaryModal" class="mo-bg hidden">
+  <div class="mo-ct" style="width:380px">
+    <div class="mo-hd">
+      <h3>💰 本月加班费统计</h3>
+      <button class="mo-x" onclick="closeSalaryModal()">×</button>
+    </div>
+    <div class="mo-bd" style="padding:24px">
+      <div style="background:var(--green-bg);border:1px solid var(--green-b);border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">平时加班费</div>
+        <div style="font-size:28px;font-weight:700;color:var(--green)">
+          ¥<span id="salaryWeekday">0.00</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">
+          <span id="weekdayHours">0</span>H × ¥<span id="weekdayRate">0.00</span>/H
+        </div>
+      </div>
+
+      <div style="background:var(--orange-bg);border:1px solid var(--orange-b);border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">周末加班费</div>
+        <div style="font-size:28px;font-weight:700;color:var(--orange)">
+          ¥<span id="salaryWeekend">0.00</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">
+          <span id="weekendHours">0</span>H × ¥<span id="weekendRate">0.00</span>/H
+        </div>
+      </div>
+
+      <div style="background:var(--accent-bg);border:2px solid var(--accent);border-radius:12px;padding:16px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">合计加班费</div>
+        <div style="font-size:36px;font-weight:800;color:#d64545">
+          ¥<span id="salaryTotal">0.00</span>
+        </div>
+      </div>
+    </div>
+    <div class="mo-ft">
+      <button class="btn-ok" onclick="closeSalaryModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+
 <script>
 var SUPABASE_URL = 'https://ymuctuibvvsarwtqmxcw.supabase.co';
 var SUPABASE_ANON_KEY = 'sb_publishable_wcQOhFspiXXs6ZJRLcyV2A_JbSdFA0-';
@@ -717,6 +967,115 @@ if(SUPABASE_URL.indexOf('你的') === -1 && typeof supabase !== 'undefined'){
 }else{
   console.log('💾 本地模式（未配置 Supabase，数据存储在浏览器）');
 }
+//===================================================
+//菜单控制函数
+// 切换菜单显示/隐藏
+function toggleMenu(event) {
+  event.stopPropagation(); // 阻止事件冒泡
+  var menu = document.getElementById('contextMenu');
+  var trigger = event.currentTarget; 
+  var rect = trigger.getBoundingClientRect();
+
+  // 定位菜单到按钮下方
+  menu.style.top = (rect.bottom + 5) + 'px';
+  menu.style.left = (rect.left - 100) + 'px'; // 向左偏移，防止菜单超出屏幕右侧
+
+  menu.classList.toggle('show');
+}
+
+// 点击页面其他地方关闭菜单
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('contextMenu');
+  if (!menu.contains(e.target) && e.target.id !== 'menuTrigger' && e.target.id !== 'adminMenuTrigger') {
+    menu.classList.remove('show');
+  }
+});
+
+//=====================================================
+//加班工资设置相关函数
+// 打开加班设置弹窗
+function openOvertimeSettings() {
+  document.getElementById('contextMenu').classList.remove('show'); // 先关闭菜单
+  // 加载已保存的设置
+  var settings = loadOvertimeSettings();
+  document.getElementById('weekdayOvertimeRate').value = settings.weekday || '';
+  document.getElementById('weekendOvertimeRate').value = settings.weekend || '';
+  document.getElementById('overtimeModal').classList.remove('hidden');
+}
+
+// 关闭加班设置弹窗
+function closeOvertimeModal() {
+  document.getElementById('overtimeModal').classList.add('hidden');
+}
+
+// 保存加班设置
+function saveOvertimeSettings() {
+  var weekdayRate = parseFloat(document.getElementById('weekdayOvertimeRate').value) || 0;
+  var weekendRate = parseFloat(document.getElementById('weekendOvertimeRate').value) || 0;
+
+  var settings = {
+    weekday: weekdayRate,
+    weekend: weekendRate,
+    updated_at: new Date().toISOString()
+  };
+  localStorage.setItem('att_overtime_settings', JSON.stringify(settings));
+
+  alert('加班工资设置已保存！');
+  closeOvertimeModal();
+}
+
+// 加载加班设置
+function loadOvertimeSettings() {
+  try {
+    var saved = localStorage.getItem('att_overtime_settings');
+    return saved ? JSON.parse(saved) : { weekday: 0, weekend: 0 };
+  } catch (e) {
+    return { weekday: 0, weekend: 0 };
+  }
+}
+
+// ===================== 加班费统计弹窗 =====================
+function openSalaryModal(){
+  // 获取加班费率设置
+  var settings = loadOvertimeSettings();
+  var weekdayRate = settings.weekday || 0;
+  var weekendRate = settings.weekend || 0;
+
+  // 获取当月加班时长（从统计卡片中读取）
+  var weekdayHours = parseFloat(document.getElementById('sW').textContent) || 0;
+  var weekendHours = parseFloat(document.getElementById('sE').textContent) || 0;
+
+  // 计算加班费
+  var weekdaySalary = weekdayHours * weekdayRate;
+  var weekendSalary = weekendHours * weekendRate;
+  var totalSalary = weekdaySalary + weekendSalary;
+
+  // 显示数据
+  document.getElementById('weekdayHours').textContent = weekdayHours;
+  document.getElementById('weekdayRate').textContent = weekdayRate.toFixed(2);
+  document.getElementById('salaryWeekday').textContent = weekdaySalary.toFixed(2);
+
+  document.getElementById('weekendHours').textContent = weekendHours;
+  document.getElementById('weekendRate').textContent = weekendRate.toFixed(2);
+  document.getElementById('salaryWeekend').textContent = weekendSalary.toFixed(2);
+
+  document.getElementById('salaryTotal').textContent = totalSalary.toFixed(2);
+
+  // 显示弹窗
+  document.getElementById('salaryModal').classList.remove('hidden');
+}
+
+function closeSalaryModal(){
+  document.getElementById('salaryModal').classList.add('hidden');
+}
+
+// 点击弹窗背景关闭
+document.getElementById('salaryModal').addEventListener('click', function(e){
+  if(e.target.id === 'salaryModal') closeSalaryModal();
+});
+
+
+
 
 // ===================== 加载动画 =====================
 function showLoading(text){
@@ -1119,8 +1478,21 @@ document.getElementById('refreshHoliday').addEventListener('click', async functi
   document.getElementById('toReg').addEventListener('click',function(){showV('reg')});
   document.getElementById('toLogin').addEventListener('click',function(){showV('login')});
   document.getElementById('hintToReg').addEventListener('click',function(){showV('reg')});
-  document.getElementById('btnLogout').addEventListener('click',logout);
-  document.getElementById('btnALogout').addEventListener('click',logout);
+  //document.getElementById('btnLogout').addEventListener('click',logout);
+ // document.getElementById('btnALogout').addEventListener('click',logout);
+    // 个人密码修改弹窗事件
+  document.getElementById('dashName').style.cursor = 'pointer';
+  document.getElementById('dashName').title = '点击修改密码';
+  document.getElementById('dashName').addEventListener('click', openPwdModal);
+  document.getElementById('pwdClose').addEventListener('click', closePwdModal);
+  document.getElementById('pwdCancel').addEventListener('click', closePwdModal);
+  document.getElementById('pwdSave').addEventListener('click', savePwd);
+  document.getElementById('pwdModal').addEventListener('click', function(e){if(e.target.id==='pwdModal')closePwdModal()});
+  // 周末选择弹窗事件
+  document.getElementById('weekendClose').addEventListener('click', closeWeekendModal);
+  document.getElementById('weekendCancel').addEventListener('click', closeWeekendModal);
+  document.getElementById('weekendConfirm').addEventListener('click', confirmWeekend);
+  document.getElementById('weekendModal').addEventListener('click', function(e){if(e.target.id==='weekendModal')closeWeekendModal()});
 
 document.getElementById('prevM').addEventListener('click',function(){
   if(--vMonth<1){vMonth=12;vYear--}
@@ -1150,6 +1522,7 @@ document.getElementById('nextM').addEventListener('click',function(){
       document.getElementById('aAtt').classList.toggle('hidden',this.dataset.t!=='a');
     });
   });
+
 
   document.getElementById('btnAShow').addEventListener('click',renderAAtt);
   document.getElementById('btnAExport').addEventListener('click',exportAdminXlsx);
@@ -1341,6 +1714,78 @@ async function logout(){
   showV('login');
 }
 
+// ===================== PERSONAL PASSWORD MODAL =====================
+function openPwdModal(){
+  if(!curUser) return;
+  document.getElementById('pwdUsername').value = curUser.username;
+  document.getElementById('pwdDisplayName').value = curUser.name;
+  document.getElementById('pwdNewPassword').value = '';
+  document.getElementById('pwdConfirmPassword').value = '';
+  document.getElementById('pwdModal').classList.remove('hidden');
+}
+
+function closePwdModal(){
+  document.getElementById('pwdModal').classList.add('hidden');
+}
+
+async function savePwd(){
+  var newPwd = document.getElementById('pwdNewPassword').value;
+  var confirmPwd = document.getElementById('pwdConfirmPassword').value;
+
+  if(!newPwd){alert('请输入新密码');return}
+  if(newPwd.length < 6){alert('密码至少需要6位');return}
+  if(newPwd !== confirmPwd){alert('两次输入的密码不一致');return}
+
+  showLoading('正在修改密码...');
+
+  if(CLOUD_MODE){
+    // 云端模式：更新 profiles 表的密码
+    var {error:profileErr} = await SB.from('profiles').update({
+      password: newPwd
+    }).eq('id', curUser.id);
+
+    if(profileErr){hideLoading();alert('修改失败: '+profileErr.message);return}
+
+    // 同时更新 auth.users 的密码
+    var {error:authErr} = await SB.rpc('admin_update_user',{
+      user_id: curUser.id,
+      new_email: curUser.username.indexOf('@')>=0 ? curUser.username : curUser.username+'@attendance.app',
+      new_password: newPwd
+    });
+
+    if(authErr){hideLoading();alert('密码更新失败: '+authErr.message);return}
+
+    hideLoading();
+    alert('密码修改成功！');
+  } else {
+    // 本地模式：更新 localStorage 中的用户密码
+    var users = JSON.parse(localStorage.getItem('att_local_users') || '[]');
+    for(var i = 0; i < users.length; i++){
+      if(users[i].id === curUser.id){
+        users[i].password = newPwd;
+        curUser.password = newPwd;
+        break;
+      }
+    }
+    localStorage.setItem('att_local_users', JSON.stringify(users));
+
+    // 同时更新记住密码的存储
+    try{
+      var rem = JSON.parse(localStorage.getItem(SKEY_R));
+      if(rem && rem.username === curUser.username){
+        rem.password = newPwd;
+        localStorage.setItem(SKEY_R, JSON.stringify(rem));
+      }
+    }catch(e){}
+
+    hideLoading();
+    alert('密码修改成功！');
+  }
+
+  closePwdModal();
+}
+
+
 // ===================== CALENDAR =====================
 async function render(){
   document.getElementById('dashName').textContent='欢迎，'+curUser.name;
@@ -1448,14 +1893,21 @@ function handleDayClick(event, d){
   }else if(isDragging){
     // 拖拽结束，不弹窗，只重置状态
     isDragging = false;
+  }else if(selectedDates.size > 0){
+    // ★ 关键改动：已有选中日期时，单击切换选中/取消选中
+    if(selectedDates.has(d)){
+      selectedDates.delete(d);
+    }else{
+      selectedDates.add(d);
+    }
+    renderCal();
   }else{
-    // 普通单击：清除选择，打开单日编辑弹窗
-    selectedDates.clear();
-    updateBatchBar();
+    // 没有选中任何日期时，才弹出单日编辑弹窗
     openModal(d);
   }
   mouseDownTime = 0;
 }
+
 
 // 开始拖选
 function startSelect(d){
@@ -1510,8 +1962,32 @@ function selectWeekdays(){
   renderCal();
 }
 
-// 选择所有周末
+// 选择周末（弹出选择弹窗）
 function selectWeekends(){
+  document.getElementById('weekendModal').classList.remove('hidden');
+}
+
+// 关闭周末选择弹窗
+function closeWeekendModal(){
+  document.getElementById('weekendModal').classList.add('hidden');
+}
+
+// 确认周末选择
+function confirmWeekend(){
+  var opt = document.querySelector('input[name="weekendOpt"]:checked').value;
+  closeWeekendModal();
+
+  if(opt === 'all'){
+    selectAllWeekends();
+  }else if(opt === 'sat'){
+    selectSaturdays();
+  }else if(opt === 'sun'){
+    selectSundays();
+  }
+}
+
+// 选择全部周末
+function selectAllWeekends(){
   var td = new Date(vYear, vMonth, 0).getDate();
   for(var d = 1; d <= td; d++){
     var dow = new Date(vYear, vMonth-1, d).getDay();
@@ -1521,6 +1997,31 @@ function selectWeekends(){
   }
   renderCal();
 }
+
+// 仅选择周六
+function selectSaturdays(){
+  var td = new Date(vYear, vMonth, 0).getDate();
+  for(var d = 1; d <= td; d++){
+    var dow = new Date(vYear, vMonth-1, d).getDay();
+    if(dow === 6){
+      selectedDates.add(d);
+    }
+  }
+  renderCal();
+}
+
+// 仅选择周日
+function selectSundays(){
+  var td = new Date(vYear, vMonth, 0).getDate();
+  for(var d = 1; d <= td; d++){
+    var dow = new Date(vYear, vMonth-1, d).getDay();
+    if(dow === 0){
+      selectedDates.add(d);
+    }
+  }
+  renderCal();
+}
+
 
 // 区间选择
 function selectRange(){
