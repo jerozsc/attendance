@@ -273,7 +273,6 @@ input,textarea{user-select:text;-webkit-user-select:text}
 .c .hr{font-size:13px;color:var(--text2);margin-top:3px;font-weight:600}
 .c .row1{
   display:flex;
-  justify-content:space-between;  /* 改为居中 */
   justify-content:center;  /* 新增：日期和农历居中 */
   align-items:center;
   gap:4px;
@@ -1317,34 +1316,56 @@ async function cloudLoadAtt(userId, year, month){
   if(!CLOUD_MODE) return null;
   var startDate = year+'-'+String(month).padStart(2,'0')+'-01';
   var endDate = year+'-'+String(month).padStart(2,'0')+'-31';
-  var {data,error} = await SB.from('attendance')
-    .select('*')
-    .eq('user_id',userId)
-    .gte('record_date',startDate)
-    .lte('record_date',endDate);
-  if(error){console.error(error);return null}
-  var result = {};
-  if(data){
-    data.forEach(function(r){
-      var parts = r.record_date.split('-');
-      var key = parseInt(parts[0])+'-'+parseInt(parts[1])+'-'+parseInt(parts[2]);
-      result[key] = {type:r.work_type,hours:parseFloat(r.hours)};
-    });
+  try{
+    var {data,error} = await SB.from('attendance')
+      .select('*')
+      .eq('user_id',userId)
+      .gte('record_date',startDate)
+      .lte('record_date',endDate);
+    if(error){
+      console.error('云端加载考勤失败:', error.message);
+      return null;
+    }
+    var result = {};
+    if(data){
+      data.forEach(function(r){
+        var parts = r.record_date.split('-');
+        var key = parseInt(parts[0])+'-'+parseInt(parts[1])+'-'+parseInt(parts[2]);
+        result[key] = {type:r.work_type, hours:parseFloat(r.hours)};
+      });
+    }
+    return result;
+  }catch(e){
+    console.error('云端加载考勤异常:', e.message);
+    return null;
   }
-  return result;
 }
 
+
+
+//cloudSaveAtt 添加错误处理和返回值
 async function cloudSaveAtt(userId, year, month, day, type, hours){
-  if(!CLOUD_MODE) return;
+  if(!CLOUD_MODE) return {success:true};
   var dateStr = year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');
-  await SB.from('attendance').upsert({
-    user_id:userId,
-    record_date:dateStr,
-    work_type:type,
-    hours:hours,
-    updated_at:new Date().toISOString()
-  },{onConflict:'user_id,record_date'});
+  try{
+    var {data,error} = await SB.from('attendance').upsert({
+      user_id:userId,
+      record_date:dateStr,
+      work_type:type,
+      hours:hours,
+      updated_at:new Date().toISOString()
+    },{onConflict:'user_id,record_date'});
+    if(error){
+      console.error('云端保存失败:', error.message);
+      return {success:false, error:error.message};
+    }
+    return {success:true};
+  }catch(e){
+    console.error('云端保存异常:', e.message);
+    return {success:false, error:e.message};
+  }
 }
+
 
 async function cloudLoadUsers(){
   if(!CLOUD_MODE) return [];
@@ -1360,68 +1381,88 @@ async function cloudLoadAllAtt(year, month){
   if(!CLOUD_MODE) return {};
   var startDate = year+'-'+String(month).padStart(2,'0')+'-01';
   var endDate = year+'-'+String(month).padStart(2,'0')+'-31';
-  var {data,error} = await SB.from('attendance')
-    .select('*,profiles(username,display_name)')
-    .gte('record_date',startDate)
-    .lte('record_date',endDate);
-  if(error||!data) return {};
-  var result = {};
-  data.forEach(function(r){
-    if(!result[r.user_id]) result[r.user_id]={};
-    var parts = r.record_date.split('-');
-    var key = parseInt(parts[0])+'-'+parseInt(parts[1])+'-'+parseInt(parts[2]);
-    result[r.user_id][key]={type:r.work_type,hours:parseFloat(r.hours)};
-  });
-  return result;
+  try{
+    var {data,error} = await SB.from('attendance')
+      .select('*,profiles(username,display_name)')
+      .gte('record_date',startDate)
+      .lte('record_date',endDate);
+    if(error){
+      console.error('云端加载全部考勤失败:', error.message);
+      return {};
+    }
+    if(!data) return {};
+    var result = {};
+    data.forEach(function(r){
+      if(!result[r.user_id]) result[r.user_id]={};
+      var parts = r.record_date.split('-');
+      var key = parseInt(parts[0])+'-'+parseInt(parts[1])+'-'+parseInt(parts[2]);
+      result[r.user_id][key]={type:r.work_type,hours:parseFloat(r.hours)};
+    });
+    return result;
+  }catch(e){
+    console.error('云端加载全部考勤异常:', e.message);
+    return {};
+  }
 }
+
 
 async function cloudDeleteUser(userId){
   if(!CLOUD_MODE) return;
   await SB.from('attendance').delete().eq('user_id',userId);
   await SB.from('profiles').delete().eq('id',userId);
 }
+//cloudDeleteAtt 添加删除单条记录的云端函数
+async function cloudDeleteAtt(userId, year, month, day){
+  if(!CLOUD_MODE) return {success:true};
+  var dateStr = year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+  try{
+    var {error} = await SB.from('attendance').delete()
+      .eq('user_id', userId)
+      .eq('record_date', dateStr);
+    if(error){
+      console.error('云端删除失败:', error.message);
+      return {success:false, error:error.message};
+    }
+    return {success:true};
+  }catch(e){
+    console.error('云端删除异常:', e.message);
+    return {success:false, error:e.message};
+  }
+}
+
 
 // ===================== INIT =====================
 (function init(){
-	 // 1. 首先填充所有下拉菜单（无论是否登录）
-	var ay=document.getElementById('aYear'),am=document.getElementById('aMonth');
-	var sy=document.getElementById('selYear'),sm=document.getElementById('selMonth');
-	var curYr=new Date().getFullYear(),curMo=new Date().getMonth()+1;
-	for(var y=2024;y<=2030;y++){
-	  ay.innerHTML+='<option value="'+y+'"'+(y===curYr?' selected':'')+'>'+y+'</option>';
-	  sy.innerHTML+='<option value="'+y+'"'+(y===curYr?' selected':'')+'>'+y+'年</option>';
-	}
-	for(var m=1;m<=12;m++){
-	  am.innerHTML+='<option value="'+m+'"'+(m===curMo?' selected':'')+'>'+m+'</option>';
-	  sm.innerHTML+='<option value="'+m+'"'+(m===curMo?' selected':'')+'>'+m+'月</option>';
-	}
-  //  2. 弹窗初始化
+  // ========== 1. 首先绑定所有事件监听器（确保无论是否登录，交互都能工作） ==========
+
+  // 弹窗初始化
   buildHours();
   document.getElementById('mClose').addEventListener('click',closeModal);
   document.getElementById('mCancel').addEventListener('click',closeModal);
   document.getElementById('mSave').addEventListener('click',saveAtt);
   document.getElementById('mClear').addEventListener('click',clearAtt);
   document.getElementById('modal').addEventListener('click',function(e){if(e.target.id==='modal')closeModal()});
-  
-  //3. ★★★ 先绑定所有事件监听器 ★★★
+
+  // 日历导航 - 上月
   document.getElementById('prevM').addEventListener('click',function(){
     if(--vMonth<1){vMonth=12;vYear--}
     document.getElementById('selYear').value=vYear;
     document.getElementById('selMonth').value=vMonth;
     render();
   });
+  // 日历导航 - 下月
   document.getElementById('nextM').addEventListener('click',function(){
     if(++vMonth>12){vMonth=1;vYear++}
     document.getElementById('selYear').value=vYear;
     document.getElementById('selMonth').value=vMonth;
     render();
   });
-  // 监听日历年月下拉框变化
-  sy.addEventListener('change',function(){
+  // 日历年月下拉框变化
+  document.getElementById('selYear').addEventListener('change',function(){
     vYear=parseInt(this.value);
     render();
   });
-  sm.addEventListener('change',function(){
+  document.getElementById('selMonth').addEventListener('change',function(){
     vMonth=parseInt(this.value);
     render();
   });
@@ -1433,20 +1474,24 @@ async function cloudDeleteUser(userId){
     document.getElementById('selMonth').value=vMonth;
     render();
   });
+
+  // 登录按钮
   document.getElementById('btnLogin').addEventListener('click',function(e){e.preventDefault();doLogin()});
   document.getElementById('lPass').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();doLogin()}});
   document.getElementById('lUser').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('lPass').focus()}});
-  
+
+  // 注册按钮
   document.getElementById('btnReg').addEventListener('click',function(e){e.preventDefault();doReg()});
   document.getElementById('rName').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();doReg()}});
   document.getElementById('rPass').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('rName').focus()}});
   document.getElementById('rUser').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('rPass').focus()}});
-  
+
+  // 登录/注册切换
   document.getElementById('toReg').addEventListener('click',function(){showV('reg')});
   document.getElementById('toLogin').addEventListener('click',function(){showV('login')});
   document.getElementById('hintToReg').addEventListener('click',function(){showV('reg')});
-  
-    // 个人密码修改弹窗事件
+
+  // 个人密码修改弹窗事件
   document.getElementById('dashName').style.cursor = 'pointer';
   document.getElementById('dashName').title = '点击修改密码';
   document.getElementById('dashName').addEventListener('click', openPwdModal);
@@ -1454,13 +1499,17 @@ async function cloudDeleteUser(userId){
   document.getElementById('pwdCancel').addEventListener('click', closePwdModal);
   document.getElementById('pwdSave').addEventListener('click', savePwd);
   document.getElementById('pwdModal').addEventListener('click', function(e){if(e.target.id==='pwdModal')closePwdModal()});
+
   // 周末选择弹窗事件
   document.getElementById('weekendClose').addEventListener('click', closeWeekendModal);
   document.getElementById('weekendCancel').addEventListener('click', closeWeekendModal);
   document.getElementById('weekendConfirm').addEventListener('click', confirmWeekend);
   document.getElementById('weekendModal').addEventListener('click', function(e){if(e.target.id==='weekendModal')closeWeekendModal()});
-  
+
+  // 导出按钮
   document.getElementById('btnExport').addEventListener('click',exportXlsx);
+
+  // 管理员后台Tab切换
   document.querySelectorAll('.tab').forEach(function(t){
     t.addEventListener('click',function(){
       document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});
@@ -1469,42 +1518,62 @@ async function cloudDeleteUser(userId){
       document.getElementById('aAtt').classList.toggle('hidden',this.dataset.t!=='a');
     });
   });
-  
+
+  // 管理员后台按钮
   document.getElementById('btnAShow').addEventListener('click',renderAAtt);
   document.getElementById('btnAExport').addEventListener('click',exportAdminXlsx);
-  
+
   // 编辑弹窗事件
   document.getElementById('editClose').addEventListener('click',closeEditModal);
   document.getElementById('editCancel').addEventListener('click',closeEditModal);
   document.getElementById('editSave').addEventListener('click',saveEditUser);
   document.getElementById('editModal').addEventListener('click',function(e){if(e.target.id==='editModal')closeEditModal()});
+
+  // 刷新假期按钮
   document.getElementById('refreshHoliday').addEventListener('click', async function(){
     showLoading('正在更新假期数据...');
     var year = vYear;
-    // 清除缓存
     var cached = loadCachedHolidays();
     delete cached['year_' + year];
     saveCachedHolidays(cached);
-    // 重新获取
     await updateHolidays(year);
     hideLoading();
     alert(year + '年假期数据已更新');
     renderCal();
   });
-  // 4. 自动加载假期数据
-    var currentYear = new Date().getFullYear();
-    updateHolidays(currentYear);
-    updateHolidays(currentYear + 1);
-	
-	if(CLOUD_MODE){
-	  document.querySelectorAll('.cloud-badge').forEach(function(b){b.style.display='inline-flex'});
-	}else{
-	  document.querySelectorAll('.cloud-badge').forEach(function(b){b.textContent='💾 本地模式'});
-	}
-	
-	checkHint();
 
-// ★ 新增：检查是否有保存的登录状态
+  // ========== 2. 界面初始化 ==========
+
+  // 填充所有下拉菜单
+  var ay=document.getElementById('aYear'),am=document.getElementById('aMonth');
+  var sy=document.getElementById('selYear'),sm=document.getElementById('selMonth');
+  var curYr=new Date().getFullYear(),curMo=new Date().getMonth()+1;
+  for(var y=2024;y<=2030;y++){
+    ay.innerHTML+='<option value="'+y+'"'+(y===curYr?' selected':'')+'>'+y+'</option>';
+    sy.innerHTML+='<option value="'+y+'"'+(y===curYr?' selected':'')+'>'+y+'年</option>';
+  }
+  for(var m=1;m<=12;m++){
+    am.innerHTML+='<option value="'+m+'"'+(m===curMo?' selected':'')+'>'+m+'</option>';
+    sm.innerHTML+='<option value="'+m+'"'+(m===curMo?' selected':'')+'>'+m+'月</option>';
+  }
+
+  // 自动加载假期数据
+  var currentYear = new Date().getFullYear();
+  updateHolidays(currentYear);
+  updateHolidays(currentYear + 1);
+
+  // 云端/本地模式徽章
+  if(CLOUD_MODE){
+    document.querySelectorAll('.cloud-badge').forEach(function(b){b.style.display='inline-flex'});
+  }else{
+    document.querySelectorAll('.cloud-badge').forEach(function(b){b.textContent='💾 本地模式'});
+  }
+
+  checkHint();
+
+  // ========== 3. 最后，尝试恢复登录状态（可以安全return） ==========
+
+  // 检查是否有保存的登录状态
   try{
     var savedState = localStorage.getItem('att_login_state');
     if(savedState){
@@ -1514,24 +1583,26 @@ async function cloudDeleteUser(userId){
       if(isAdmin){
         showV('admin');
         renderAdmin();
-        return; // 直接返回，不执行后续登录相关逻辑
+        return;
       } else {
         vYear = new Date().getFullYear();
         vMonth = new Date().getMonth() + 1;
+        document.getElementById('selYear').value=vYear;
+        document.getElementById('selMonth').value=vMonth;
         showV('dash');
         render();
-        return; // 直接返回
+        return;
       }
     }
   }catch(e){}
-  
+
+  // 如果没有保存的登录状态，尝试"记住密码"的自动登录
   try{
     var rem=JSON.parse(localStorage.getItem(SKEY_R));
     if(rem&&rem.username&&rem.password){
       document.getElementById('lUser').value=rem.username;
       document.getElementById('lPass').value=rem.password;
       document.getElementById('lRemember').checked=true;
-      // ★ 增加判空检查
       setTimeout(function() {
         if(rem && rem.username && rem.password) {
           doAutoLogin(rem.username, rem.password);
@@ -1540,7 +1611,6 @@ async function cloudDeleteUser(userId){
     }
   }catch(e){}
 
-  
 })();
 
 //=========================================init结束======================================
@@ -1774,22 +1844,33 @@ async function savePwd(){
 // ===================== CALENDAR =====================
 async function render(){
   document.getElementById('dashName').textContent='欢迎，'+curUser.name;
-  //document.getElementById('moDisp').textContent=vYear+'年'+vMonth+'月';
   document.getElementById('calBox').innerHTML='<div class="loading">加载考勤数据</div>';
 
-  if(CLOUD_MODE&&curUser.id){
+  if(CLOUD_MODE && curUser.id){
+    showLoading('正在同步云端数据...');
     var cloudData = await cloudLoadAtt(curUser.id, vYear, vMonth);
-    if(cloudData){
-      var local=loadLocalAtt();
-      if(!local[curUser.id])local[curUser.id]={};
+    hideLoading();
+
+    if(cloudData === null){
+      // 云端加载失败，使用本地数据
+      console.warn('云端数据加载失败，使用本地缓存');
+    } else if(cloudData){
+      var local = loadLocalAtt();
+      if(!local[curUser.id]) local[curUser.id] = {};
       for(var k in cloudData){
-        local[curUser.id][k]=cloudData[k];
+        if(!local[curUser.id][k]){
+          local[curUser.id][k] = cloudData[k];
+        }
       }
       saveLocalAtt(local);
     }
   }
-  renderCal();calcStats();
+  renderCal();
+  calcStats();
 }
+
+
+
 
 function renderCal(){
   var fd=new Date(vYear,vMonth-1,1).getDay();
@@ -1807,8 +1888,8 @@ function renderCal(){
   var isWk=(dw===0||dw===6);
   var isT=(isCM&&d===today.getDate());
   var lun=solar2lunar(vYear,vMonth,d),ls=lunarShort(lun);
-  var defT = getDefType(vYear, vMonth, d);
   var defStr = getDefType(vYear, vMonth, d);
+
   var tp = rec ? rec.type : (defStr.indexOf('·') >= 0 ? '法休' : defStr);
 
   var hr = rec ? rec.hours : 0;
@@ -1818,19 +1899,21 @@ function renderCal(){
   if(selectedDates.has(d))cls+=' selected';
   var tc='t-w';
   if(rec){
-    if(tp==='上班'){cls+=hr>8?' tp-o':' tp-w';tc=hr>8?'t-o':'t-w'}
-    else if(tp==='法休'){cls+=' tp-h';tc='t-h'}
-    else if(tp==='年假'){cls+=' tp-a';tc='t-a'}
-    else if(tp==='事假'){cls+=' tp-p';tc='t-p'}
-    else if(tp==='病假'){cls+=' tp-s';tc='t-s'}
-    else if(tp==='休息'){cls+=' tp-r';tc='t-r'}
+      if(tp==='上班'){cls+=hr>8?' tp-o':' tp-w';tc=hr>8?'t-o':'t-w'}
+      else if(tp==='法休'){cls+=' tp-h';tc='t-h'}
+      else if(tp==='年假'){cls+=' tp-a';tc='t-a'}
+      else if(tp==='事假'){cls+=' tp-p';tc='t-p'}
+      else if(tp==='病假'){cls+=' tp-s';tc='t-s'}
+      else if(tp==='休息'){cls+=' tp-r';tc='t-r'}
   }else{
-    if(defT==='休息'){cls+=' tp-r';tc='t-r'}
-    else if(defT.indexOf('法休')>=0){cls+=' tp-h';tc='t-h'} 
+      if(defStr==='休息'){cls+=' tp-r';tc='t-r'}
+      else if(defStr.indexOf('法休')>=0){cls+=' tp-h';tc='t-h'}
   }
-  h+='<div class="'+cls+'" data-day="'+d+'" onclick="handleDayClick(event,'+d+')" onmousedown="startSelect('+d+')" onmouseover="continueSelect('+d+')">';
+
+h+='<div class="'+cls+'" data-day="'+d+'" onclick="handleDayClick(event,'+d+')" onmousedown="startSelect(event,'+d+')" onmouseover="continueSelect(event,'+d+')" ontouchstart="startTouch(event,'+d+')" ontouchmove="moveTouch(event)" ontouchend="endTouch(event,'+d+')">';
+
   h+='<div class="row1"><span class="dn">'+d+'</span><span class="ln">'+ls+'</span></div>';
-  //h+='<div class="tp '+tc+'">'+tp+'</div>';
+
 // 只有"上班"类型且有上班时长时才显示"上班"，其他类型正常显示
 var showType = '';
 if(rec){
@@ -1841,11 +1924,12 @@ if(rec){
   }
 } else {
   // 没有记录时，显示默认类型（法休或休息）
-  if(defT.indexOf('法休') >= 0){
+  if(defStr.indexOf('法休') >= 0){
     showType = '法休';
-  } else if(defT === '休息'){
+  } else if(defStr === '休息'){
     showType = '休息';
   }
+
 }
 if(showType){
   h+='<div class="tp '+tc+'">'+showType+'</div>';
@@ -1915,17 +1999,17 @@ function handleDayClick(event, d){
 
 
 // 开始拖选
-function startSelect(d){
-  if(event.button === 0){ // 左键
+function startSelect(ev, d){
+  if(ev.button === 0){ // 左键
     mouseDownTime = Date.now();
     isDragging = false;
   }
 }
 
+
 // 继续拖选
-function continueSelect(d){
+function continueSelect(ev, d){
   if(mouseDownTime > 0 && Date.now() - mouseDownTime > 100){
-    // 按住超过100ms才算拖拽
     isDragging = true;
     if(!selectedDates.has(d)){
       selectedDates.add(d);
@@ -1933,6 +2017,70 @@ function continueSelect(d){
     }
   }
 }
+// ===================== TOUCH EVENTS (移动端) =====================
+var touchStartDay = null;
+var touchStartX = 0;
+var touchStartY = 0;
+
+function startTouch(ev, d){
+  var touch = ev.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  touchStartDay = d;
+  mouseDownTime = Date.now();
+  isDragging = false;
+}
+
+function moveTouch(ev){
+  if(!touchStartDay) return;
+  var touch = ev.touches[0];
+  var dx = Math.abs(touch.clientX - touchStartX);
+  var dy = Math.abs(touch.clientY - touchStartY);
+
+  // 水平移动超过10px或垂直移动超过5px视为拖拽
+  if(dx > 10 || dy > 5){
+    isDragging = true;
+
+    // 获取触摸点下的元素
+    var targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+    if(targetEl){
+      var cell = targetEl.closest('.c');
+      if(cell && cell.dataset.day){
+        var d = parseInt(cell.dataset.day);
+        if(!selectedDates.has(d)){
+          selectedDates.add(d);
+          renderCal();
+        }
+      }
+    }
+  }
+}
+
+function endTouch(ev, d){
+  if(isDragging){
+    isDragging = false;
+    mouseDownTime = 0;
+    touchStartDay = null;
+    return;
+  }
+
+  // 短按（非拖拽）= 点击行为
+  if(selectedDates.size > 0){
+    if(selectedDates.has(d)){
+      selectedDates.delete(d);
+    }else{
+      selectedDates.add(d);
+    }
+    renderCal();
+  }else{
+    openModal(d);
+  }
+
+  mouseDownTime = 0;
+  touchStartDay = null;
+  isDragging = false;
+}
+
 
 
 // 鼠标抬起时结束拖选
@@ -2051,44 +2199,51 @@ function clearSelection(){
 
 // 批量应用
 async function applyBatch(){
-  if(selectedDates.size === 0){
-    alert('请先选择日期');
-    return;
-  }
+  if(selectedDates.size === 0){alert('请先选择日期');return}
 
   var tp = document.getElementById('batchType').value;
   var hr = parseFloat(document.getElementById('batchHours').value);
 
-  if(!confirm('确定将选中的 ' + selectedDates.size + ' 天批量设置为：' + tp + ' ' + hr + 'h？')){
-    return;
-  }
+  if(!confirm('确定将选中的 ' + selectedDates.size + ' 天批量设置为：' + tp + ' ' + hr + 'h？')){return}
 
   showLoading('正在保存...');
 
+  var dates = Array.from(selectedDates).sort(function(a, b){return a - b});
+  var failedDates = [];
   var local = loadLocalAtt();
   if(!local[curUser.id]) local[curUser.id] = {};
-
-  var dates = Array.from(selectedDates).sort(function(a, b){return a - b});
 
   for(var i = 0; i < dates.length; i++){
     var d = dates[i];
     var k = vYear + '-' + vMonth + '-' + d;
-    local[curUser.id][k] = {type: tp, hours: hr};
 
+    // 云端优先
     if(CLOUD_MODE && curUser.id){
-      await cloudSaveAtt(curUser.id, vYear, vMonth, d, tp, hr);
+      var result = await cloudSaveAtt(curUser.id, vYear, vMonth, d, tp, hr);
+      if(!result.success){
+        failedDates.push(d);
+        continue; // 跳过失败的，继续处理其他的
+      }
     }
+
+    // 云端成功才写本地
+    local[curUser.id][k] = {type: tp, hours: hr};
   }
 
   saveLocalAtt(local);
   hideLoading();
 
-  alert('已成功批量设置 ' + dates.length + ' 天的考勤记录');
+  if(failedDates.length > 0){
+    alert('批量设置完成，但以下日期云端保存失败:\n' + failedDates.join('日, ') + '日\n请检查网络后重试');
+  } else {
+    alert('已成功批量设置 ' + dates.length + ' 天的考勤记录');
+  }
 
   clearSelection();
   renderCal();
   calcStats();
 }
+
 
 
 //========================================
@@ -2170,52 +2325,62 @@ function openModal(d){
 function closeModal(){document.getElementById('modal').classList.add('hidden');selDate=null}
 
 //======================================================
-//保存函数
+//saveAtt 先同步云端再写本地，失败则提示
 async function saveAtt(){
   if(!selDate) return;
   var tp = document.querySelector('input[name="atype"]:checked').value;
   var hr = parseFloat(document.querySelector('input[name="ahours"]:checked').value);
+  var k = vYear + '-' + vMonth + '-' + selDate;
 
-  var local = loadLocalAtt();
-  if(!local[curUser.id]) local[curUser.id] = {};
-  local[curUser.id][vYear + '-' + vMonth + '-' + selDate] = {type: tp, hours: hr};
-  saveLocalAtt(local);
+  showLoading('正在保存...');
 
+  // ★ 云端优先：先写云端
   if(CLOUD_MODE && curUser.id){
-    await cloudSaveAtt(curUser.id, vYear, vMonth, selDate, tp, hr);
+    var result = await cloudSaveAtt(curUser.id, vYear, vMonth, selDate, tp, hr);
+    if(!result.success){
+      hideLoading();
+      alert('云端保存失败: ' + result.error + '\n请检查网络后重试');
+      return; // 云端失败则不更新本地，不刷新UI
+    }
   }
 
+  // 云端成功后再更新本地
+  var local = loadLocalAtt();
+  if(!local[curUser.id]) local[curUser.id] = {};
+  local[curUser.id][k] = {type: tp, hours: hr};
+  saveLocalAtt(local);
+
+  hideLoading();
   closeModal();
   renderCal();
   calcStats();
 }
 
+
 //======================================================
 //清空函数
 async function clearAtt(){
   if(!selDate) return;
-
   var k = vYear + '-' + vMonth + '-' + selDate;
-
-  if(!confirm('确定清空该日期的考勤记录？')){
-    return;
-  }
+  if(!confirm('确定清空该日期的考勤记录？')){return}
 
   showLoading('正在清空...');
 
-  // 清空本地数据
+  // 云端优先删除
+  if(CLOUD_MODE && curUser.id){
+    var result = await cloudDeleteAtt(curUser.id, vYear, vMonth, selDate);
+    if(!result.success){
+      hideLoading();
+      alert('云端删除失败: ' + result.error + '\n请检查网络后重试');
+      return;
+    }
+  }
+
+  // 云端成功后再删除本地
   var local = loadLocalAtt();
   if(local[curUser.id] && local[curUser.id][k]){
     delete local[curUser.id][k];
     saveLocalAtt(local);
-  }
-
-  // 清空云端数据
-  if(CLOUD_MODE && curUser.id){
-    var dateStr = vYear + '-' + String(vMonth).padStart(2,'0') + '-' + String(selDate).padStart(2,'0');
-    await SB.from('attendance').delete()
-      .eq('user_id', curUser.id)
-      .eq('record_date', dateStr);
   }
 
   hideLoading();
@@ -2223,6 +2388,7 @@ async function clearAtt(){
   renderCal();
   calcStats();
 }
+
 
 
 
@@ -2256,9 +2422,14 @@ function renderUTblWithData(users){
 }
 
 function maskPw(pw){
-  if(!pw) return '••••••';
-  return '••••••';
+  if(!pw) return '（未设置）';
+  var masked = '';
+  for(var i = 0; i < pw.length; i++){
+    masked += '•';
+  }
+  return masked;
 }
+
 
 function escapePw(pw){
   return pw.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
@@ -2370,21 +2541,22 @@ async function renderAAtt(){
     users = await cloudLoadUsers();
     allAtt = await cloudLoadAllAtt(y,m);
 
-    // 调试：输出获取到的数据
-    console.log('【调试】users:', users);
-    console.log('【调试】allAtt:', JSON.stringify(allAtt, null, 2));
-
-    // 同步云端数据到本地缓存
+    // 同步云端数据到本地缓存（仅填补本地缺失的记录）
     if(allAtt){
       var local = loadLocalAtt();
       for(var userId in allAtt){
         if(!local[userId]) local[userId] = {};
         for(var k in allAtt[userId]){
-          local[userId][k] = allAtt[userId][k];
+          if(!local[userId][k]){
+            // 本地没有才使用云端
+            local[userId][k] = allAtt[userId][k];
+          }
+          // 本地已有记录则保留本地
         }
       }
       saveLocalAtt(local);
     }
+
   } else {
     users = JSON.parse(localStorage.getItem('att_local_users') || '[]').filter(function(u){
       return u.role !== 'admin';
@@ -2420,19 +2592,11 @@ async function renderAAtt(){
     var total = 0, wOT = 0, eOT = 0;
     h += '<tr><td><strong>'+u.name+'</strong><br><span style="color:var(--text3);font-size:10px">'+u.username+'</span></td>';
 
-    // 调试：输出每个用户的考勤数据
-    console.log('【调试】用户 '+u.name+' 的考勤数据:', ud);
-
     for(var d=1; d<=td; d++){
       var k = y+'-'+m+'-'+d;
       var rec = ud[k];
       var dow = new Date(y,m-1,d).getDay();
       var isWk = (dow===0||dow===6);
-
-      // 调试：输出20号的数据
-      if(d === 20){
-        console.log('【调试】20号记录:', rec);
-      }
 
       if(rec && rec.hours && parseFloat(rec.hours) > 0){
         var hours = parseFloat(rec.hours);
