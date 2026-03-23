@@ -461,124 +461,87 @@ td{color:var(--text)}
   .st .sub-info{font-size:9px}
   .st::after{display:none}
   .st{padding-bottom:20px}
-  .c{min-height:90px;padding:6px;text-align:center}  /* 修改：居中 */
-  .c .dn{font-size:15px}
-  .c .ln{font-size:10px;white-space:nowrap}
-  .c .tp{font-size:9px;padding:2px 5px;margin-top:4px;white-space:nowrap;text-align:center}  /* 修改：居中 */
-  .c .hr{font-size:11px}
-  .c .row1{justify-content:center;align-items:center;gap:4px}  /* 修改：居中 */
+
+  /* ★ 日历单元格高度缩短 */
+  .c{min-height:60px;padding:4px 2px;text-align:center}
+  .c .dn{font-size:14px}
+  .c .ln{font-size:9px;white-space:nowrap;color:var(--text3)}
+  .c .tp{font-size:9px;padding:1px 4px;margin-top:0px;white-space:nowrap;text-align:center}
+  .c .hr{font-size:10px;margin-top:1px}
+  .c .row1{justify-content:center;align-items:center;gap:1px;margin-bottom:0}  /* ★ 新增 margin-bottom:0 */
+
   .main{padding:12px}
-  .cal-hd span{font-size:12px;padding:10px 2px}
+  .cal-hd span{font-size:11px;padding:8px 2px}
   .hours-grid{grid-template-columns:repeat(4,1fr)}
 
   /* 确保网格等宽 */
   .cal-grid{grid-template-columns:repeat(7,1fr)!important;width:100%}
   .cal-hd{grid-template-columns:repeat(7,1fr)!important;width:100%}
   .cal-ft{grid-template-columns:repeat(7,1fr)!important;width:100%}
+  .cal-ft span{padding:8px 4px;font-size:11px}
 
   /* 日历导航栏适配 */
-  .cal-nav{gap:12px;margin-bottom:14px}
+  .cal-nav{gap:10px;margin-bottom:12px}
   .cal-nav .mo{font-size:16px;min-width:auto;white-space:nowrap}
-  .nb{width:34px;height:34px;font-size:16px;border-radius:8px}
+  .nb{width:32px;height:32px;font-size:16px;border-radius:8px}
   #refreshHoliday{font-size:12px!important}
 
-/* ===== 管理员后台移动端适配 ===== */
+  /* 图例缩小 */
+  .legend{gap:12px;margin-top:10px;font-size:11px}
+  .legend-dot{width:10px;height:10px}
 
-/* 问题1修复：账号管理表格容器溢出 */
-#uTbl {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  /* 管理员后台移动端适配 */
+  #uTbl {overflow-x: auto;-webkit-overflow-scrolling: touch;}
+  #uTbl table {min-width: 500px;}
+  .msel {flex-wrap: wrap;gap: 8px;}
+  .msel select,.msel input[type="text"] {min-width: 0;flex: 0 1 auto;}
+  .msel .btn-s,.msel .ab {flex-shrink: 0;}
+  .as {overflow-x: auto;}
 }
 
-#uTbl table {
-  min-width: 500px; /* 设置最小宽度确保内容不被压缩 */
-}
-
-/* 问题2修复：考勤查看区域的筛选栏换行 */
-.msel {
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.msel select,
-.msel input[type="text"] {
-  min-width: 0;
-  flex: 0 1 auto;
-}
-
-.msel .btn-s,
-.msel .ab {
-  flex-shrink: 0;
-}
-
-/* 管理后台整体区域溢出控制 */
-.as {
-  overflow-x: auto;
-}
-
-}
 
 @media(max-width:400px){
   .stats{gap:4px}
-  .st{padding:12px 8px 16px}
+  .st{padding:10px 6px 14px}
   .st .lb{font-size:8px}
-  .st .vl{font-size:22px}
-  .st .un{font-size:12px}
+  .st .vl{font-size:20px}
+  .st .un{font-size:11px}
   .st .sub-info{display:none}
 
-  .c{min-height:75px;padding:4px;text-align:center}  /* 修改：居中 */
-  .c .dn{font-size:13px}
-  .c .ln{font-size:9px;white-space:nowrap}
-  .c .tp{font-size:8px;padding:1px 4px;margin-top:2px;white-space:nowrap;text-align:center}  /* 修改：居中 */
-  .c .hr{font-size:10px}
-  .c .row1{justify-content:center;align-items:center;gap:2px}  /* 修改：居中 */
+  /* ★ 超小屏日历单元格进一步缩短 */
+  .c{min-height:48px;padding:3px 1px;text-align:center}
+  .c .dn{font-size:12px}
+  .c .ln{font-size:8px;white-space:nowrap}
+  .c .tp{font-size:8px;padding:1px 2px;margin-top:0;white-space:nowrap;text-align:center}  /* ★ margin-top 改为 0 */
+  .c .hr{font-size:9px;margin-top:0}
+  .c .row1{justify-content:center;align-items:center;gap:1px;margin-bottom:0}  /* ★ 新增 margin-bottom:0 */
 
   /* 确保网格等宽 */
   .cal-grid{grid-template-columns:repeat(7,1fr)!important;width:100%}
   .cal-hd{grid-template-columns:repeat(7,1fr)!important;width:100%}
   .cal-ft{grid-template-columns:repeat(7,1fr)!important;width:100%}
+  .cal-hd span{font-size:10px;padding:6px 1px}
+  .cal-ft span{padding:6px 2px;font-size:10px}
 
-  .cal-nav{gap:8px}
-  .cal-nav .mo{font-size:14px}
-  .nb{width:30px;height:30px;font-size:14px;border-radius:6px}
-  #refreshHoliday{font-size:11px!important}
+  .cal-nav{gap:6px}
+  .cal-nav .mo{font-size:13px}
+  .nb{width:28px;height:28px;font-size:13px;border-radius:6px}
+  #refreshHoliday{font-size:10px!important}
 
-/* ===== 管理员后台超小屏适配 ===== */
+  /* 图例进一步缩小 */
+  .legend{gap:8px;margin-top:8px;font-size:10px}
+  .legend-dot{width:8px;height:8px}
+  .legend-item{gap:4px}
 
-/* 表格进一步缩小最小宽度 */
-#uTbl table {
-  min-width: 360px;
+  /* 管理员后台超小屏适配 */
+  #uTbl table {min-width: 360px;}
+  #uTbl table th,#uTbl table td {padding: 6px 8px;font-size: 11px;}
+  .msel {gap: 6px;}
+  .msel select {padding: 5px 6px;font-size: 11px;min-width: 60px;}
+  .msel input[type="text"] {padding: 5px 8px;font-size: 11px;}
+  .msel .btn-s,.msel .ab {padding: 5px 10px;font-size: 11px;}
 }
 
-#uTbl table th,
-#uTbl table td {
-  padding: 6px 8px;
-  font-size: 11px;
-}
-
-/* 考勤查看筛选栏进一步紧凑 */
-.msel {
-  gap: 6px;
-}
-
-.msel select {
-  padding: 5px 6px;
-  font-size: 11px;
-  min-width: 60px;
-}
-
-.msel input[type="text"] {
-  padding: 5px 8px;
-  font-size: 11px;
-}
-
-.msel .btn-s,
-.msel .ab {
-  padding: 5px 10px;
-  font-size: 11px;
-}
-
-}
 
 
 </style>
@@ -1420,13 +1383,126 @@ async function cloudDeleteUser(userId){
 
 // ===================== INIT =====================
 (function init(){
-  // ★ 新增：先执行弹窗初始化（无论是否登录）
+	 // 1. 首先填充所有下拉菜单（无论是否登录）
+	var ay=document.getElementById('aYear'),am=document.getElementById('aMonth');
+	var sy=document.getElementById('selYear'),sm=document.getElementById('selMonth');
+	var curYr=new Date().getFullYear(),curMo=new Date().getMonth()+1;
+	for(var y=2024;y<=2030;y++){
+	  ay.innerHTML+='<option value="'+y+'"'+(y===curYr?' selected':'')+'>'+y+'</option>';
+	  sy.innerHTML+='<option value="'+y+'"'+(y===curYr?' selected':'')+'>'+y+'年</option>';
+	}
+	for(var m=1;m<=12;m++){
+	  am.innerHTML+='<option value="'+m+'"'+(m===curMo?' selected':'')+'>'+m+'</option>';
+	  sm.innerHTML+='<option value="'+m+'"'+(m===curMo?' selected':'')+'>'+m+'月</option>';
+	}
+  //  2. 弹窗初始化
   buildHours();
   document.getElementById('mClose').addEventListener('click',closeModal);
   document.getElementById('mCancel').addEventListener('click',closeModal);
   document.getElementById('mSave').addEventListener('click',saveAtt);
   document.getElementById('mClear').addEventListener('click',clearAtt);
   document.getElementById('modal').addEventListener('click',function(e){if(e.target.id==='modal')closeModal()});
+  
+  //3. ★★★ 先绑定所有事件监听器 ★★★
+  document.getElementById('prevM').addEventListener('click',function(){
+    if(--vMonth<1){vMonth=12;vYear--}
+    document.getElementById('selYear').value=vYear;
+    document.getElementById('selMonth').value=vMonth;
+    render();
+  });
+  document.getElementById('nextM').addEventListener('click',function(){
+    if(++vMonth>12){vMonth=1;vYear++}
+    document.getElementById('selYear').value=vYear;
+    document.getElementById('selMonth').value=vMonth;
+    render();
+  });
+  // 监听日历年月下拉框变化
+  sy.addEventListener('change',function(){
+    vYear=parseInt(this.value);
+    render();
+  });
+  sm.addEventListener('change',function(){
+    vMonth=parseInt(this.value);
+    render();
+  });
+  // "今"按钮事件
+  document.getElementById('btnToday').addEventListener('click',function(){
+    vYear=new Date().getFullYear();
+    vMonth=new Date().getMonth()+1;
+    document.getElementById('selYear').value=vYear;
+    document.getElementById('selMonth').value=vMonth;
+    render();
+  });
+  document.getElementById('btnLogin').addEventListener('click',function(e){e.preventDefault();doLogin()});
+  document.getElementById('lPass').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();doLogin()}});
+  document.getElementById('lUser').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('lPass').focus()}});
+  
+  document.getElementById('btnReg').addEventListener('click',function(e){e.preventDefault();doReg()});
+  document.getElementById('rName').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();doReg()}});
+  document.getElementById('rPass').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('rName').focus()}});
+  document.getElementById('rUser').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('rPass').focus()}});
+  
+  document.getElementById('toReg').addEventListener('click',function(){showV('reg')});
+  document.getElementById('toLogin').addEventListener('click',function(){showV('login')});
+  document.getElementById('hintToReg').addEventListener('click',function(){showV('reg')});
+  
+    // 个人密码修改弹窗事件
+  document.getElementById('dashName').style.cursor = 'pointer';
+  document.getElementById('dashName').title = '点击修改密码';
+  document.getElementById('dashName').addEventListener('click', openPwdModal);
+  document.getElementById('pwdClose').addEventListener('click', closePwdModal);
+  document.getElementById('pwdCancel').addEventListener('click', closePwdModal);
+  document.getElementById('pwdSave').addEventListener('click', savePwd);
+  document.getElementById('pwdModal').addEventListener('click', function(e){if(e.target.id==='pwdModal')closePwdModal()});
+  // 周末选择弹窗事件
+  document.getElementById('weekendClose').addEventListener('click', closeWeekendModal);
+  document.getElementById('weekendCancel').addEventListener('click', closeWeekendModal);
+  document.getElementById('weekendConfirm').addEventListener('click', confirmWeekend);
+  document.getElementById('weekendModal').addEventListener('click', function(e){if(e.target.id==='weekendModal')closeWeekendModal()});
+  
+  document.getElementById('btnExport').addEventListener('click',exportXlsx);
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click',function(){
+      document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});
+      this.classList.add('on');
+      document.getElementById('aUsers').classList.toggle('hidden',this.dataset.t!=='u');
+      document.getElementById('aAtt').classList.toggle('hidden',this.dataset.t!=='a');
+    });
+  });
+  
+  document.getElementById('btnAShow').addEventListener('click',renderAAtt);
+  document.getElementById('btnAExport').addEventListener('click',exportAdminXlsx);
+  
+  // 编辑弹窗事件
+  document.getElementById('editClose').addEventListener('click',closeEditModal);
+  document.getElementById('editCancel').addEventListener('click',closeEditModal);
+  document.getElementById('editSave').addEventListener('click',saveEditUser);
+  document.getElementById('editModal').addEventListener('click',function(e){if(e.target.id==='editModal')closeEditModal()});
+  document.getElementById('refreshHoliday').addEventListener('click', async function(){
+    showLoading('正在更新假期数据...');
+    var year = vYear;
+    // 清除缓存
+    var cached = loadCachedHolidays();
+    delete cached['year_' + year];
+    saveCachedHolidays(cached);
+    // 重新获取
+    await updateHolidays(year);
+    hideLoading();
+    alert(year + '年假期数据已更新');
+    renderCal();
+  });
+  // 4. 自动加载假期数据
+    var currentYear = new Date().getFullYear();
+    updateHolidays(currentYear);
+    updateHolidays(currentYear + 1);
+	
+	if(CLOUD_MODE){
+	  document.querySelectorAll('.cloud-badge').forEach(function(b){b.style.display='inline-flex'});
+	}else{
+	  document.querySelectorAll('.cloud-badge').forEach(function(b){b.textContent='💾 本地模式'});
+	}
+	
+	checkHint();
 
 // ★ 新增：检查是否有保存的登录状态
   try{
@@ -1448,147 +1524,26 @@ async function cloudDeleteUser(userId){
       }
     }
   }catch(e){}
+  
   try{
     var rem=JSON.parse(localStorage.getItem(SKEY_R));
     if(rem&&rem.username&&rem.password){
       document.getElementById('lUser').value=rem.username;
       document.getElementById('lPass').value=rem.password;
       document.getElementById('lRemember').checked=true;
-    }
-     // 新增：如果有保存的凭证，尝试自动登录
+      // ★ 增加判空检查
       setTimeout(function() {
-        doAutoLogin(rem.username, rem.password);
+        if(rem && rem.username && rem.password) {
+          doAutoLogin(rem.username, rem.password);
+        }
       }, 500);
+    }
   }catch(e){}
 
-  // 自动加载当前年份和下一年的假期数据
-if(CLOUD_MODE || true){ // 总是尝试加载假期
-  var currentYear = new Date().getFullYear();
-  updateHolidays(currentYear);
-  updateHolidays(currentYear + 1);
-}
-
-  if(CLOUD_MODE){
-    document.querySelectorAll('.cloud-badge').forEach(function(b){b.style.display='inline-flex'});
-  }else{
-    document.querySelectorAll('.cloud-badge').forEach(function(b){b.textContent='💾 本地模式'});
-  }
-
-  checkHint();
-document.getElementById('refreshHoliday').addEventListener('click', async function(){
-  showLoading('正在更新假期数据...');
-  var year = vYear;
-  // 清除缓存
-  var cached = loadCachedHolidays();
-  delete cached['year_' + year];
-  saveCachedHolidays(cached);
-  // 重新获取
-  await updateHolidays(year);
-  hideLoading();
-  alert(year + '年假期数据已更新');
-  renderCal();
-});
-
-  document.getElementById('btnLogin').addEventListener('click',function(e){e.preventDefault();doLogin()});
-  document.getElementById('lPass').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();doLogin()}});
-  document.getElementById('lUser').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('lPass').focus()}});
-
-  document.getElementById('btnReg').addEventListener('click',function(e){e.preventDefault();doReg()});
-  document.getElementById('rName').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();doReg()}});
-  document.getElementById('rPass').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('rName').focus()}});
-  document.getElementById('rUser').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('rPass').focus()}});
-
-  document.getElementById('toReg').addEventListener('click',function(){showV('reg')});
-  document.getElementById('toLogin').addEventListener('click',function(){showV('login')});
-  document.getElementById('hintToReg').addEventListener('click',function(){showV('reg')});
-  //document.getElementById('btnLogout').addEventListener('click',logout);
- // document.getElementById('btnALogout').addEventListener('click',logout);
-    // 个人密码修改弹窗事件
-  document.getElementById('dashName').style.cursor = 'pointer';
-  document.getElementById('dashName').title = '点击修改密码';
-  document.getElementById('dashName').addEventListener('click', openPwdModal);
-  document.getElementById('pwdClose').addEventListener('click', closePwdModal);
-  document.getElementById('pwdCancel').addEventListener('click', closePwdModal);
-  document.getElementById('pwdSave').addEventListener('click', savePwd);
-  document.getElementById('pwdModal').addEventListener('click', function(e){if(e.target.id==='pwdModal')closePwdModal()});
-  // 周末选择弹窗事件
-  document.getElementById('weekendClose').addEventListener('click', closeWeekendModal);
-  document.getElementById('weekendCancel').addEventListener('click', closeWeekendModal);
-  document.getElementById('weekendConfirm').addEventListener('click', confirmWeekend);
-  document.getElementById('weekendModal').addEventListener('click', function(e){if(e.target.id==='weekendModal')closeWeekendModal()});
-
-document.getElementById('prevM').addEventListener('click',function(){
-  if(--vMonth<1){vMonth=12;vYear--}
-  document.getElementById('selYear').value=vYear;
-  document.getElementById('selMonth').value=vMonth;
-  render();
-});
-document.getElementById('nextM').addEventListener('click',function(){
-  if(++vMonth>12){vMonth=1;vYear++}
-  document.getElementById('selYear').value=vYear;
-  document.getElementById('selMonth').value=vMonth;
-  render();
-});
-
-  document.getElementById('btnExport').addEventListener('click',exportXlsx);
-
   
-
-  document.querySelectorAll('.tab').forEach(function(t){
-    t.addEventListener('click',function(){
-      document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});
-      this.classList.add('on');
-      document.getElementById('aUsers').classList.toggle('hidden',this.dataset.t!=='u');
-      document.getElementById('aAtt').classList.toggle('hidden',this.dataset.t!=='a');
-    });
-  });
-
-
-  document.getElementById('btnAShow').addEventListener('click',renderAAtt);
-  document.getElementById('btnAExport').addEventListener('click',exportAdminXlsx);
-  
-/*
-  var ay=document.getElementById('aYear'),am=document.getElementById('aMonth');
-  for(var y=2024;y<=2030;y++)ay.innerHTML+='<option value="'+y+'"'+(y===new Date().getFullYear()?' selected':'')+'>'+y+'</option>';
-  for(var m=1;m<=12;m++)am.innerHTML+='<option value="'+m+'"'+(m===(new Date().getMonth()+1)?' selected':'')+'>'+m+'</option>';
-*/
-var ay=document.getElementById('aYear'),am=document.getElementById('aMonth');
-var sy=document.getElementById('selYear'),sm=document.getElementById('selMonth');
-var curYr=new Date().getFullYear(),curMo=new Date().getMonth()+1;
-for(var y=2024;y<=2030;y++){
-  ay.innerHTML+='<option value="'+y+'"'+(y===curYr?' selected':'')+'>'+y+'</option>';
-  sy.innerHTML+='<option value="'+y+'"'+(y===curYr?' selected':'')+'>'+y+'年</option>';
-}
-for(var m=1;m<=12;m++){
-  am.innerHTML+='<option value="'+m+'"'+(m===curMo?' selected':'')+'>'+m+'</option>';
-  sm.innerHTML+='<option value="'+m+'"'+(m===curMo?' selected':'')+'>'+m+'月</option>';
-}
-
-// 监听日历年月下拉框变化
-sy.addEventListener('change',function(){
-  vYear=parseInt(this.value);
-  render();
-});
-sm.addEventListener('change',function(){
-  vMonth=parseInt(this.value);
-  render();
-});
-
-// "今"按钮事件
-document.getElementById('btnToday').addEventListener('click',function(){
-  vYear=new Date().getFullYear();
-  vMonth=new Date().getMonth()+1;
-  document.getElementById('selYear').value=vYear;
-  document.getElementById('selMonth').value=vMonth;
-  render();
-});
-
-  // 编辑弹窗事件
-  document.getElementById('editClose').addEventListener('click',closeEditModal);
-  document.getElementById('editCancel').addEventListener('click',closeEditModal);
-  document.getElementById('editSave').addEventListener('click',saveEditUser);
-  document.getElementById('editModal').addEventListener('click',function(e){if(e.target.id==='editModal')closeEditModal()});
 })();
+
+//=========================================init结束======================================
 
 function checkHint(){
   if(CLOUD_MODE){document.getElementById('loginHint').classList.add('hidden');return}
@@ -1636,6 +1591,8 @@ async function doAutoLogin(username, password) {
     }
     hideLoading();
   }
+  // ★ 新增：保存登录状态
+    localStorage.setItem('att_login_state', JSON.stringify(curUser));
 
   isAdmin = (curUser.role === 'admin');
   if(isAdmin){
