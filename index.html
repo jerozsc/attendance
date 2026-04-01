@@ -80,16 +80,28 @@
       </div>
     </div>
 
-<div class="cal-nav">
+<div class="cal-nav" style="position: relative;">
   <button class="nb" id="btnToday" title="回到今天">今</button>
   <button class="nb" id="prevM">◂</button>
-  <div class="select-group">
-    <select id="selYear" class="nav-select"></select>
+  <div class="select-group main-date-picker">
+    <button class="main-date-btn" id="mainYearBtn" onclick="showMainYearPicker()"></button>
     <span class="select-separator">/</span>
-    <select id="selMonth" class="nav-select"></select>
+    <button class="main-date-btn" id="mainMonthBtn" onclick="showMainMonthPicker()"></button>
+    <select id="selYear" class="nav-select" style="display:none"></select>
+    <select id="selMonth" class="nav-select" style="display:none"></select>
   </div>
   <button class="nb" id="nextM">▸</button>
   <button class="nb" id="forceSync" title="强制同步云端数据">🔄</button>
+</div>
+
+<!-- 主日历年份选择弹窗 -->
+<div id="mainYearPicker" class="main-picker-popup hidden">
+  <div class="main-picker-content" id="mainYearPickerContent"></div>
+</div>
+
+<!-- 主日历月份选择弹窗 -->
+<div id="mainMonthPicker" class="main-picker-popup hidden">
+  <div class="main-picker-content" id="mainMonthPickerContent"></div>
 </div>
 
 
@@ -178,12 +190,26 @@
     <div id="aAtt" class="as hidden" style="margin-top:16px">
   <h3>考勤记录</h3>
   <p class="ds">查看所有用户的考勤数据</p>
-  <div class="msel">
-    <select id="aYear"></select><span style="color:var(--text2)">年</span>
-    <select id="aMonth"></select><span style="color:var(--text2)">月</span>
+  <div class="msel" style="position: relative;">
+    <button class="admin-date-btn" id="adminYearBtn" onclick="showAdminYearPicker()"></button>
+    <span style="color:var(--text2)">年</span>
+    <button class="admin-date-btn" id="adminMonthBtn" onclick="showAdminMonthPicker()"></button>
+    <span style="color:var(--text2)">月</span>
+    <select id="aYear" style="display:none"></select>
+    <select id="aMonth" style="display:none"></select>
     <input type="text" id="searchUser" placeholder="输入姓名查询" style="padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;outline:none;width:150px">
     <button class="btn-s" id="btnAShow">查看</button>
     <button class="ab ex" id="btnAExport">📥 导出Excel</button>
+  </div>
+
+  <!-- 管理员年份选择弹窗 -->
+  <div id="adminYearPicker" class="admin-picker-popup hidden">
+    <div class="admin-picker-content" id="adminYearPickerContent"></div>
+  </div>
+
+  <!-- 管理员月份选择弹窗 -->
+  <div id="adminMonthPicker" class="admin-picker-popup hidden">
+    <div class="admin-picker-content" id="adminMonthPickerContent"></div>
   </div>
   <div id="aAttTbl" style="overflow-x:auto"></div>
 </div>
@@ -991,6 +1017,11 @@ async function cloudDeleteUser(userId){
     sm.innerHTML += '<option value="'+m+'"'+(m === curMo ? ' selected' : '')+'>'+m+'月</option>';
   }
 
+  // 更新主日历年月按钮显示
+  updateMainDateButtons();
+  // 更新管理员年月按钮显示
+  updateAdminDateButtons();
+
   // 2. 弹窗初始化
   buildHours();
   document.getElementById('mClose').addEventListener('click', closeModal);
@@ -1008,6 +1039,7 @@ async function cloudDeleteUser(userId){
     if(--vMonth < 1){ vMonth = 12; vYear--; }
     document.getElementById('selYear').value = vYear;
     document.getElementById('selMonth').value = vMonth;
+    updateMainDateButtons();
     render();
   });
 
@@ -1016,6 +1048,7 @@ async function cloudDeleteUser(userId){
     if(++vMonth > 12){ vMonth = 1; vYear++; }
     document.getElementById('selYear').value = vYear;
     document.getElementById('selMonth').value = vMonth;
+    updateMainDateButtons();
     render();
   });
 
@@ -1037,6 +1070,7 @@ async function cloudDeleteUser(userId){
     vMonth = new Date().getMonth() + 1;
     document.getElementById('selYear').value = vYear;
     document.getElementById('selMonth').value = vMonth;
+    updateMainDateButtons();
     render();
   });
 
@@ -1537,6 +1571,155 @@ async function savePwd(){
   }
 
   closePwdModal();
+}
+
+
+// 主日历年月选择器函数
+function updateMainDateButtons() {
+  document.getElementById('mainYearBtn').textContent = vYear + '年';
+  document.getElementById('mainMonthBtn').textContent = vMonth + '月';
+  document.getElementById('selYear').value = vYear;
+  document.getElementById('selMonth').value = vMonth;
+}
+
+function showMainYearPicker() {
+  var picker = document.getElementById('mainYearPicker');
+  var content = document.getElementById('mainYearPickerContent');
+  
+  content.innerHTML = '';
+  for (var y = 2024; y <= 2030; y++) {
+    var item = document.createElement('div');
+    item.className = 'main-picker-item' + (y === vYear ? ' active' : '');
+    item.textContent = y + '年';
+    item.setAttribute('data-year', y);
+    item.onclick = (function(year) {
+      return function() {
+        vYear = year;
+        updateMainDateButtons();
+        render();
+        document.getElementById('mainYearPicker').classList.add('hidden');
+      };
+    })(y);
+    content.appendChild(item);
+  }
+  
+  picker.classList.remove('hidden');
+  document.getElementById('mainMonthPicker').classList.add('hidden');
+}
+
+function showMainMonthPicker() {
+  var picker = document.getElementById('mainMonthPicker');
+  var content = document.getElementById('mainMonthPickerContent');
+  
+  content.innerHTML = '';
+  for (var m = 1; m <= 12; m++) {
+    var item = document.createElement('div');
+    item.className = 'main-picker-item' + (m === vMonth ? ' active' : '');
+    item.textContent = m + '月';
+    item.setAttribute('data-month', m);
+    item.onclick = (function(month) {
+      return function() {
+        vMonth = month;
+        updateMainDateButtons();
+        render();
+        document.getElementById('mainMonthPicker').classList.add('hidden');
+      };
+    })(m);
+    content.appendChild(item);
+  }
+  
+  picker.classList.remove('hidden');
+  document.getElementById('mainYearPicker').classList.add('hidden');
+}
+
+// 点击弹窗外部关闭弹窗
+document.addEventListener('click', function(e) {
+  var yearPicker = document.getElementById('mainYearPicker');
+  var monthPicker = document.getElementById('mainMonthPicker');
+  var yearBtn = document.getElementById('mainYearBtn');
+  var monthBtn = document.getElementById('mainMonthBtn');
+  
+  if (yearPicker && !yearPicker.contains(e.target) && e.target !== yearBtn) {
+    yearPicker.classList.add('hidden');
+  }
+  if (monthPicker && !monthPicker.contains(e.target) && e.target !== monthBtn) {
+    monthPicker.classList.add('hidden');
+  }
+  
+  // 管理员年月选择弹窗
+  var adminYearPicker = document.getElementById('adminYearPicker');
+  var adminMonthPicker = document.getElementById('adminMonthPicker');
+  var adminYearBtn = document.getElementById('adminYearBtn');
+  var adminMonthBtn = document.getElementById('adminMonthBtn');
+  
+  if (adminYearPicker && !adminYearPicker.contains(e.target) && e.target !== adminYearBtn) {
+    adminYearPicker.classList.add('hidden');
+  }
+  if (adminMonthPicker && !adminMonthPicker.contains(e.target) && e.target !== adminMonthBtn) {
+    adminMonthPicker.classList.add('hidden');
+  }
+});
+
+// 管理员后台年月选择器函数
+function updateAdminDateButtons() {
+  var aYear = document.getElementById('aYear');
+  var aMonth = document.getElementById('aMonth');
+  if (aYear && aMonth) {
+    document.getElementById('adminYearBtn').textContent = aYear.value + '年';
+    document.getElementById('adminMonthBtn').textContent = aMonth.value + '月';
+  }
+}
+
+function showAdminYearPicker() {
+  var picker = document.getElementById('adminYearPicker');
+  var content = document.getElementById('adminYearPickerContent');
+  var currentYear = parseInt(document.getElementById('aYear').value);
+  
+  content.innerHTML = '';
+  for (var y = 2024; y <= 2030; y++) {
+    var item = document.createElement('div');
+    item.className = 'admin-picker-item' + (y === currentYear ? ' active' : '');
+    item.textContent = y + '年';
+    item.setAttribute('data-year', y);
+    item.onclick = (function(year) {
+      return function() {
+        document.getElementById('aYear').value = year;
+        updateAdminDateButtons();
+        document.getElementById('adminYearPicker').classList.add('hidden');
+      };
+    })(y);
+    content.appendChild(item);
+  }
+  
+  picker.style.left = '60px';
+  picker.classList.remove('hidden');
+  document.getElementById('adminMonthPicker').classList.add('hidden');
+}
+
+function showAdminMonthPicker() {
+  var picker = document.getElementById('adminMonthPicker');
+  var content = document.getElementById('adminMonthPickerContent');
+  var currentMonth = parseInt(document.getElementById('aMonth').value);
+  
+  content.innerHTML = '';
+  for (var m = 1; m <= 12; m++) {
+    var item = document.createElement('div');
+    item.className = 'admin-picker-item' + (m === currentMonth ? ' active' : '');
+    item.textContent = m + '月';
+    item.setAttribute('data-month', m);
+    item.onclick = (function(month) {
+      return function() {
+        document.getElementById('aMonth').value = month;
+        updateAdminDateButtons();
+        document.getElementById('adminMonthPicker').classList.add('hidden');
+      };
+    })(m);
+    content.appendChild(item);
+  }
+  
+  picker.style.left = '130px';
+  picker.classList.remove('hidden');
+  document.getElementById('adminYearPicker').classList.add('hidden');
 }
 
 
