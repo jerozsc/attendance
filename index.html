@@ -2401,12 +2401,24 @@ function renderSimulateContent() {
       <div class="simulate-nav">
         <button class="today-btn" onclick="simulateGoToToday()">今</button>
         <button onclick="simulatePrevMonth()">◂</button>
-        <div class="select-group">
-          <select id="simYearSelect" onchange="simulateChangeYear()"></select>
+        <div class="select-group sim-date-picker">
+          <button class="sim-date-btn" id="simYearBtn" onclick="showSimYearPicker()"></button>
           <span class="select-separator">/</span>
-          <select id="simMonthSelect" onchange="simulateChangeMonth()"></select>
+          <button class="sim-date-btn" id="simMonthBtn" onclick="showSimMonthPicker()"></button>
+          <select id="simYearSelect" onchange="simulateChangeYear()" style="display:none"></select>
+          <select id="simMonthSelect" onchange="simulateChangeMonth()" style="display:none"></select>
         </div>
         <button onclick="simulateNextMonth()">▸</button>
+      </div>
+
+      <!-- 年份选择弹窗 -->
+      <div id="simYearPicker" class="sim-picker-popup hidden">
+        <div class="sim-picker-content" id="simYearPickerContent"></div>
+      </div>
+
+      <!-- 月份选择弹窗 -->
+      <div id="simMonthPicker" class="sim-picker-popup hidden">
+        <div class="sim-picker-content" id="simMonthPickerContent"></div>
       </div>
 
       <!-- 日历容器 -->
@@ -2503,6 +2515,9 @@ function renderSimulateContent() {
   for (var m = 1; m <= 12; m++) {
     monthSelect.innerHTML += `<option value="${m}" ${m === simulateState.month ? 'selected' : ''}>${m}月</option>`;
   }
+
+  // 更新年月按钮显示
+  updateSimDateButtons();
 
   // 渲染日历
   renderSimulateCalendar();
@@ -3047,9 +3062,7 @@ function simulateGoToToday() {
   simulateState.year = new Date().getFullYear();
   simulateState.month = new Date().getMonth() + 1;
 
-  document.getElementById('simYearSelect').value = simulateState.year;
-  document.getElementById('simMonthSelect').value = simulateState.month;
-
+  updateSimDateButtons();
   renderSimulateCalendar();
   calculateSimulateStats();
 }
@@ -3060,9 +3073,7 @@ function simulatePrevMonth() {
     simulateState.year--;
   }
 
-  document.getElementById('simYearSelect').value = simulateState.year;
-  document.getElementById('simMonthSelect').value = simulateState.month;
-
+  updateSimDateButtons();
   renderSimulateCalendar();
   calculateSimulateStats();
 }
@@ -3073,9 +3084,7 @@ function simulateNextMonth() {
     simulateState.year++;
   }
 
-  document.getElementById('simYearSelect').value = simulateState.year;
-  document.getElementById('simMonthSelect').value = simulateState.month;
-
+  updateSimDateButtons();
   renderSimulateCalendar();
   calculateSimulateStats();
 }
@@ -3091,6 +3100,83 @@ function simulateChangeMonth() {
   renderSimulateCalendar();
   calculateSimulateStats();
 }
+
+// 更新年月按钮显示
+function updateSimDateButtons() {
+  document.getElementById('simYearBtn').textContent = simulateState.year + '年';
+  document.getElementById('simMonthBtn').textContent = simulateState.month + '月';
+  document.getElementById('simYearSelect').value = simulateState.year;
+  document.getElementById('simMonthSelect').value = simulateState.month;
+}
+
+// 显示年份选择弹窗
+function showSimYearPicker() {
+  var picker = document.getElementById('simYearPicker');
+  var content = document.getElementById('simYearPickerContent');
+  
+  content.innerHTML = '';
+  for (var y = 2024; y <= 2030; y++) {
+    var item = document.createElement('div');
+    item.className = 'sim-picker-item' + (y === simulateState.year ? ' active' : '');
+    item.textContent = y + '年';
+    item.setAttribute('data-year', y);
+    item.onclick = (function(year) {
+      return function() {
+        simulateState.year = year;
+        updateSimDateButtons();
+        renderSimulateCalendar();
+        calculateSimulateStats();
+        document.getElementById('simYearPicker').classList.add('hidden');
+      };
+    })(y);
+    content.appendChild(item);
+  }
+  
+  picker.classList.remove('hidden');
+  document.getElementById('simMonthPicker').classList.add('hidden');
+}
+
+// 显示月份选择弹窗
+function showSimMonthPicker() {
+  var picker = document.getElementById('simMonthPicker');
+  var content = document.getElementById('simMonthPickerContent');
+  
+  content.innerHTML = '';
+  for (var m = 1; m <= 12; m++) {
+    var item = document.createElement('div');
+    item.className = 'sim-picker-item' + (m === simulateState.month ? ' active' : '');
+    item.textContent = m + '月';
+    item.setAttribute('data-month', m);
+    item.onclick = (function(month) {
+      return function() {
+        simulateState.month = month;
+        updateSimDateButtons();
+        renderSimulateCalendar();
+        calculateSimulateStats();
+        document.getElementById('simMonthPicker').classList.add('hidden');
+      };
+    })(m);
+    content.appendChild(item);
+  }
+  
+  picker.classList.remove('hidden');
+  document.getElementById('simYearPicker').classList.add('hidden');
+}
+
+// 点击弹窗外部关闭弹窗
+document.addEventListener('click', function(e) {
+  var yearPicker = document.getElementById('simYearPicker');
+  var monthPicker = document.getElementById('simMonthPicker');
+  var yearBtn = document.getElementById('simYearBtn');
+  var monthBtn = document.getElementById('simMonthBtn');
+  
+  if (!yearPicker.contains(e.target) && e.target !== yearBtn) {
+    yearPicker.classList.add('hidden');
+  }
+  if (!monthPicker.contains(e.target) && e.target !== monthBtn) {
+    monthPicker.classList.add('hidden');
+  }
+});
 
 // 保存模拟考勤数据到本地
 function saveSimulateToLocal() {

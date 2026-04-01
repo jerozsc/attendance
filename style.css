@@ -759,6 +759,77 @@ td{color:var(--text)}
   transform: scale(1.05);
 }
 
+/* 自定义年月选择按钮 */
+.sim-date-btn {
+  padding: 8px 12px !important;
+  background: var(--bg) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  color: var(--text) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  min-width: 60px;
+  transition: all 0.25s;
+  width: auto !important;
+  height: auto !important;
+}
+
+.sim-date-btn:hover {
+  background: var(--accent-bg) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+/* 年月选择弹窗 */
+.sim-picker-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.2);
+  z-index: 100;
+  padding: 16px;
+  max-width: 90%;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.sim-picker-content {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.sim-picker-item {
+  padding: 12px 8px;
+  text-align: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  transition: all 0.2s;
+}
+
+.sim-picker-item:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sim-picker-item.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
 /* 模拟考勤的日历容器 */
 .simulate-calendar {
   background: var(--surface);
@@ -926,6 +997,29 @@ td{color:var(--text)}
     font-size: 13px;
     min-width: 60px;
     padding: 6px 4px;
+  }
+
+  /* 移动端自定义年月选择按钮 */
+  .sim-date-btn {
+    padding: 6px 10px !important;
+    font-size: 13px !important;
+    min-width: 50px;
+  }
+
+  /* 移动端年月选择弹窗 */
+  .sim-picker-popup {
+    width: 85%;
+    padding: 12px;
+  }
+
+  .sim-picker-content {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .sim-picker-item {
+    padding: 10px 6px;
+    font-size: 13px;
   }
 
   .simulate-quick-sel {
