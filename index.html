@@ -18,6 +18,9 @@
   </div>
 </div>
 
+<!-- 通知提示容器 -->
+<div class="toast-container" id="toastContainer"></div>
+
 <button class="theme-btn" id="themeBtn" title="切换主题">🌙</button>
 
 <!-- LOGIN -->
@@ -180,6 +183,7 @@
     <div class="tabs" id="adminTabs">
       <button class="tab on" data-t="u">账号管理</button>
       <button class="tab" data-t="a">考勤查看</button>
+      <button class="tab" data-t="s">系统设置</button>
     </div>
     <div id="aUsers" class="as" style="margin-top:16px">
       <h3>用户列表</h3>
@@ -214,6 +218,39 @@
   <div id="aAttTbl" style="overflow-x:auto"></div>
 </div>
 
+<div id="aSettings" class="as hidden" style="margin-top:16px">
+  <h3>系统设置</h3>
+  <p class="ds">配置系统参数</p>
+  
+  <div class="setting-item">
+    <div class="setting-label">
+      <span class="setting-title">数据保留月数</span>
+      <span class="setting-desc">设置云端保留最近几个月的考勤数据，超过此时间的数据将在用户登录时自动迁移到本地</span>
+    </div>
+    <div class="setting-control">
+      <select id="retainMonths" class="setting-select">
+        <option value="1">1个月</option>
+        <option value="2">2个月</option>
+        <option value="3" selected>3个月</option>
+        <option value="4">4个月</option>
+        <option value="5">5个月</option>
+        <option value="6">6个月</option>
+      </select>
+      <button class="btn-ok" onclick="saveRetainMonths()">保存设置</button>
+    </div>
+  </div>
+  
+  <div class="setting-item" style="margin-top: 20px;">
+    <div class="setting-label">
+      <span class="setting-title">手动触发全员数据迁移</span>
+      <span class="setting-desc">立即将所有用户超过保留月数的云端数据迁移到本地</span>
+    </div>
+    <div class="setting-control">
+      <button class="btn-s" onclick="adminMigrateAllUsers()">执行全员迁移</button>
+    </div>
+  </div>
+</div>
+
   </div>
 </div>
 
@@ -236,7 +273,24 @@
         <div class="ro"><input type="radio" name="atype" value="病假" id="t4"><label for="t4">病假</label></div>
       </div>
       <div class="fl">上班时长</div>
-      <div class="hours-grid" id="mHours"></div>
+      <div class="hours-selector">
+        <div class="hours-quick" id="hoursQuick">
+          <button class="hours-quick-btn active" data-hours="8" onclick="selectQuickHours(8)">8H</button>
+          <button class="hours-quick-btn" data-hours="10" onclick="selectQuickHours(10)">10H</button>
+          <button class="hours-quick-btn" data-hours="10.5" onclick="selectQuickHours(10.5)">10.5H</button>
+          <button class="hours-quick-btn" data-hours="11" onclick="selectQuickHours(11)">11H</button>
+        </div>
+        <div class="hours-custom">
+          <button class="hours-custom-btn" id="hoursCustomBtn" onclick="enableCustomHours()">自定义</button>
+          <div class="hours-custom-input" id="hoursCustomInput">
+            <button class="hours-arrow" onclick="adjustHours(-0.5)">▼</button>
+            <input type="number" id="customHoursValue" value="8" min="0" max="12" step="0.5" onchange="onCustomHoursChange()">
+            <button class="hours-arrow" onclick="adjustHours(0.5)">▲</button>
+            <span class="hours-unit">H</span>
+          </div>
+        </div>
+      </div>
+      <input type="hidden" id="selectedHours" value="8">
     </div>
     <div class="mo-ft">
       <button class="btn-c" id="mClear" style="color:var(--red);border-color:var(--red)">清空</button>
@@ -255,6 +309,8 @@
   <div class="menu-item" onclick="openPwdModal()">修改密码</div>
   <div class="menu-divider"></div>
   <div class="menu-item" onclick="menuRefreshHoliday()">刷新假期数据</div>
+  <div class="menu-divider"></div>
+  <div class="menu-item" onclick="manualMigrateData()">迁移旧数据到本地</div>
   <div class="menu-divider"></div>
   <div class="menu-item" onclick="logout()">退出登录</div>
 </div>
@@ -622,6 +678,39 @@ function showLoading(text){
 }
 function hideLoading(){
   document.getElementById('loadingOverlay').classList.remove('show');
+}
+
+// ===================== Toast 通知 =====================
+// type: 'success', 'error', 'info'
+function showToast(title, message, type, duration) {
+  type = type || 'info';
+  duration = duration || 4000;
+  
+  var container = document.getElementById('toastContainer');
+  var toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  
+  var icon = type === 'success' ? '✓' : (type === 'error' ? '✗' : 'ℹ');
+  
+  toast.innerHTML = 
+    '<span class="toast-icon">' + icon + '</span>' +
+    '<div class="toast-content">' +
+      '<div class="toast-title">' + title + '</div>' +
+      (message ? '<div class="toast-message">' + message + '</div>' : '') +
+    '</div>' +
+    '<button class="toast-close" onclick="this.parentElement.classList.add(\'hide\');setTimeout(()=>this.parentElement.remove(),300)">×</button>';
+  
+  container.appendChild(toast);
+  
+  // 自动消失
+  setTimeout(function() {
+    if (toast.parentElement) {
+      toast.classList.add('hide');
+      setTimeout(function() {
+        if (toast.parentElement) toast.remove();
+      }, 300);
+    }
+  }, duration);
 }
 
 // ===================== THEME =====================
@@ -1023,7 +1112,7 @@ async function cloudDeleteUser(userId){
   updateAdminDateButtons();
 
   // 2. 弹窗初始化
-  buildHours();
+  // buildHours(); // 已改为新的时长选择器，不需要此函数
   document.getElementById('mClose').addEventListener('click', closeModal);
   document.getElementById('mCancel').addEventListener('click', closeModal);
   document.getElementById('mSave').addEventListener('click', saveAtt);
@@ -1179,6 +1268,12 @@ async function cloudDeleteUser(userId){
       this.classList.add('on');
       document.getElementById('aUsers').classList.toggle('hidden', this.dataset.t !== 'u');
       document.getElementById('aAtt').classList.toggle('hidden', this.dataset.t !== 'a');
+      document.getElementById('aSettings').classList.toggle('hidden', this.dataset.t !== 's');
+      
+      // 加载系统设置
+      if(this.dataset.t === 's') {
+        loadRetainMonths();
+      }
     });
   });
 
@@ -1453,8 +1548,150 @@ async function doLogin(){
   document.getElementById('selMonth').value=vMonth;
   showV('dash');
   render();
+  
+  // 登录成功后自动迁移旧数据（静默执行）
+  if(CLOUD_MODE && curUser.id){
+    migrateOldData().catch(function(e){
+      console.error('数据迁移失败:', e);
+    });
+  }
 }
 
+}
+
+
+// 数据迁移：将超过3个月的云端数据迁移到本地
+async function migrateOldData(showAlert) {
+  if (!CLOUD_MODE || !curUser.id) return;
+  
+  var now = new Date();
+  var currentYear = now.getFullYear();
+  var currentMonth = now.getMonth() + 1;
+  
+  // 使用管理员设置的保留月数
+  var retainMonths = getRetainMonths();
+  
+  // 计算保留月数之前的年月
+  var cutoffMonth = currentMonth - retainMonths;
+  var cutoffYear = currentYear;
+  while (cutoffMonth <= 0) {
+    cutoffMonth += 12;
+    cutoffYear--;
+  }
+  
+  // 构建截止日期（保留最近N个月，迁移更早的数据）
+  // 例如：保留月数=3，当前4月，保留2月、3月、4月，迁移1月及更早的数据
+  var cutoffDate = cutoffYear + '-' + String(cutoffMonth).padStart(2, '0') + '-01';
+  
+  try {
+    // 查询需要迁移的数据（截止日期之前的数据）
+    var { data, error } = await SB.from('attendance')
+      .select('*')
+      .eq('user_id', curUser.id)
+      .lt('record_date', cutoffDate);
+    
+    if (error) {
+      console.error('查询待迁移数据失败:', error);
+      return;
+    }
+    
+    if (!data || data.length === 0) {
+      if (showAlert) alert('没有需要迁移的数据');
+      return;
+    }
+    
+    // 将数据保存到本地
+    var local = loadLocalAtt();
+    if (!local[curUser.id]) local[curUser.id] = {};
+    
+    var migratedCount = 0;
+    var migratedMonths = {};
+    
+    data.forEach(function(record) {
+      var parts = record.record_date.split('-');
+      var year = parseInt(parts[0]);
+      var month = parseInt(parts[1]);
+      var day = parseInt(parts[2]);
+      var dateKey = year + '-' + month + '-' + day;
+      
+      // 保存到本地
+      local[curUser.id][dateKey] = {
+        type: record.work_type,
+        hours: parseFloat(record.hours) || 0
+      };
+      
+      migratedCount++;
+      var monthKey = year + '年' + month + '月';
+      migratedMonths[monthKey] = true;
+    });
+    
+    // 保存本地数据
+    saveLocalAtt(local);
+    
+    // 从云端删除已迁移的数据
+    var { error: deleteError } = await SB.from('attendance')
+      .delete()
+      .eq('user_id', curUser.id)
+      .lt('record_date', cutoffDate);
+    
+    if (deleteError) {
+      console.error('删除云端数据失败:', deleteError);
+      if (showAlert) alert('数据迁移部分完成，但删除云端数据失败');
+      return;
+    }
+    
+    // 显示迁移结果
+    var monthList = Object.keys(migratedMonths).join('、');
+    var toastMsg = '已迁移 ' + migratedCount + ' 条记录到本地';
+    
+    if (showAlert) {
+      var message = '数据迁移完成！\n';
+      message += '已迁移 ' + migratedCount + ' 条记录到本地\n';
+      message += '涉及月份：' + monthList;
+      alert(message);
+    } else {
+      // 静默执行，显示右下角通知
+      showToast('数据迁移完成', '已迁移 ' + migratedCount + ' 条记录，涉及：' + monthList, 'success');
+      console.log('数据迁移完成！已迁移 ' + migratedCount + ' 条记录，涉及：' + monthList);
+    }
+    
+  } catch (e) {
+    console.error('数据迁移失败:', e);
+    if (showAlert) {
+      alert('数据迁移失败: ' + e.message);
+    } else {
+      showToast('数据迁移失败', e.message, 'error');
+    }
+  }
+}
+
+// 手动触发数据迁移
+function manualMigrateData() {
+  document.getElementById('contextMenu').classList.remove('show');
+  
+  if (!CLOUD_MODE) {
+    alert('当前为本地模式，无需迁移数据');
+    return;
+  }
+  
+  if (!curUser.id) {
+    alert('用户信息异常，请重新登录');
+    return;
+  }
+  
+  if (!confirm('确定要将超过3个月的云端考勤数据迁移到本地吗？\n\n迁移后：\n- 数据将保存在本地\n- 云端对应数据将被删除\n- 其他设备将无法查看已迁移的数据')) {
+    return;
+  }
+  
+  showLoading('正在迁移数据...');
+  
+  migrateOldData(false).then(function() {
+    hideLoading();
+    alert('数据迁移完成！详细信息请查看控制台日志');
+  }).catch(function(e) {
+    hideLoading();
+    alert('数据迁移失败: ' + e.message);
+  });
 }
 
 async function doReg(){
@@ -1487,6 +1724,120 @@ async function doReg(){
   document.getElementById('rName').value='';
   showV('login');
   document.getElementById('lPass').focus();
+}
+
+// ========== 系统设置相关函数 ==========
+
+// 加载保留月数设置
+function loadRetainMonths() {
+  var retainMonths = localStorage.getItem('att_retain_months') || '3';
+  document.getElementById('retainMonths').value = retainMonths;
+}
+
+// 保存保留月数设置
+async function saveRetainMonths() {
+  var months = document.getElementById('retainMonths').value;
+  
+  // 保存到本地
+  localStorage.setItem('att_retain_months', months);
+  
+  // 如果是云端模式，也保存到云端
+  if(CLOUD_MODE && curUser.id) {
+    try {
+      // 这里可以扩展为保存到云端的系统设置表
+      console.log('保留月数已保存到本地:', months);
+    } catch(e) {
+      console.error('保存到云端失败:', e);
+    }
+  }
+  
+  alert('设置已保存！\n数据保留月数：' + months + '个月\n\n新设置将在下次登录时生效');
+}
+
+// 获取保留月数
+function getRetainMonths() {
+  return parseInt(localStorage.getItem('att_retain_months') || '3');
+}
+
+// 管理员触发全员数据迁移
+async function adminMigrateAllUsers() {
+  if(!CLOUD_MODE) {
+    alert('当前为本地模式，无需迁移');
+    return;
+  }
+  
+  if(!confirm('确定要执行全员数据迁移吗？\n\n此操作将：\n1. 查询所有用户的云端数据\n2. 将超过保留月数的数据迁移到各用户本地\n3. 删除云端已迁移的数据\n\n此操作不可撤销！')) {
+    return;
+  }
+  
+  showLoading('正在执行全员迁移...');
+  
+  try {
+    // 获取所有用户
+    var users = await cloudLoadUsers();
+    if(!users || users.length === 0) {
+      hideLoading();
+      alert('没有找到用户');
+      return;
+    }
+    
+    var retainMonths = getRetainMonths();
+    var now = new Date();
+    var cutoffMonth = now.getMonth() + 1 - retainMonths;
+    var cutoffYear = now.getFullYear();
+    while(cutoffMonth <= 0) {
+      cutoffMonth += 12;
+      cutoffYear--;
+    }
+    var cutoffDate = cutoffYear + '-' + String(cutoffMonth).padStart(2, '0') + '-01';
+    
+    var totalMigrated = 0;
+    var processedUsers = 0;
+    
+    for(var i = 0; i < users.length; i++) {
+      var user = users[i];
+      
+      // 查询该用户的旧数据
+      var { data, error } = await SB.from('attendance')
+        .select('*')
+        .eq('user_id', user.id)
+        .lt('record_date', cutoffDate);
+      
+      if(error || !data || data.length === 0) continue;
+      
+      // 保存到本地
+      var local = loadLocalAtt();
+      if(!local[user.id]) local[user.id] = {};
+      
+      data.forEach(function(record) {
+        var parts = record.record_date.split('-');
+        var dateKey = parseInt(parts[0]) + '-' + parseInt(parts[1]) + '-' + parseInt(parts[2]);
+        local[user.id][dateKey] = {
+          type: record.work_type,
+          hours: parseFloat(record.hours) || 0
+        };
+        totalMigrated++;
+      });
+      
+      saveLocalAtt(local);
+      
+      // 从云端删除
+      await SB.from('attendance')
+        .delete()
+        .eq('user_id', user.id)
+        .lt('record_date', cutoffDate);
+      
+      processedUsers++;
+    }
+    
+    hideLoading();
+    alert('全员数据迁移完成！\n\n处理用户数：' + processedUsers + '人\n迁移记录数：' + totalMigrated + '条\n保留月数：' + retainMonths + '个月');
+    
+  } catch(e) {
+    hideLoading();
+    console.error('全员迁移失败:', e);
+    alert('全员迁移失败: ' + e.message);
+  }
 }
 
 async function logout(){
@@ -2096,16 +2447,100 @@ function calcStats(){
 }
 
 // ===================== MODAL =====================
-function buildHours(){
-  var c=document.getElementById('mHours'),h='';
-  for(var i=1;i<=22;i++){
-    var v=i*0.5,id='h'+i;
-    var lb=(v%1===0)?v+'H':v+'H';
-    h+='<div class="ro"><input type="radio" name="ahours" value="'+v+'" id="'+id+'"'+(v===8?' checked':'')+'><label for="'+id+'">'+lb+'</label></div>';
-  }
-  c.innerHTML=h;
+// 上班时长选择相关变量
+var isCustomMode = false;
+var currentSelectedHours = 8;
+
+// 快捷选择时长
+function selectQuickHours(hours) {
+  if (isCustomMode) return;
+  
+  currentSelectedHours = hours;
+  document.getElementById('selectedHours').value = hours;
+  
+  // 更新快捷按钮状态
+  document.querySelectorAll('.hours-quick-btn').forEach(function(btn) {
+    btn.classList.remove('active');
+    if (parseFloat(btn.dataset.hours) === hours) {
+      btn.classList.add('active');
+    }
+  });
 }
 
+// 启用自定义模式
+function enableCustomHours() {
+  isCustomMode = true;
+  
+  // 禁用快捷按钮
+  document.querySelectorAll('.hours-quick-btn').forEach(function(btn) {
+    btn.classList.add('disabled');
+  });
+  
+  // 激活自定义按钮和输入
+  document.getElementById('hoursCustomBtn').classList.add('active');
+  document.getElementById('hoursCustomInput').classList.add('active');
+  
+  // 获取当前选中的时长
+  var customInput = document.getElementById('customHoursValue');
+  currentSelectedHours = parseFloat(customInput.value);
+  document.getElementById('selectedHours').value = currentSelectedHours;
+}
+
+// 调整自定义时长
+function adjustHours(delta) {
+  if (!isCustomMode) return;
+  
+  var input = document.getElementById('customHoursValue');
+  var newValue = parseFloat(input.value) + delta;
+  
+  // 限制范围 0-12
+  if (newValue < 0) newValue = 0;
+  if (newValue > 12) newValue = 12;
+  
+  input.value = newValue;
+  currentSelectedHours = newValue;
+  document.getElementById('selectedHours').value = newValue;
+}
+
+// 自定义输入框值变化
+function onCustomHoursChange() {
+  if (!isCustomMode) return;
+  
+  var input = document.getElementById('customHoursValue');
+  var newValue = parseFloat(input.value);
+  
+  // 限制范围 0-12
+  if (isNaN(newValue) || newValue < 0) newValue = 0;
+  if (newValue > 12) newValue = 12;
+  
+  // 修正步长为0.5
+  newValue = Math.round(newValue * 2) / 2;
+  input.value = newValue;
+  
+  currentSelectedHours = newValue;
+  document.getElementById('selectedHours').value = newValue;
+}
+
+// 重置时长选择器到默认状态（快捷选择模式）
+function resetHoursSelector() {
+  isCustomMode = false;
+  currentSelectedHours = 8;
+  
+  // 启用快捷按钮并选中8H
+  document.querySelectorAll('.hours-quick-btn').forEach(function(btn) {
+    btn.classList.remove('disabled');
+    btn.classList.remove('active');
+    if (parseFloat(btn.dataset.hours) === 8) {
+      btn.classList.add('active');
+    }
+  });
+  
+  // 重置自定义按钮和输入
+  document.getElementById('hoursCustomBtn').classList.remove('active');
+  document.getElementById('hoursCustomInput').classList.remove('active');
+  document.getElementById('customHoursValue').value = 8;
+  document.getElementById('selectedHours').value = 8;
+}
 
 function openModal(d){
   selDate = d;
@@ -2136,9 +2571,22 @@ function openModal(d){
     if(!rec && defT.indexOf('法休') >= 0) checkVal = '法休';
     r.checked = (r.value === checkVal);
   });
-  document.querySelectorAll('input[name="ahours"]').forEach(function(r){
-    r.checked = rec ? parseFloat(r.value) === rec.hours : parseFloat(r.value) === 8;
-  });
+  
+  // 设置时长选择器
+  var hours = rec ? rec.hours : 8;
+  var quickHours = [8, 10, 10.5, 11];
+  
+  if (quickHours.indexOf(hours) >= 0) {
+    // 如果是快捷选项，使用快捷模式
+    resetHoursSelector();
+    selectQuickHours(hours);
+  } else {
+    // 否则使用自定义模式
+    resetHoursSelector();
+    document.getElementById('customHoursValue').value = hours;
+    enableCustomHours();
+  }
+  
   document.getElementById('modal').classList.remove('hidden');
 }
 
@@ -2151,7 +2599,7 @@ function closeModal(){document.getElementById('modal').classList.add('hidden');s
 async function saveAtt(){
   if(!selDate) return;
   var tp = document.querySelector('input[name="atype"]:checked').value;
-  var hr = parseFloat(document.querySelector('input[name="ahours"]:checked').value);
+  var hr = parseFloat(document.getElementById('selectedHours').value);
   var k = vYear + '-' + vMonth + '-' + selDate;
 
   showLoading('正在保存...');
