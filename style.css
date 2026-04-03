@@ -762,6 +762,8 @@ td{color:var(--text)}
   transition:all .2s;
 }
 .quick-btn:hover{border-color:var(--accent);color:var(--accent)}
+.quick-btn.danger{color:var(--red);border-color:var(--red)}
+.quick-btn.danger:hover{background:var(--red);color:#fff}
 
 /* ===== 右键菜单样式 ===== */
 .context-menu {

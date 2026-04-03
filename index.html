@@ -124,6 +124,7 @@
   <button class="quick-btn" onclick="selectWeekends()">选择周末</button>
   <button class="quick-btn" onclick="selectRange()">区间选择</button>
   <button class="quick-btn" onclick="clearSelection()">清除选择</button>
+  <button class="quick-btn danger" onclick="clearCurrentMonthData()">清空当月考勤</button>
 </div>
 
 <!-- 新增：批量操作栏 -->
@@ -534,6 +535,7 @@ var SUPABASE_ANON_KEY = 'sb_publishable_wcQOhFspiXXs6ZJRLcyV2A_JbSdFA0-';
 
 var SB = null;
 var CLOUD_MODE = false;
+var attDataCache = {};  // 考勤数据缓存 {userId-year-month: data}
 
 if(SUPABASE_URL.indexOf('你的') === -1 && typeof supabase !== 'undefined'){
   SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -979,12 +981,21 @@ async function cloudLogout(){
 async function cloudLoadAtt(userId, year, month){
     if(!CLOUD_MODE) return null;
 
+    // 缓存key
+    var cacheKey = userId + '-' + year + '-' + month;
+    
+    // 检查缓存
+    if(attDataCache[cacheKey]){
+      console.log(`使用缓存数据: ${year}年${month}月`);
+      return attDataCache[cacheKey];
+    }
+
     // 计算月份的最后一天
     var lastDay = new Date(year, month, 0).getDate();
     var startDate = year+'-'+String(month).padStart(2,'0')+'-01';
     var endDate = year+'-'+String(month).padStart(2,'0')+'-'+String(lastDay).padStart(2,'0');
 
-    console.log(`查询考勤数据: ${startDate} 到 ${endDate}`);
+    console.log(`从云端查询考勤数据: ${startDate} 到 ${endDate}`);
 
     var {data,error} = await SB.from('attendance')
         .select('*')
@@ -1006,12 +1017,32 @@ async function cloudLoadAtt(userId, year, month){
             result[key] = {type:r.work_type,hours:parseFloat(r.hours)};
         });
     } else {
-        console.log('云端没有该月份的数据');
+        console.log('该月份没有考勤记录');
     }
+
+    // 保存到缓存
+    attDataCache[cacheKey] = result;
+    console.log(`数据已缓存: ${cacheKey}`);
 
     return result;
 }
 
+// 清除考勤数据缓存
+function clearAttCache(userId, year, month) {
+  var cacheKey = userId + '-' + year + '-' + month;
+  delete attDataCache[cacheKey];
+  console.log(`缓存已清除: ${cacheKey}`);
+}
+
+// 清除用户所有缓存
+function clearAllAttCache(userId) {
+  Object.keys(attDataCache).forEach(function(key) {
+    if(key.indexOf(userId + '-') === 0) {
+      delete attDataCache[key];
+    }
+  });
+  console.log(`用户 ${userId} 的所有缓存已清除`);
+}
 
 async function cloudSaveAtt(userId, year, month, day, type, hours){
   if(!CLOUD_MODE) return;
@@ -2374,6 +2405,65 @@ function clearSelection(){
   renderCal();
 }
 
+// 清空当月考勤数据
+async function clearCurrentMonthData(){
+  var monthStr = vYear + '年' + vMonth + '月';
+  
+  if(!confirm('确定清空' + monthStr + '的所有考勤数据？\n\n此操作将：\n- 清空本地当月考勤记录\n- 删除云端当月考勤数据\n- 该操作不可恢复！')){
+    return;
+  }
+  
+  showLoading('正在清空当月考勤数据...');
+  
+  try {
+    // 1. 从云端删除当月数据
+    if(CLOUD_MODE && curUser.id){
+      var startDate = vYear + '-' + String(vMonth).padStart(2,'0') + '-01';
+      var lastDay = new Date(vYear, vMonth, 0).getDate();
+      var endDate = vYear + '-' + String(vMonth).padStart(2,'0') + '-' + String(lastDay).padStart(2,'0');
+      
+      var {error} = await SB.from('attendance')
+        .delete()
+        .eq('user_id', curUser.id)
+        .gte('record_date', startDate)
+        .lte('record_date', endDate);
+      
+      if(error){
+        hideLoading();
+        alert('云端删除失败: ' + error.message);
+        return;
+      }
+      
+      // 清除该月份缓存
+      clearAttCache(curUser.id, vYear, vMonth);
+    }
+    
+    // 2. 清空本地当月数据
+    var local = loadLocalAtt();
+    if(local[curUser.id]){
+      var td = new Date(vYear, vMonth, 0).getDate();
+      for(var d = 1; d <= td; d++){
+        var k = vYear + '-' + vMonth + '-' + d;
+        delete local[curUser.id][k];
+      }
+      saveLocalAtt(local);
+    }
+    
+    hideLoading();
+    
+    // 3. 重新渲染日历和统计
+    renderCal();
+    calcStats();
+    
+    showToast('清空成功', monthStr + '的考勤数据已全部清空', 'success');
+    
+  } catch(e) {
+    hideLoading();
+    console.error('清空当月考勤失败:', e);
+    showToast('清空失败', e.message, 'error');
+  }
+}
+
 // 批量应用
 async function applyBatch(){
   if(selectedDates.size === 0){
@@ -2407,6 +2497,11 @@ async function applyBatch(){
 
   saveLocalAtt(local);
   hideLoading();
+
+  // 清除该月份缓存
+  if(CLOUD_MODE && curUser.id){
+    clearAttCache(curUser.id, vYear, vMonth);
+  }
 
   alert('已成功批量设置 ' + dates.length + ' 天的考勤记录');
 
@@ -2621,6 +2716,9 @@ async function saveAtt(){
         alert('云端保存失败: ' + error.message + '\n请检查网络后重试');
         return; // 云端失败则不更新本地
       }
+      
+      // 清除该月份缓存
+      clearAttCache(curUser.id, vYear, vMonth);
     }catch(e){
       hideLoading();
       alert('云端保存异常: ' + e.message);
@@ -2662,6 +2760,9 @@ async function clearAtt(){
         alert('云端删除失败: ' + error.message + '\n请检查网络后重试');
         return; // 云端失败则不删除本地
       }
+      
+      // 清除该月份缓存
+      clearAttCache(curUser.id, vYear, vMonth);
     }catch(e){
       hideLoading();
       alert('云端删除异常: ' + e.message);
