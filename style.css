@@ -704,6 +704,127 @@ td{color:var(--text)}
 .edit-row input{flex:1;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;transition:border .2s}
 .edit-row input:focus{border-color:var(--accent)}
 
+/* ===== 薪资设置 ===== */
+.salary-settings-modal{width:min(840px,94vw);max-height:90vh;display:flex;flex-direction:column}
+.salary-settings-modal .mo-bd{overflow-y:auto}
+.salary-settings-body{display:flex;flex-direction:column;gap:16px;padding:20px 24px 24px}
+.salary-section{
+  border:1px solid var(--border);
+  background:var(--surface2);
+  border-radius:16px;
+  padding:18px;
+}
+.salary-section-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+  margin-bottom:16px;
+}
+.salary-section-head h4{font-size:15px;margin-bottom:4px}
+.salary-section-head p{font-size:12px;color:var(--text2)}
+.salary-section-total{
+  font-size:14px;
+  font-weight:700;
+  color:var(--accent);
+  white-space:nowrap;
+}
+.salary-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.floating-field{position:relative}
+.floating-field input{
+  width:100%;
+  padding:22px 12px 10px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  color:var(--text);
+  font-size:14px;
+  outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.floating-field input::placeholder{color:transparent}
+.floating-field input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-bg);
+}
+.floating-field label{
+  position:absolute;
+  left:12px;
+  top:50%;
+  transform:translateY(-50%);
+  padding:0;
+  background:transparent;
+  color:var(--text3);
+  font-size:13px;
+  pointer-events:none;
+  transition:all .18s ease;
+}
+.floating-field input:focus+label,
+.floating-field input:not(:placeholder-shown)+label{
+  top:0;
+  transform:translateY(-50%) scale(.88);
+  color:var(--accent);
+}
+.salary-net-card{
+  border-radius:16px;
+  padding:18px 20px;
+  background:linear-gradient(135deg,var(--accent-bg),rgba(255,255,255,.04));
+  border:1px solid var(--accent);
+}
+.salary-net-label{font-size:12px;color:var(--text2);margin-bottom:8px}
+.salary-net-value{font-size:32px;font-weight:800;color:var(--accent);line-height:1}
+.salary-net-desc{margin-top:8px;font-size:12px;color:var(--text2)}
+.salary-detail-modal{width:min(560px,94vw);max-height:90vh;display:flex;flex-direction:column}
+.salary-detail-modal .mo-bd{overflow-y:auto}
+.salary-detail-body{display:flex;flex-direction:column;gap:16px;padding:20px 24px 24px}
+.salary-detail-total-card{
+  border-radius:16px;
+  padding:18px 20px;
+  background:linear-gradient(135deg,var(--accent-bg),rgba(255,255,255,.04));
+  border:1px solid var(--accent);
+}
+.salary-detail-total-label{font-size:12px;color:var(--text2);margin-bottom:8px}
+.salary-detail-total-value{font-size:34px;font-weight:800;color:var(--accent);line-height:1}
+.salary-detail-total-desc{margin-top:8px;font-size:12px;color:var(--text2)}
+.salary-detail-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.salary-detail-item{
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:var(--surface2);
+  padding:14px 16px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.salary-detail-item span{font-size:12px;color:var(--text2)}
+.salary-detail-item strong{font-size:22px;color:var(--text)}
+.salary-detail-item.overtime strong{color:var(--accent)}
+.salary-detail-item.deduction strong{color:var(--red)}
+.salary-detail-breakdown{
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:var(--surface2);
+  padding:6px 16px;
+}
+.salary-detail-row{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 0;
+  font-size:13px;
+}
+.salary-detail-row + .salary-detail-row{border-top:1px solid var(--border)}
+.salary-detail-row span:first-child{color:var(--text2)}
+.salary-detail-row span:last-child{word-break:break-word;text-align:right}
+
 /* ===== 批量选择 ===== */
 .c.selected{
   box-shadow:inset 0 0 0 2px var(--accent),0 0 0 2px var(--accent);
@@ -826,6 +947,29 @@ td{color:var(--text)}
   .main{padding:12px}
   .cal-hd span{font-size:11px;padding:8px 2px}
   .hours-grid{grid-template-columns:repeat(4,1fr)}
+  .salary-settings-modal,
+  .salary-detail-modal{width:min(100%,calc(100vw - 16px));max-height:94vh}
+  .salary-settings-modal .mo-hd,
+  .salary-detail-modal .mo-hd{flex-wrap:wrap;align-items:flex-start}
+  .salary-settings-modal .mo-hd .dt,
+  .salary-detail-modal .mo-hd .dt{order:3;flex:0 0 100%;margin-top:2px}
+  .salary-grid{grid-template-columns:1fr}
+  .salary-detail-grid{grid-template-columns:1fr}
+  .salary-section-head{flex-direction:column}
+  .salary-settings-body{padding:16px}
+  .salary-detail-body{padding:16px}
+  .salary-section{padding:14px}
+  .salary-detail-total-card{padding:16px}
+  .salary-detail-item{padding:12px 14px}
+  .salary-section-total{white-space:normal}
+  .salary-net-value,
+  .salary-detail-total-value{font-size:28px}
+  .salary-detail-item strong{font-size:20px}
+  .salary-detail-breakdown{padding:4px 12px}
+  .floating-field input{padding:20px 12px 9px}
+  .floating-field label{font-size:12px}
+  .salary-detail-row{flex-direction:column;align-items:flex-start}
+  .salary-detail-row span:last-child{text-align:left}
 
   /* 确保网格等宽 */
   .cal-grid{grid-template-columns:repeat(7,1fr)!important;width:100%}

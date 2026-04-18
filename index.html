@@ -305,6 +305,10 @@
 <div id="contextMenu" class="context-menu">
   <div class="menu-item" onclick="openOvertimeSettings()">加班工资设置</div>
   <div class="menu-divider"></div>
+  <div id="salarySettingsMenuGroup" class="hidden">
+    <div class="menu-item" onclick="openSalarySettingsModal()">薪资设置</div>
+    <div class="menu-divider"></div>
+  </div>
   <div class="menu-item" onclick="openSimulateModal()">模拟考勤</div> <!-- 新增 -->
   <div class="menu-divider"></div>
   <div class="menu-item" onclick="openPwdModal()">修改密码</div>
@@ -391,7 +395,7 @@
       </div>
       <div class="edit-row">
         <label>密码</label>
-        <input type="text" id="editPassword" placeholder="请输入新密码">
+        <input type="password" id="editPassword" placeholder="留空则不修改密码">
       </div>
     </div>
     <div class="mo-ft">
@@ -487,6 +491,161 @@
     <div class="mo-ft">
       <button class="btn-c" onclick="closeOvertimeModal()">取消</button>
       <button class="btn-ok" onclick="saveOvertimeSettings()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================-->
+<!-- 薪资设置弹窗 -->
+<div id="salarySettingsModal" class="mo-bg hidden">
+  <div class="mo-ct salary-settings-modal">
+    <div class="mo-hd">
+      <h3>薪资设置</h3>
+      <div class="dt">仅对指定人员开放，用于维护当月薪资构成</div>
+      <button class="mo-x" onclick="closeSalarySettingsModal()">×</button>
+    </div>
+    <div class="mo-bd salary-settings-body">
+      <div class="salary-section">
+        <div class="salary-section-head">
+          <div>
+            <h4>基础收入</h4>
+            <p>固定工资与出勤相关收入</p>
+          </div>
+          <div class="salary-section-total">合计 ¥<span id="salaryBaseIncomeTotal">0.00</span></div>
+        </div>
+        <div class="salary-grid">
+          <div class="floating-field">
+            <input type="number" id="salaryBaseSalary" class="salary-setting-input" data-group="base" data-field="baseSalary" min="0" step="0.01" placeholder=" ">
+            <label for="salaryBaseSalary">底薪</label>
+          </div>
+          <div class="floating-field">
+            <input type="number" id="salaryPostSalary" class="salary-setting-input" data-group="base" data-field="postSalary" min="0" step="0.01" placeholder=" ">
+            <label for="salaryPostSalary">岗位工资</label>
+          </div>
+          <div class="floating-field">
+            <input type="number" id="salaryAttendanceSalary" class="salary-setting-input" data-group="base" data-field="attendanceSalary" min="0" step="0.01" placeholder=" ">
+            <label for="salaryAttendanceSalary">出勤工资</label>
+          </div>
+          <div class="floating-field">
+            <input type="number" id="salaryPerformance" class="salary-setting-input" data-group="base" data-field="performance" min="0" step="0.01" placeholder=" ">
+            <label for="salaryPerformance">绩效</label>
+          </div>
+          <div class="floating-field">
+            <input type="number" id="salarySeniorityBonus" class="salary-setting-input" data-group="base" data-field="seniorityBonus" min="0" step="0.01" placeholder=" ">
+            <label for="salarySeniorityBonus">工龄奖</label>
+          </div>
+          <div class="floating-field">
+            <input type="number" id="salaryHousingAllowance" class="salary-setting-input" data-group="base" data-field="housingAllowance" min="0" step="0.01" placeholder=" ">
+            <label for="salaryHousingAllowance">房补</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="salary-section">
+        <div class="salary-section-head">
+          <div>
+            <h4>其他收入</h4>
+            <p>补贴及其他收入项目</p>
+          </div>
+          <div class="salary-section-total">合计 ¥<span id="salaryOtherIncomeTotal">0.00</span></div>
+        </div>
+        <div class="salary-grid">
+          <div class="floating-field">
+            <input type="number" id="salaryMealAllowance" class="salary-setting-input" data-group="other" data-field="mealAllowance" min="0" step="0.01" placeholder=" ">
+            <label for="salaryMealAllowance">餐补</label>
+          </div>
+          <div class="floating-field">
+            <input type="number" id="salaryOtherIncome" class="salary-setting-input" data-group="other" data-field="otherIncome" min="0" step="0.01" placeholder=" ">
+            <label for="salaryOtherIncome">其他构成</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="salary-section">
+        <div class="salary-section-head">
+          <div>
+            <h4>扣款项</h4>
+            <p>社保、公积金及其他扣减</p>
+          </div>
+          <div class="salary-section-total">合计 ¥<span id="salaryDeductionTotal">0.00</span></div>
+        </div>
+        <div class="salary-grid">
+          <div class="floating-field">
+            <input type="number" id="salaryInsurance" class="salary-setting-input" data-group="deduction" data-field="insurance" min="0" step="0.01" placeholder=" ">
+            <label for="salaryInsurance">五险</label>
+          </div>
+          <div class="floating-field">
+            <input type="number" id="salaryHousingFund" class="salary-setting-input" data-group="deduction" data-field="housingFund" min="0" step="0.01" placeholder=" ">
+            <label for="salaryHousingFund">公积金</label>
+          </div>
+          <div class="floating-field">
+            <input type="number" id="salaryPenalty" class="salary-setting-input" data-group="deduction" data-field="penalty" min="0" step="0.01" placeholder=" ">
+            <label for="salaryPenalty">补救款</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="salary-net-card">
+        <div class="salary-net-label">参考实发</div>
+        <div class="salary-net-value">¥<span id="salaryNetIncomeTotal">0.00</span></div>
+        <div class="salary-net-desc">基础收入 + 其他收入 - 扣款项</div>
+      </div>
+    </div>
+    <div class="mo-ft">
+      <button class="btn-c" onclick="closeSalarySettingsModal()">取消</button>
+      <button class="btn-ok" onclick="saveSalarySettings()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================-->
+<!-- 薪资明细弹窗 -->
+<div id="salaryDetailModal" class="mo-bg hidden">
+  <div class="mo-ct salary-detail-modal">
+    <div class="mo-hd">
+      <h3>薪资明细</h3>
+      <div class="dt" id="salaryDetailPeriod">当前月份预估</div>
+      <button class="mo-x" onclick="closeSalaryDetailModal()">×</button>
+    </div>
+    <div class="mo-bd salary-detail-body">
+      <div class="salary-detail-total-card">
+        <div class="salary-detail-total-label">预估总工资</div>
+        <div class="salary-detail-total-value">¥<span id="salaryDetailGrandTotal">0.00</span></div>
+        <div class="salary-detail-total-desc">基础收入 + 其他收入 - 扣款项 + 合计加班费</div>
+      </div>
+
+      <div class="salary-detail-grid">
+        <div class="salary-detail-item">
+          <span>基础收入</span>
+          <strong>¥<span id="salaryDetailBaseTotal">0.00</span></strong>
+        </div>
+        <div class="salary-detail-item">
+          <span>其他收入</span>
+          <strong>¥<span id="salaryDetailOtherTotal">0.00</span></strong>
+        </div>
+        <div class="salary-detail-item deduction">
+          <span>扣款项</span>
+          <strong>¥<span id="salaryDetailDeductionTotal">0.00</span></strong>
+        </div>
+        <div class="salary-detail-item overtime">
+          <span>合计加班费</span>
+          <strong>¥<span id="salaryDetailOvertimeTotal">0.00</span></strong>
+        </div>
+      </div>
+
+      <div class="salary-detail-breakdown">
+        <div class="salary-detail-row">
+          <span>平时加班费</span>
+          <span id="salaryDetailWeekdayOvertime">0H × ¥0.00/H = ¥0.00</span>
+        </div>
+        <div class="salary-detail-row">
+          <span>周末加班费</span>
+          <span id="salaryDetailWeekendOvertime">0H × ¥0.00/H = ¥0.00</span>
+        </div>
+      </div>
+    </div>
+    <div class="mo-ft">
+      <button class="btn-ok" onclick="closeSalaryDetailModal()">关闭</button>
     </div>
   </div>
 </div>
@@ -925,6 +1084,31 @@ var selDate=null;
 var SKEY_R='att_remember';
 var LOCAL_ATT='att_data_local';
 var ADMIN_EMAILS=['2418219073@qq.com'];
+var LOCAL_USERS_KEY='att_local_users';
+var SALARY_ALLOWED_NAMES=['张少承','李文娅'];
+var SALARY_SETTING_FIELDS={
+  base:[
+    {key:'baseSalary',inputId:'salaryBaseSalary'},
+    {key:'postSalary',inputId:'salaryPostSalary'},
+    {key:'attendanceSalary',inputId:'salaryAttendanceSalary'},
+    {key:'performance',inputId:'salaryPerformance'},
+    {key:'seniorityBonus',inputId:'salarySeniorityBonus'},
+    {key:'housingAllowance',inputId:'salaryHousingAllowance'}
+  ],
+  other:[
+    {key:'mealAllowance',inputId:'salaryMealAllowance'},
+    {key:'otherIncome',inputId:'salaryOtherIncome'}
+  ],
+  deduction:[
+    {key:'insurance',inputId:'salaryInsurance'},
+    {key:'housingFund',inputId:'salaryHousingFund'},
+    {key:'penalty',inputId:'salaryPenalty'}
+  ]
+};
+var ADMIN_CREDENTIAL_HASHES={
+  username:'11d606f85a98feb07852d672d086431d83e4ac8481c3eaa15f4e1d6977e5db0f',
+  password:'1dc596c5118817ea8ec1f52121d91ce853205d0d5fa69640386d60b8b1891e60'
+};
 // ===================== BATCH SELECTION STATE =====================
 var selectedDates = new Set();
 var isSelecting = false;
@@ -935,6 +1119,229 @@ var mouseDownTime = 0;     // 新增
 // ===================== LOCAL STORAGE HELPERS =====================
 function loadLocalAtt(){try{var r=localStorage.getItem(LOCAL_ATT);return r?JSON.parse(r):{}}catch(e){return{}}}
 function saveLocalAtt(a){localStorage.setItem(LOCAL_ATT,JSON.stringify(a))}
+function loadLocalUsers(){try{var r=localStorage.getItem(LOCAL_USERS_KEY);return r?JSON.parse(r):[]}catch(e){return[]}}
+function saveLocalUsers(users){localStorage.setItem(LOCAL_USERS_KEY,JSON.stringify(users||[]))}
+function toSessionUser(user){return {id:user.id,username:user.username,name:user.name,role:user.role||'user'}}
+function toSafeNumber(value){var num=parseFloat(value);return isNaN(num)?0:num}
+function getAttendanceRecord(store, year, month, day){
+  if(!store) return null;
+  var shortKey = year+'-'+month+'-'+day;
+  var fullKey = year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+  return store[shortKey] || store[fullKey] || null;
+}
+async function digestText(text){
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0')}).join('');
+}
+async function hashPassword(password){
+  return digestText('att-password:v1::' + String(password || ''));
+}
+async function verifyAdminCredentials(username, password){
+  var usernameHash = await digestText('att-admin-username:v1::' + String(username || ''));
+  var passwordHash = await digestText('att-admin-password:v1::' + String(password || ''));
+  return usernameHash === ADMIN_CREDENTIAL_HASHES.username && passwordHash === ADMIN_CREDENTIAL_HASHES.password;
+}
+async function migrateLocalUserCredentials(){
+  if(CLOUD_MODE) return;
+  var users = loadLocalUsers();
+  var changed = false;
+  for(var i=0;i<users.length;i++){
+    if(users[i] && users[i].password && !users[i].passwordHash){
+      users[i].passwordHash = await hashPassword(users[i].password);
+      delete users[i].password;
+      changed = true;
+    }
+  }
+  if(changed) saveLocalUsers(users);
+}
+async function findLocalUserByCredentials(username, password){
+  var users = loadLocalUsers();
+  var passwordHash = await hashPassword(password);
+  for(var i=0;i<users.length;i++){
+    var user = users[i];
+    if(user.username !== username) continue;
+    if(user.passwordHash && user.passwordHash === passwordHash){
+      return user;
+    }
+    if(user.password && user.password === password){
+      user.passwordHash = passwordHash;
+      delete user.password;
+      users[i] = user;
+      saveLocalUsers(users);
+      return user;
+    }
+  }
+  return null;
+}
+function summarizeMonthlyAttendance(store, year, month){
+  var totalDays = new Date(year, month, 0).getDate();
+  var summary = {
+    totalHours: 0,
+    weekdayOvertimeHours: 0,
+    weekendOvertimeHours: 0,
+    weekdayRecordDays: 0,
+    restRecordDays: 0,
+    paidWeekendHolidayHours: 0,
+    paidWeekendHolidayDays: 0
+  };
+  for(var day = 1; day <= totalDays; day++){
+    var record = getAttendanceRecord(store, year, month, day);
+    var hours = record ? toSafeNumber(record.hours) : 0;
+    if(!record || !hours) continue;
+    var isWeekend = [0,6].indexOf(new Date(year, month - 1, day).getDay()) >= 0;
+    summary.totalHours += hours;
+    if(record.type === '上班'){
+      if(isWeekend){
+        summary.weekendOvertimeHours += hours;
+        summary.restRecordDays++;
+      }else{
+        if(hours > 8) summary.weekdayOvertimeHours += (hours - 8);
+        summary.weekdayRecordDays++;
+      }
+    }else if(record.type === '周末调休'){
+      summary.weekendOvertimeHours += hours;
+      summary.restRecordDays++;
+    }else if(record.type === '法休' && isWeekend){
+      summary.restRecordDays++;
+      summary.paidWeekendHolidayHours += hours;
+      summary.paidWeekendHolidayDays++;
+    }
+  }
+  return summary;
+}
+function canAccessSalarySettings(){
+  return !!(curUser && !isAdmin && SALARY_ALLOWED_NAMES.indexOf(curUser.name) >= 0);
+}
+function updateConditionalMenuItems(){
+  var group = document.getElementById('salarySettingsMenuGroup');
+  if(group) group.classList.toggle('hidden', !canAccessSalarySettings());
+}
+function updateDashNameAction(){
+  var dashName = document.getElementById('dashName');
+  if(!dashName) return;
+  dashName.style.cursor = 'pointer';
+  dashName.title = canAccessSalarySettings() ? '点击查看薪资明细' : '点击修改密码';
+}
+function getSalarySettingsStorageKey(){
+  return 'att_salary_settings_' + (curUser ? curUser.id : 'anonymous');
+}
+function loadSalarySettings(){
+  var defaults = {};
+  Object.keys(SALARY_SETTING_FIELDS).forEach(function(group){
+    SALARY_SETTING_FIELDS[group].forEach(function(field){
+      defaults[field.key] = 0;
+    });
+  });
+  try{
+    var raw = localStorage.getItem(getSalarySettingsStorageKey());
+    if(!raw) return defaults;
+    var parsed = JSON.parse(raw);
+    Object.keys(defaults).forEach(function(key){
+      defaults[key] = toSafeNumber(parsed[key]);
+    });
+  }catch(e){}
+  return defaults;
+}
+function fillSalarySettingsForm(settings){
+  Object.keys(SALARY_SETTING_FIELDS).forEach(function(group){
+    SALARY_SETTING_FIELDS[group].forEach(function(field){
+      var input = document.getElementById(field.inputId);
+      if(input) input.value = settings[field.key] ? settings[field.key] : '';
+    });
+  });
+}
+function collectSalarySettingsFromDom(){
+  var result = {};
+  Object.keys(SALARY_SETTING_FIELDS).forEach(function(group){
+    SALARY_SETTING_FIELDS[group].forEach(function(field){
+      var input = document.getElementById(field.inputId);
+      result[field.key] = input ? toSafeNumber(input.value) : 0;
+    });
+  });
+  return result;
+}
+function sumSalarySettingsGroup(settings, group){
+  return SALARY_SETTING_FIELDS[group].reduce(function(total, field){
+    return total + toSafeNumber(settings[field.key]);
+  }, 0);
+}
+function updateSalarySettingsTotals(){
+  var settings = collectSalarySettingsFromDom();
+  var baseTotal = sumSalarySettingsGroup(settings, 'base');
+  var otherTotal = sumSalarySettingsGroup(settings, 'other');
+  var deductionTotal = sumSalarySettingsGroup(settings, 'deduction');
+  var netTotal = baseTotal + otherTotal - deductionTotal;
+  document.getElementById('salaryBaseIncomeTotal').textContent = baseTotal.toFixed(2);
+  document.getElementById('salaryOtherIncomeTotal').textContent = otherTotal.toFixed(2);
+  document.getElementById('salaryDeductionTotal').textContent = deductionTotal.toFixed(2);
+  document.getElementById('salaryNetIncomeTotal').textContent = netTotal.toFixed(2);
+}
+function openSalarySettingsModal(){
+  document.getElementById('contextMenu').classList.remove('show');
+  if(!canAccessSalarySettings()) return;
+  fillSalarySettingsForm(loadSalarySettings());
+  updateSalarySettingsTotals();
+  document.getElementById('salarySettingsModal').classList.remove('hidden');
+}
+function closeSalarySettingsModal(){
+  document.getElementById('salarySettingsModal').classList.add('hidden');
+}
+function saveSalarySettings(){
+  if(!curUser) return;
+  var settings = collectSalarySettingsFromDom();
+  localStorage.setItem(getSalarySettingsStorageKey(), JSON.stringify(settings));
+  updateSalarySettingsTotals();
+  alert('薪资设置已保存');
+  closeSalarySettingsModal();
+}
+function getCurrentOvertimeEstimate(){
+  var settings = loadOvertimeSettings();
+  var local = loadLocalAtt();
+  var userData = curUser ? (local[curUser.id] || {}) : {};
+  var summary = summarizeMonthlyAttendance(userData, vYear, vMonth);
+  var weekdayRate = toSafeNumber(settings.weekday);
+  var weekendRate = toSafeNumber(settings.weekend);
+  var weekdayAmount = summary.weekdayOvertimeHours * weekdayRate;
+  var weekendAmount = summary.weekendOvertimeHours * weekendRate;
+  return {
+    weekdayHours: summary.weekdayOvertimeHours,
+    weekendHours: summary.weekendOvertimeHours,
+    weekdayRate: weekdayRate,
+    weekendRate: weekendRate,
+    weekdayAmount: weekdayAmount,
+    weekendAmount: weekendAmount,
+    totalAmount: weekdayAmount + weekendAmount
+  };
+}
+function handleDashNameClick(){
+  if(canAccessSalarySettings()){
+    openSalaryDetailModal();
+  }else{
+    openPwdModal();
+  }
+}
+function openSalaryDetailModal(){
+  if(!canAccessSalarySettings()) return;
+  var salarySettings = loadSalarySettings();
+  var baseTotal = sumSalarySettingsGroup(salarySettings, 'base');
+  var otherTotal = sumSalarySettingsGroup(salarySettings, 'other');
+  var deductionTotal = sumSalarySettingsGroup(salarySettings, 'deduction');
+  var overtime = getCurrentOvertimeEstimate();
+  var grandTotal = baseTotal + otherTotal - deductionTotal + overtime.totalAmount;
+
+  document.getElementById('salaryDetailPeriod').textContent = vYear + '年' + vMonth + '月预估';
+  document.getElementById('salaryDetailBaseTotal').textContent = baseTotal.toFixed(2);
+  document.getElementById('salaryDetailOtherTotal').textContent = otherTotal.toFixed(2);
+  document.getElementById('salaryDetailDeductionTotal').textContent = deductionTotal.toFixed(2);
+  document.getElementById('salaryDetailOvertimeTotal').textContent = overtime.totalAmount.toFixed(2);
+  document.getElementById('salaryDetailGrandTotal').textContent = grandTotal.toFixed(2);
+  document.getElementById('salaryDetailWeekdayOvertime').textContent = overtime.weekdayHours + 'H × ¥' + overtime.weekdayRate.toFixed(2) + '/H = ¥' + overtime.weekdayAmount.toFixed(2);
+  document.getElementById('salaryDetailWeekendOvertime').textContent = overtime.weekendHours + 'H × ¥' + overtime.weekendRate.toFixed(2) + '/H = ¥' + overtime.weekendAmount.toFixed(2);
+  document.getElementById('salaryDetailModal').classList.remove('hidden');
+}
+function closeSalaryDetailModal(){
+  document.getElementById('salaryDetailModal').classList.add('hidden');
+}
 
 // ===================== CLOUD FUNCTIONS =====================
 async function cloudRegister(username, password, displayName){
@@ -947,11 +1354,11 @@ async function cloudRegister(username, password, displayName){
   });
   if(error) return {error:error.message};
   if(data.user){
-    // 同时写入密码明文
+    var passwordHash = await hashPassword(password);
     await SB.from('profiles').update({
       username:username,
       display_name:displayName,
-      password:password
+      password:passwordHash
     }).eq('id',data.user.id);
   }
   return {data:data};
@@ -1058,10 +1465,10 @@ async function cloudSaveAtt(userId, year, month, day, type, hours){
 
 async function cloudLoadUsers(){
   if(!CLOUD_MODE) return [];
-  var {data,error} = await SB.from('profiles').select('*').order('created_at');
+  var {data,error} = await SB.from('profiles').select('id,username,display_name,role,created_at').order('created_at');
   if(error||!data) return [];
   return data.filter(function(u){return u.role!=='admin'}).map(function(u){
-    return {id:u.id,username:u.username,name:u.display_name,password:u.password||'',role:u.role};
+    return {id:u.id,username:u.username,name:u.display_name,role:u.role};
   });
 }
 
@@ -1248,9 +1655,7 @@ async function cloudDeleteUser(userId){
   document.getElementById('hintToReg').addEventListener('click', function(){ showV('reg'); });
 
   // ========== 个人密码修改弹窗事件 ==========
-  document.getElementById('dashName').style.cursor = 'pointer';
-  document.getElementById('dashName').title = '点击修改密码';
-  document.getElementById('dashName').addEventListener('click', openPwdModal);
+  document.getElementById('dashName').addEventListener('click', handleDashNameClick);
   document.getElementById('pwdClose').addEventListener('click', closePwdModal);
   document.getElementById('pwdCancel').addEventListener('click', closePwdModal);
   document.getElementById('pwdSave').addEventListener('click', savePwd);
@@ -1319,6 +1724,15 @@ async function cloudDeleteUser(userId){
   document.getElementById('editModal').addEventListener('click', function(e){
     if(e.target.id === 'editModal') closeEditModal();
   });
+  document.querySelectorAll('.salary-setting-input').forEach(function(input){
+    input.addEventListener('input', updateSalarySettingsTotals);
+  });
+  document.getElementById('salarySettingsModal').addEventListener('click', function(e){
+    if(e.target.id === 'salarySettingsModal') closeSalarySettingsModal();
+  });
+  document.getElementById('salaryDetailModal').addEventListener('click', function(e){
+    if(e.target.id === 'salaryDetailModal') closeSalaryDetailModal();
+  });
 
 // ========== 强制同步按钮 ==========
 document.getElementById('forceSync').addEventListener('click', async function(){
@@ -1371,12 +1785,13 @@ document.getElementById('forceSync').addEventListener('click', async function(){
   }
 
   checkHint();
+  await migrateLocalUserCredentials();
 
   // ★★★ 登录状态恢复 ★★★
   try{
     var savedState = localStorage.getItem('att_login_state');
     if(savedState){
-      curUser = JSON.parse(savedState);
+      curUser = toSessionUser(JSON.parse(savedState));
       isAdmin = (curUser.role === 'admin');
 
       // 云端模式：恢复 Supabase auth session
@@ -1485,6 +1900,8 @@ function showV(v){
   else if(v==='reg')document.getElementById('regView').classList.remove('hidden');
   else if(v==='dash')document.getElementById('dashView').classList.remove('hidden');
   else if(v==='admin')document.getElementById('adminView').classList.remove('hidden');
+  updateConditionalMenuItems();
+  updateDashNameAction();
 }
 
 // 新增：自动登录函数
@@ -1501,22 +1918,15 @@ async function doAutoLogin(username, password) {
     }
     curUser = result.user;
   } else {
-    if(username === 'admin' && password === '122620'){
+    if(await verifyAdminCredentials(username, password)){
       curUser = {id:'admin', username:'admin', name:'超级管理员', role:'admin'};
     } else {
-      var users = JSON.parse(localStorage.getItem('att_local_users') || '[]');
-      var found = null;
-      for(var i = 0; i < users.length; i++){
-        if(users[i].username === username && users[i].password === password){
-          found = users[i];
-          break;
-        }
-      }
+      var found = await findLocalUserByCredentials(username, password);
       if(!found){
         hideLoading();
         return; // 自动登录失败，停留在登录页面
       }
-      curUser = found;
+      curUser = toSessionUser(found);
     }
     hideLoading();
   }
@@ -1552,14 +1962,12 @@ async function doLogin(){
     if(result.error){alert('登录失败: '+result.error);return}
     curUser=result.user;
   }else{
-    if(u==='admin'&&p==='122620'){
+    if(await verifyAdminCredentials(u, p)){
       curUser={id:'admin',username:'admin',name:'超级管理员',role:'admin'};
     }else{
-      var users=JSON.parse(localStorage.getItem('att_local_users')||'[]');
-      var found=null;
-      for(var i=0;i<users.length;i++){if(users[i].username===u&&users[i].password===p){found=users[i];break}}
+      var found=await findLocalUserByCredentials(u, p);
       if(!found){hideLoading();alert('账号或密码错误');return}
-      curUser=found;
+      curUser=toSessionUser(found);
     }
     hideLoading();
   }
@@ -1740,10 +2148,10 @@ async function doReg(){
     if(result.error){alert('注册失败: '+result.error);return}
     alert('注册成功！请登录');
   }else{
-    var users=JSON.parse(localStorage.getItem('att_local_users')||'[]');
+    var users=loadLocalUsers();
     for(var i=0;i<users.length;i++){if(users[i].username===u){hideLoading();alert('账号已存在');return}}
-    users.push({id:'u'+Date.now(),username:u,password:p,name:n,role:'user'});
-    localStorage.setItem('att_local_users',JSON.stringify(users));
+    users.push({id:'u'+Date.now(),username:u,passwordHash:await hashPassword(p),name:n,role:'user'});
+    saveLocalUsers(users);
     hideLoading();
     alert('注册成功！请登录');
   }
@@ -1910,8 +2318,9 @@ async function savePwd(){
 
   if(CLOUD_MODE){
     // 云端模式：更新 profiles 表的密码
+    var newPwdHash = await hashPassword(newPwd);
     var {error:profileErr} = await SB.from('profiles').update({
-      password: newPwd
+      password: newPwdHash
     }).eq('id', curUser.id);
 
     if(profileErr){hideLoading();alert('修改失败: '+profileErr.message);return}
@@ -1929,15 +2338,16 @@ async function savePwd(){
     alert('密码修改成功！');
   } else {
     // 本地模式：更新 localStorage 中的用户密码
-    var users = JSON.parse(localStorage.getItem('att_local_users') || '[]');
+    var users = loadLocalUsers();
+    var newPwdHash = await hashPassword(newPwd);
     for(var i = 0; i < users.length; i++){
       if(users[i].id === curUser.id){
-        users[i].password = newPwd;
-        curUser.password = newPwd;
+        users[i].passwordHash = newPwdHash;
+        delete users[i].password;
         break;
       }
     }
-    localStorage.setItem('att_local_users', JSON.stringify(users));
+    saveLocalUsers(users);
 
     // 同时更新记住密码的存储
     try{
@@ -2108,6 +2518,7 @@ function showAdminMonthPicker() {
 // ===================== CALENDAR =====================
 async function render(){
   document.getElementById('dashName').textContent='欢迎，'+curUser.name;
+  updateDashNameAction();
   document.getElementById('calBox').innerHTML='<div class="loading">加载考勤数据</div>';
 
   if(CLOUD_MODE && curUser.id){
@@ -2515,30 +2926,23 @@ async function applyBatch(){
 
 
 function calcStats(){
-  var local=loadLocalAtt(),ud=local[curUser.id]||{},td=new Date(vYear,vMonth,0).getDate();
-  var tot=0,wOT=0,eOT=0,wDays=0,eDays=0;
-  for(var d=1;d<=td;d++){
-    var k=vYear+'-'+vMonth+'-'+d,rec=ud[k];
-    if(!rec||!rec.hours)continue;
-    var dw=new Date(vYear,vMonth-1,d).getDay(),isWk=(dw===0||dw===6);
-    tot+=rec.hours;
-    if(rec.type==='上班'){
-      if(isWk){eOT+=rec.hours;eDays++}
-      else{if(rec.hours>8){wOT+=(rec.hours-8)}wDays++}
-    }else if(rec.type==='周末调休'){
-      // 周末调休：无论是否周末，都算作周末加班
-      eOT+=rec.hours;eDays++
-    }else if(rec.type==='法休'&&rec.hours){
-      if(isWk){eOT+=rec.hours;eDays++}
-    }
-  }
-  document.getElementById('sT').textContent=tot+'H';
-  document.getElementById('sW').textContent=wOT+'H';
-  document.getElementById('sE').textContent=eOT+'H';
+  var local=loadLocalAtt(),ud=local[curUser.id]||{};
+  var summary = summarizeMonthlyAttendance(ud, vYear, vMonth);
+  document.getElementById('sT').textContent=summary.totalHours+'H';
+  document.getElementById('sW').textContent=summary.weekdayOvertimeHours+'H';
+  document.getElementById('sE').textContent=summary.weekendOvertimeHours+'H';
 
-  document.getElementById('sTD').textContent='已记录 '+wDays+' 个工作日 + '+eDays+' 个休息日';
-  document.getElementById('sWD').textContent=wOT>0?'折合约 '+wOT+' 小时额外收入':'工作日超出8h的部分';
-  document.getElementById('sED').textContent=eOT>0?'共 '+eDays+' 天周末加班':'周六日全部工时';
+  document.getElementById('sTD').textContent='已记录 '+summary.weekdayRecordDays+' 个工作日 + '+summary.restRecordDays+' 个休息日';
+  document.getElementById('sWD').textContent=summary.weekdayOvertimeHours>0?'折合约 '+summary.weekdayOvertimeHours+' 小时额外收入':'工作日超出8h的部分';
+  if(summary.weekendOvertimeHours > 0 && summary.paidWeekendHolidayHours > 0){
+    document.getElementById('sED').textContent='周末加班 '+summary.weekendOvertimeHours+'H，另有法休 '+summary.paidWeekendHolidayHours+'H';
+  }else if(summary.paidWeekendHolidayHours > 0){
+    document.getElementById('sED').textContent='法休 '+summary.paidWeekendHolidayHours+'H 已计入总工时';
+  }else if(summary.weekendOvertimeHours > 0){
+    document.getElementById('sED').textContent='共 '+summary.restRecordDays+' 天周末加班';
+  }else{
+    document.getElementById('sED').textContent='周六日全部工时';
+  }
 }
 
 // ===================== MODAL =====================
@@ -2795,51 +3199,30 @@ async function renderAdmin(){
   if(CLOUD_MODE){
     users = await cloudLoadUsers();
   }else{
-    users = JSON.parse(localStorage.getItem('att_local_users')||'[]').filter(function(u){return u.role!=='admin'});
+    users = loadLocalUsers().filter(function(u){return u.role!=='admin'});
   }
   renderUTblWithData(users);
 }
 
 function renderUTblWithData(users){
   if(!users||!users.length){document.getElementById('uTbl').innerHTML='<div class="emp">暂无注册用户</div>';return}
-  var h='<table><thead><tr><th>账号</th><th>姓名</th><th>密码</th><th>操作</th></tr></thead><tbody>';
+  var h='<table><thead><tr><th>账号</th><th>姓名</th><th>密码状态</th><th>操作</th></tr></thead><tbody>';
   users.forEach(function(u){
-    var pw = u.password||'';
     h+='<tr><td>'+u.username+'</td><td>'+u.name+'</td>';
-    h+='<td><div class="pw-cell"><span class="pw-text" id="pw-'+u.id+'">'+maskPw(pw)+'</span><button class="pw-toggle" onclick="togglePw(\''+u.id+'\',\''+escapePw(pw)+'\')" title="显示/隐藏密码">👁</button></div></td>';
+    h+='<td><div class="pw-cell"><span class="pw-text">已加密</span></div></td>';
     h+='<td>';
-    h+='<button class="ab" onclick="openEditModal(\''+u.id+'\',\''+u.username+'\',\''+escapePw(pw)+'\',\''+u.name+'\')">编辑</button>';
+    h+='<button class="ab" onclick="openEditModal(\''+u.id+'\',\''+u.username+'\',\''+u.name+'\')">编辑</button>';
     h+='<button class="ab dn" onclick="delU(\''+u.id+'\')">删除</button></td></tr>';
   });
   h+='</tbody></table>';
   document.getElementById('uTbl').innerHTML=h;
 }
 
-function maskPw(pw){
-  if(!pw) return '••••••';
-  return '••••••';
-}
-
-function escapePw(pw){
-  return pw.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
-}
-
-function togglePw(id, pw){
-  var el = document.getElementById('pw-'+id);
-  if(el.dataset.visible==='1'){
-    el.textContent = '••••••';
-    el.dataset.visible='0';
-  }else{
-    el.textContent = pw;
-    el.dataset.visible='1';
-  }
-}
-
-function openEditModal(id, username, password, name){
+function openEditModal(id, username, name){
   editTargetId = id;
   document.getElementById('editUserName').textContent = name;
   document.getElementById('editUsername').value = username;
-  document.getElementById('editPassword').value = password;
+  document.getElementById('editPassword').value = '';
   document.getElementById('editModal').classList.remove('hidden');
 }
 
@@ -2853,34 +3236,37 @@ async function saveEditUser(){
   var newUsername = document.getElementById('editUsername').value.trim();
   var newPassword = document.getElementById('editPassword').value.trim();
   if(!newUsername){alert('账号不能为空');return}
-  if(!newPassword){alert('密码不能为空');return}
 
   showLoading('正在保存...');
 
   if(CLOUD_MODE){
     var newEmail = newUsername.indexOf('@')>=0 ? newUsername : newUsername+'@attendance.app';
+    var profilePayload = {username:newUsername};
+    if(newPassword){
+      profilePayload.password = await hashPassword(newPassword);
+    }
 
     // 同时更新 profiles 表
-    var {error:profileErr} = await SB.from('profiles').update({
-      username:newUsername,
-      password:newPassword
-    }).eq('id',editTargetId);
+    var {error:profileErr} = await SB.from('profiles').update(profilePayload).eq('id',editTargetId);
 
     if(profileErr){hideLoading();alert('更新失败: '+profileErr.message);return}
 
-    // 同时更新 auth.users 中的邮箱和密码
-    var {error:authErr} = await SB.rpc('admin_update_user',{
-      user_id: editTargetId,
-      new_email: newEmail,
-      new_password: newPassword
-    });
+    var authErr = null;
+    if(newPassword){
+      var authResult = await SB.rpc('admin_update_user',{
+        user_id: editTargetId,
+        new_email: newEmail,
+        new_password: newPassword
+      });
+      authErr = authResult.error;
+    }
 
     if(authErr){hideLoading();alert('密码更新失败: '+authErr.message);return}
 
     hideLoading();
-    alert('账号和密码已更新');
+    alert(newPassword ? '账号和密码已更新' : '账号已更新');
   }else{
-    var users=JSON.parse(localStorage.getItem('att_local_users')||'[]');
+    var users=loadLocalUsers();
     for(var i=0;i<users.length;i++){
       if(users[i].username===newUsername&&users[i].id!==editTargetId){
         hideLoading();alert('账号已存在');return;
@@ -2889,13 +3275,16 @@ async function saveEditUser(){
     for(var i=0;i<users.length;i++){
       if(users[i].id===editTargetId){
         users[i].username=newUsername;
-        users[i].password=newPassword;
+        if(newPassword){
+          users[i].passwordHash = await hashPassword(newPassword);
+          delete users[i].password;
+        }
         break;
       }
     }
-    localStorage.setItem('att_local_users',JSON.stringify(users));
+    saveLocalUsers(users);
     hideLoading();
-    alert('账号和密码已更新');
+    alert(newPassword ? '账号和密码已更新' : '账号已更新');
   }
 
   closeEditModal();
@@ -2910,8 +3299,8 @@ async function delU(id){
   if(CLOUD_MODE){
     await cloudDeleteUser(id);
   }else{
-    var users=JSON.parse(localStorage.getItem('att_local_users')||'[]');
-    localStorage.setItem('att_local_users',JSON.stringify(users.filter(function(x){return x.id!==id})));
+    var users=loadLocalUsers();
+    saveLocalUsers(users.filter(function(x){return x.id!==id}));
     var att=loadLocalAtt();delete att[id];saveLocalAtt(att);
   }
   hideLoading();
@@ -2945,7 +3334,7 @@ async function renderAAtt(){
       saveLocalAtt(local);
     }
   } else {
-    users = JSON.parse(localStorage.getItem('att_local_users') || '[]').filter(function(u){
+    users = loadLocalUsers().filter(function(u){
       return u.role !== 'admin';
     });
     allAtt = loadLocalAtt();
@@ -2976,7 +3365,7 @@ async function renderAAtt(){
 
   users.forEach(function(u){
     var ud = allAtt[u.id] || {};
-    var total = 0, wOT = 0, eOT = 0;
+    var summary = summarizeMonthlyAttendance(ud, y, m);
     h += '<tr><td><strong>'+u.name+'</strong><br><span style="color:var(--text3);font-size:10px">'+u.username+'</span></td>';
 
     // 调试日志：输出用户数据
@@ -2985,9 +3374,7 @@ async function renderAAtt(){
     for(var d=1; d<=td; d++){
       // 修复：使用与 cloudLoadAllAtt 相同的日期格式（带零填充）
       var k = y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-      var rec = ud[k];
-      var dow = new Date(y,m-1,d).getDay();
-      var isWk = (dow===0||dow===6);
+      var rec = getAttendanceRecord(ud, y, m, d);
 
       // 调试日志：输出每天的记录
       if(d <= 5 || rec){ // 只输出前5天或有记录的日期
@@ -2995,25 +3382,10 @@ async function renderAAtt(){
       }
 
       // 修复：改进条件判断，确保hours字段有效
-      var hours = rec ? parseFloat(rec.hours) : 0;
+      var hours = rec ? toSafeNumber(rec.hours) : 0;
       var hasValidHours = rec && !isNaN(hours) && hours > 0;
 
       if(hasValidHours){
-        total += hours;
-
-        if(rec.type==='上班'){
-          if(isWk){
-            eOT += hours;
-          } else {
-            if(hours > 8) wOT += (hours - 8);
-          }
-        } else if(rec.type==='周末调休'){
-          // 周末调休：无论是否周末，都算作周末加班
-          eOT += hours;
-        } else if(rec.type==='法休'&&hours){
-          if(isWk) eOT += hours;
-        }
-
         // 修复：正确显示所有类型，不仅仅显示"上班"
         if(rec.type === '上班'){
           var tc = hours > 8 ? 'var(--orange)' : 'var(--text)';
@@ -3034,9 +3406,9 @@ async function renderAAtt(){
       }
     }
 
-    h += '<td><strong>'+total+'H</strong></td>';
-    h += '<td style="color:var(--orange)">'+(wOT>0?wOT+'H':'-')+'</td>';
-    h += '<td style="color:var(--green)">'+(eOT>0?eOT+'H':'-')+'</td>';
+    h += '<td><strong>'+summary.totalHours+'H</strong></td>';
+    h += '<td style="color:var(--orange)">'+(summary.weekdayOvertimeHours>0?summary.weekdayOvertimeHours+'H':'-')+'</td>';
+    h += '<td style="color:var(--green)">'+(summary.weekendOvertimeHours>0?summary.weekendOvertimeHours+'H':'-')+'</td>';
     h += '</tr>';
   });
 
@@ -3742,51 +4114,12 @@ function clearSimulateAtt() {
 function calculateSimulateStats() {
   var year = simulateState.year;
   var month = simulateState.month;
-  var totalDays = new Date(year, month, 0).getDate();
-
-  var totalHours = 0;
-  var weekdayOT = 0;
-  var weekendOT = 0;
-  var weekdayCount = 0;
-  var weekendCount = 0;
-
-  for (var d = 1; d <= totalDays; d++) {
-    var dateKey = year + '-' + month + '-' + d;
-    var record = simulateState.data[dateKey];
-
-    if (!record || !record.hours) continue;
-
-    var dayOfWeek = new Date(year, month - 1, d).getDay();
-    var isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-
-    totalHours += record.hours;
-
-    if (record.type === '上班') {
-      if (isWeekend) {
-        weekendOT += record.hours;
-        weekendCount++;
-      } else {
-        if (record.hours > 8) {
-          weekdayOT += (record.hours - 8);
-        }
-        weekdayCount++;
-      }
-    } else if (record.type === '周末调休') {
-      // 周末调休：无论是否周末，都算作周末加班
-      weekendOT += record.hours;
-      weekendCount++;
-    } else if (record.type === '法休' && record.hours) {
-      if (isWeekend) {
-        weekendOT += record.hours;
-        weekendCount++;
-      }
-    }
-  }
+  var summary = summarizeMonthlyAttendance(simulateState.data, year, month);
 
   // 更新显示
-  document.getElementById('simTotalHours').textContent = totalHours + 'H';
-  document.getElementById('simWeekdayOT').textContent = weekdayOT + 'H';
-  document.getElementById('simWeekendOT').textContent = weekendOT + 'H';
+  document.getElementById('simTotalHours').textContent = summary.totalHours + 'H';
+  document.getElementById('simWeekdayOT').textContent = summary.weekdayOvertimeHours + 'H';
+  document.getElementById('simWeekendOT').textContent = summary.weekendOvertimeHours + 'H';
 }
 
 // 日历导航函数
@@ -4212,7 +4545,7 @@ async function exportAdminXlsx(){
     users=await cloudLoadUsers();
     allAtt=await cloudLoadAllAtt(y,m);
   }else{
-    users=JSON.parse(localStorage.getItem('att_local_users')||'[]').filter(function(u){return u.role!=='admin'});
+    users=loadLocalUsers().filter(function(u){return u.role!=='admin'});
     allAtt=loadLocalAtt();
   }
   var td=new Date(y,m,0).getDate();
