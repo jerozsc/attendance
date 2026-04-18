@@ -756,8 +756,8 @@ td{color:var(--text)}
   left:12px;
   top:50%;
   transform:translateY(-50%);
-  padding:0;
-  background:transparent;
+  padding:0 4px;
+  background:var(--surface);
   color:var(--text3);
   font-size:13px;
   pointer-events:none;
@@ -953,8 +953,8 @@ td{color:var(--text)}
   .salary-detail-modal .mo-hd{flex-wrap:wrap;align-items:flex-start}
   .salary-settings-modal .mo-hd .dt,
   .salary-detail-modal .mo-hd .dt{order:3;flex:0 0 100%;margin-top:2px}
-  .salary-grid{grid-template-columns:1fr}
-  .salary-detail-grid{grid-template-columns:1fr}
+  .salary-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .salary-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .salary-section-head{flex-direction:column}
   .salary-settings-body{padding:16px}
   .salary-detail-body{padding:16px}
