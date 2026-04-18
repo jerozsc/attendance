@@ -806,6 +806,8 @@ td{color:var(--text)}
 }
 .salary-detail-item span{font-size:12px;color:var(--text2)}
 .salary-detail-item strong{font-size:22px;color:var(--text)}
+.salary-detail-item .salary-currency,
+.salary-detail-item strong span{font-size:inherit;color:inherit}
 .salary-detail-item.overtime strong{color:var(--accent)}
 .salary-detail-item.deduction strong{color:var(--red)}
 .salary-detail-breakdown{
@@ -955,7 +957,8 @@ td{color:var(--text)}
   .salary-detail-modal .mo-hd .dt{order:3;flex:0 0 100%;margin-top:2px}
   .salary-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .salary-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  .salary-section-head{flex-direction:column}
+  .salary-section-head{flex-direction:row;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+  .salary-section-head p{display:none}
   .salary-settings-body{padding:16px}
   .salary-detail-body{padding:16px}
   .salary-section{padding:14px}
@@ -965,6 +968,8 @@ td{color:var(--text)}
   .salary-net-value,
   .salary-detail-total-value{font-size:28px}
   .salary-detail-item strong{font-size:20px}
+  .salary-detail-item .salary-currency,
+  .salary-detail-item strong span{font-size:20px}
   .salary-detail-breakdown{padding:4px 12px}
   .floating-field input{padding:20px 12px 9px}
   .floating-field label{font-size:12px}
