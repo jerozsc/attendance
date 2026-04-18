@@ -240,6 +240,19 @@
       <button class="btn-ok" onclick="saveRetainMonths()">保存设置</button>
     </div>
   </div>
+
+  <div class="setting-item salary-access-setting" style="margin-top: 20px;">
+    <div class="setting-label">
+      <span class="setting-title">薪资功能可见人员</span>
+      <span class="setting-desc">勾选后，用户重新登录即可看到薪资设置与薪资明细功能</span>
+    </div>
+    <div class="setting-control salary-access-control">
+      <div id="salaryAccessList" class="salary-access-list">
+        <div class="loading">加载可选人员</div>
+      </div>
+      <button class="btn-ok" onclick="saveSalaryAccessSettings()">保存权限</button>
+    </div>
+  </div>
   
   <div class="setting-item" style="margin-top: 20px;">
     <div class="setting-label">
@@ -1085,7 +1098,8 @@ var SKEY_R='att_remember';
 var LOCAL_ATT='att_data_local';
 var ADMIN_EMAILS=['2418219073@qq.com'];
 var LOCAL_USERS_KEY='att_local_users';
-var SALARY_ALLOWED_NAMES=['张少承','李文娅'];
+var LEGACY_SALARY_ALLOWED_NAMES=['张少承','李文娅'];
+var LEGACY_SALARY_ACCESS_STORAGE_KEY='att_salary_access_users';
 var SALARY_SETTING_FIELDS={
   base:[
     {key:'baseSalary',inputId:'salaryBaseSalary'},
@@ -1121,7 +1135,24 @@ function loadLocalAtt(){try{var r=localStorage.getItem(LOCAL_ATT);return r?JSON.
 function saveLocalAtt(a){localStorage.setItem(LOCAL_ATT,JSON.stringify(a))}
 function loadLocalUsers(){try{var r=localStorage.getItem(LOCAL_USERS_KEY);return r?JSON.parse(r):[]}catch(e){return[]}}
 function saveLocalUsers(users){localStorage.setItem(LOCAL_USERS_KEY,JSON.stringify(users||[]))}
-function toSessionUser(user){return {id:user.id,username:user.username,name:user.name,role:user.role||'user'}}
+function hasExplicitSalaryAccess(user){
+  return !!(user && (typeof user.canUseSalaryFeature === 'boolean' || typeof user.can_use_salary_feature === 'boolean'));
+}
+function resolveSalaryAccess(user){
+  if(!user) return false;
+  if(typeof user.canUseSalaryFeature === 'boolean') return user.canUseSalaryFeature;
+  if(typeof user.can_use_salary_feature === 'boolean') return user.can_use_salary_feature;
+  return LEGACY_SALARY_ALLOWED_NAMES.indexOf(user.name) >= 0;
+}
+function toSessionUser(user){
+  return {
+    id:user.id,
+    username:user.username,
+    name:user.name || user.display_name || user.username,
+    role:user.role||'user',
+    canUseSalaryFeature: resolveSalaryAccess(user)
+  };
+}
 function toSafeNumber(value){var num=parseFloat(value);return isNaN(num)?0:num}
 function getAttendanceRecord(store, year, month, day){
   if(!store) return null;
@@ -1153,6 +1184,29 @@ async function migrateLocalUserCredentials(){
     }
   }
   if(changed) saveLocalUsers(users);
+}
+async function migrateLocalSalaryAccessSettings(){
+  if(CLOUD_MODE) return;
+  var users = loadLocalUsers();
+  var legacySelectedIds = [];
+  try{
+    var raw = localStorage.getItem(LEGACY_SALARY_ACCESS_STORAGE_KEY);
+    if(raw){
+      var parsed = JSON.parse(raw);
+      if(Array.isArray(parsed)) legacySelectedIds = parsed;
+    }
+  }catch(e){}
+  var changed = false;
+  for(var i=0;i<users.length;i++){
+    if(!hasExplicitSalaryAccess(users[i])){
+      users[i].canUseSalaryFeature = legacySelectedIds.length
+        ? legacySelectedIds.indexOf(users[i].id) >= 0
+        : LEGACY_SALARY_ALLOWED_NAMES.indexOf(users[i].name) >= 0;
+      changed = true;
+    }
+  }
+  if(changed) saveLocalUsers(users);
+  if(legacySelectedIds.length) localStorage.removeItem(LEGACY_SALARY_ACCESS_STORAGE_KEY);
 }
 async function findLocalUserByCredentials(username, password){
   var users = loadLocalUsers();
@@ -1209,8 +1263,20 @@ function summarizeMonthlyAttendance(store, year, month){
   }
   return summary;
 }
+async function getAdminSelectableUsers(){
+  if(CLOUD_MODE) return await cloudLoadUsers();
+  return loadLocalUsers().filter(function(user){return user.role !== 'admin';});
+}
+async function cloudRefreshCurrentUserProfile(){
+  if(!CLOUD_MODE || !curUser || !curUser.id || curUser.id === 'admin') return;
+  var {data,error} = await SB.from('profiles').select('*').eq('id',curUser.id).single();
+  if(error || !data) return;
+  curUser = toSessionUser(data);
+  isAdmin = (curUser.role === 'admin');
+  localStorage.setItem('att_login_state', JSON.stringify(curUser));
+}
 function canAccessSalarySettings(){
-  return !!(curUser && !isAdmin && SALARY_ALLOWED_NAMES.indexOf(curUser.name) >= 0);
+  return !!(curUser && !isAdmin && resolveSalaryAccess(curUser));
 }
 function updateConditionalMenuItems(){
   var group = document.getElementById('salarySettingsMenuGroup');
@@ -1294,6 +1360,72 @@ function saveSalarySettings(){
   alert('薪资设置已保存');
   closeSalarySettingsModal();
 }
+function renderSalaryAccessSettings(users){
+  var list = document.getElementById('salaryAccessList');
+  if(!list) return;
+  var allUsers = users || [];
+  if(!allUsers.length){
+    list.innerHTML = '<div class="emp">暂无可配置人员</div>';
+    return;
+  }
+  var html = '';
+  allUsers.forEach(function(user){
+    var checked = resolveSalaryAccess(user) ? ' checked' : '';
+    html += '<label class="salary-access-item">';
+    html += '<input type="checkbox" class="salary-access-checkbox" value="' + user.id + '"' + checked + '>';
+    html += '<span class="salary-access-name">' + user.name + '</span>';
+    html += '<span class="salary-access-user">' + user.username + '</span>';
+    html += '</label>';
+  });
+  list.innerHTML = html;
+}
+async function loadSalaryAccessSettings(){
+  var list = document.getElementById('salaryAccessList');
+  if(!list) return;
+  list.innerHTML = '<div class="loading">加载可选人员</div>';
+  renderSalaryAccessSettings(await getAdminSelectableUsers());
+}
+async function saveSalaryAccessSettings(){
+  var checkedIds = Array.from(document.querySelectorAll('.salary-access-checkbox:checked')).map(function(input){
+    return input.value;
+  });
+  if(CLOUD_MODE){
+    var users = await getAdminSelectableUsers();
+    showLoading('正在保存权限...');
+    try{
+      for(var i=0;i<users.length;i++){
+        var user = users[i];
+        var canUse = checkedIds.indexOf(user.id) >= 0;
+        var result = await SB.from('profiles').update({
+          can_use_salary_feature: canUse
+        }).eq('id', user.id).select('id,can_use_salary_feature').single();
+        if(result.error){
+          hideLoading();
+          alert('保存失败: ' + result.error.message + '\n请先按步骤在 Supabase 中新增 can_use_salary_feature 字段');
+          return;
+        }
+        if(!result.data || result.data.can_use_salary_feature !== canUse){
+          hideLoading();
+          alert('保存失败：云端未实际写入该用户权限。请检查 Supabase 的 RLS/UPDATE 策略是否允许管理员修改 profiles.can_use_salary_feature');
+          return;
+        }
+      }
+      hideLoading();
+    }catch(e){
+      hideLoading();
+      alert('保存失败: ' + e.message);
+      return;
+    }
+  }else{
+    var localUsers = loadLocalUsers();
+    localUsers.forEach(function(user){
+      user.canUseSalaryFeature = checkedIds.indexOf(user.id) >= 0;
+    });
+    saveLocalUsers(localUsers);
+  }
+  await renderAdmin();
+  alert('薪资功能权限已保存，相关用户重新登录后生效');
+}
 function getCurrentOvertimeEstimate(){
   var settings = loadOvertimeSettings();
   var local = loadLocalAtt();
@@ -1376,7 +1508,8 @@ async function cloudLogin(username, password){
     id: data.user.id,
     username: profile?profile.username:username,
     name: profile?profile.display_name:username,
-    role: isAdminUser?'admin':(profile?profile.role:'user')
+    role: isAdminUser?'admin':(profile?profile.role:'user'),
+    canUseSalaryFeature: resolveSalaryAccess(profile ? profile : {name: username})
   };
   return {user:user};
 }
@@ -1465,10 +1598,16 @@ async function cloudSaveAtt(userId, year, month, day, type, hours){
 
 async function cloudLoadUsers(){
   if(!CLOUD_MODE) return [];
-  var {data,error} = await SB.from('profiles').select('id,username,display_name,role,created_at').order('created_at');
+  var {data,error} = await SB.from('profiles').select('*').order('created_at');
   if(error||!data) return [];
   return data.filter(function(u){return u.role!=='admin'}).map(function(u){
-    return {id:u.id,username:u.username,name:u.display_name,role:u.role};
+    return {
+      id:u.id,
+      username:u.username,
+      name:u.display_name,
+      role:u.role,
+      canUseSalaryFeature: resolveSalaryAccess(u)
+    };
   });
 }
 
@@ -1709,6 +1848,7 @@ async function cloudDeleteUser(userId){
       // 加载系统设置
       if(this.dataset.t === 's') {
         loadRetainMonths();
+        loadSalaryAccessSettings();
       }
     });
   });
@@ -1786,6 +1926,7 @@ document.getElementById('forceSync').addEventListener('click', async function(){
 
   checkHint();
   await migrateLocalUserCredentials();
+  await migrateLocalSalaryAccessSettings();
 
   // ★★★ 登录状态恢复 ★★★
   try{
@@ -1837,6 +1978,7 @@ document.getElementById('forceSync').addEventListener('click', async function(){
           }else{
             console.log('Supabase session 仍然有效');
           }
+          await cloudRefreshCurrentUserProfile();
         }catch(sessionErr){
           console.warn('获取session异常:', sessionErr);
           hideLoading();
@@ -2150,7 +2292,14 @@ async function doReg(){
   }else{
     var users=loadLocalUsers();
     for(var i=0;i<users.length;i++){if(users[i].username===u){hideLoading();alert('账号已存在');return}}
-    users.push({id:'u'+Date.now(),username:u,passwordHash:await hashPassword(p),name:n,role:'user'});
+    users.push({
+      id:'u'+Date.now(),
+      username:u,
+      passwordHash:await hashPassword(p),
+      name:n,
+      role:'user',
+      canUseSalaryFeature: LEGACY_SALARY_ALLOWED_NAMES.indexOf(n) >= 0
+    });
     saveLocalUsers(users);
     hideLoading();
     alert('注册成功！请登录');
@@ -3202,6 +3351,7 @@ async function renderAdmin(){
     users = loadLocalUsers().filter(function(u){return u.role!=='admin'});
   }
   renderUTblWithData(users);
+  renderSalaryAccessSettings(users);
 }
 
 function renderUTblWithData(users){

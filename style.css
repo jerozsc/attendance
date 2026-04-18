@@ -669,6 +669,58 @@ td{color:var(--text)}
   align-items: center;
   gap: 12px;
 }
+.salary-access-setting{
+  display:block;
+}
+.salary-access-setting .setting-label{
+  margin-bottom:12px;
+}
+.salary-access-control{
+  flex-direction:column;
+  align-items:stretch;
+  width:100%;
+}
+.salary-access-list{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  width:100%;
+}
+.salary-access-item{
+  display:grid;
+  grid-template-columns:16px minmax(0,1fr) minmax(0,120px);
+  gap:10px;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--surface2);
+  cursor:pointer;
+}
+.salary-access-checkbox{
+  width:16px;
+  height:16px;
+  accent-color:var(--accent);
+  flex:0 0 auto;
+  align-self:center;
+}
+.salary-access-name{
+  color:var(--text);
+  font-size:13px;
+  font-weight:600;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.salary-access-user{
+  color:var(--text3);
+  font-size:12px;
+  min-width:0;
+  text-align:right;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
 
 .setting-select {
   padding: 8px 12px;
@@ -1009,6 +1061,10 @@ td{color:var(--text)}
   .msel select,.msel input[type="text"] {min-width: 0;flex: 0 1 auto;}
   .msel .btn-s,.msel .ab {flex-shrink: 0;}
   .as {overflow-x: auto;}
+  .salary-access-list{grid-template-columns:1fr}
+  .salary-access-item{grid-template-columns:16px minmax(0,1fr);padding:9px 10px}
+  .salary-access-name{white-space:normal;overflow:visible;text-overflow:clip}
+  .salary-access-user{grid-column:2;text-align:left;font-size:11px;white-space:normal;overflow:visible;text-overflow:clip}
   
   /* 移动端管理员年月选择按钮 */
   .admin-date-btn {
