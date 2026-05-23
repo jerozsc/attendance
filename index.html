@@ -4984,28 +4984,65 @@ function closeBudgetModal() {
 }
 
 // 保存预算
-function saveBudget() {
+async function saveBudget() {
   var amount = parseFloat(document.getElementById('budgetAmount').value);
   if (isNaN(amount) || amount < 0) {
     alert('请输入有效的预算金额');
     return;
   }
   
-  weddingState.budget = amount;
-  saveBudgetLocal();
-  updateWeddingStats();
-  closeBudgetModal();
+  showLoading('保存中...');
+  
+  try {
+    weddingState.budget = amount;
+    
+    // 云端模式：同步到Supabase
+    if (CLOUD_MODE && curUser && curUser.id) {
+      var { error } = await SB.from('profiles').update({
+        wedding_budget: amount
+      }).eq('id', curUser.id);
+      
+      if (error) {
+        console.error('保存预算到云端失败:', error);
+        // 如果云端保存失败，仍然保存到本地
+      }
+    }
+    
+    // 本地保存
+    saveBudgetLocal();
+    updateWeddingStats();
+    hideLoading();
+    closeBudgetModal();
+  } catch (e) {
+    hideLoading();
+    console.error('保存预算失败:', e);
+    alert('保存失败: ' + e.message);
+  }
 }
 
 // 加载预算
-function loadBudget() {
+async function loadBudget() {
   try {
-    var key = 'att_wedding_budget_' + (curUser ? curUser.id : 'local');
-    var saved = localStorage.getItem(key);
-    if (saved) {
-      weddingState.budget = parseFloat(saved) || 0;
+    // 云端模式：从Supabase加载
+    if (CLOUD_MODE && curUser && curUser.id) {
+      var { data, error } = await SB.from('profiles')
+        .select('wedding_budget')
+        .eq('id', curUser.id)
+        .single();
+      
+      if (!error && data && data.wedding_budget !== null && data.wedding_budget !== undefined) {
+        weddingState.budget = parseFloat(data.wedding_budget) || 0;
+      } else {
+        // 如果云端没有，尝试从本地加载
+        var key = 'att_wedding_budget_' + curUser.id;
+        var saved = localStorage.getItem(key);
+        weddingState.budget = saved ? parseFloat(saved) || 0 : 0;
+      }
     } else {
-      weddingState.budget = 0;
+      // 本地模式
+      var key = 'att_wedding_budget_' + (curUser ? curUser.id : 'local');
+      var saved = localStorage.getItem(key);
+      weddingState.budget = saved ? parseFloat(saved) || 0 : 0;
     }
   } catch (e) {
     console.error('加载预算失败:', e);
