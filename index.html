@@ -446,12 +446,9 @@
             <div class="label">记录条数</div>
             <div class="value"><span id="weddingCount">0</span></div>
           </div>
-          <div class="wedding-stat">
+          <div class="wedding-stat" id="budgetStatItem" style="cursor: pointer;">
             <div class="label">预算</div>
             <div class="value"><span id="weddingBudget">¥0</span></div>
-            <div style="margin-top: 4px;">
-              <button class="btn-s" style="padding: 2px 8px; font-size: 11px;" onclick="openBudgetModal()">设置预算</button>
-            </div>
           </div>
         </div>
 
@@ -4935,6 +4932,44 @@ function openWeddingModal() {
   document.getElementById('weddingDate').textContent = new Date().toLocaleDateString('zh-CN');
   loadWeddingExpenses();
   loadBudget();
+  
+  // 绑定预算板块事件
+  setTimeout(bindBudgetEvents, 100);
+}
+
+// 绑定预算板块的右键和长按事件
+function bindBudgetEvents() {
+  var budgetItem = document.getElementById('budgetStatItem');
+  if (!budgetItem) return;
+  
+  // PC端：右键点击
+  budgetItem.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    openBudgetModal();
+  });
+  
+  // 移动端：长按
+  var longPressTimer = null;
+  var isLongPress = false;
+  
+  budgetItem.addEventListener('touchstart', function(e) {
+    isLongPress = false;
+    longPressTimer = setTimeout(function() {
+      isLongPress = true;
+      openBudgetModal();
+    }, 500);
+  });
+  
+  budgetItem.addEventListener('touchmove', function(e) {
+    clearTimeout(longPressTimer);
+  });
+  
+  budgetItem.addEventListener('touchend', function(e) {
+    clearTimeout(longPressTimer);
+    if (isLongPress) {
+      e.preventDefault();
+    }
+  });
 }
 
 // 打开预算设置弹窗

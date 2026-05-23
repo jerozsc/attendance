@@ -1697,6 +1697,13 @@ td{color:var(--text)}
 .wedding-stat:nth-child(4) {
   background: var(--purple-bg);
   border-color: var(--purple-b);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.wedding-stat:nth-child(4):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(126,82,192,0.2);
 }
 
 .wedding-stat:nth-child(4) .value {
@@ -1755,16 +1762,15 @@ td{color:var(--text)}
 .wedding-list {
   max-height: 400px;
   overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
 .wedding-item {
   background: var(--surface2);
   border-radius: 10px;
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
+  padding: 14px;
   transition: all 0.2s;
   border: 1px solid transparent;
 }
@@ -1925,11 +1931,7 @@ td{color:var(--text)}
   }
   
   .wedding-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
     padding: 10px;
-    margin-bottom: 6px;
   }
   
   .wedding-item-info {
