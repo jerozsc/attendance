@@ -480,6 +480,7 @@
           <button class="btn-s" onclick="filterWeddingExpenses('烟酒')">烟酒</button>
           <button class="btn-s" onclick="filterWeddingExpenses('喜糖')">喜糖</button>
           <button class="btn-s" onclick="filterWeddingExpenses('接亲')">接亲</button>
+          <button class="btn-s" onclick="filterWeddingExpenses('服饰')">服饰</button>
           <button class="btn-s" onclick="filterWeddingExpenses('其他')">其他</button>
         </div>
 
@@ -514,6 +515,7 @@
           <option value="烟酒">烟酒</option>
           <option value="喜糖">喜糖</option>
           <option value="接亲">接亲</option>
+          <option value="服饰">服饰</option>
           <option value="其他">其他</option>
         </select>
       </div>
@@ -785,9 +787,8 @@
 <div id="salaryDetailModal" class="mo-bg hidden">
   <div class="mo-ct salary-detail-modal">
     <div class="mo-hd">
-      <h3>薪资明细</h3>
+      <h3 id="salaryDetailTitle" style="cursor: pointer; user-select: none;">薪资明细</h3>
       <div class="dt" id="salaryDetailPeriod">当前月份预估</div>
-      <button class="mo-x" onclick="closeSalaryDetailModal()">×</button>
     </div>
     <div class="mo-bd salary-detail-body">
       <div class="salary-detail-total-card">
@@ -1272,6 +1273,8 @@ function getDefType(y, m, d){
 
 // ===================== STATE =====================
 var curUser=null,isAdmin=false;
+var salaryDetailUnlocked=false; // 薪资明细是否已解锁
+var salarySettingsUnlocked=false; // 薪资设置是否已解锁
 var vYear=new Date().getFullYear(),vMonth=new Date().getMonth()+1;
 var selDate=null;
 var SKEY_R='att_remember';
@@ -1569,6 +1572,16 @@ async function openSalarySettingsModal(){
   document.getElementById('contextMenu').classList.remove('show');
   if(!canAccessSalarySettings()) return;
   
+  // 密码验证
+  if(!salarySettingsUnlocked){
+    var pwd = prompt('请输入登录密码以访问薪资设置：');
+    if(pwd === null) return; // 用户取消
+    if(!pwd){alert('密码不能为空');return;}
+    var verified = await verifyCurrentUserPassword(pwd);
+    if(!verified){alert('密码错误');return;}
+    salarySettingsUnlocked = true;
+  }
+  
   showLoading('加载中...');
   var settings = await loadSalarySettings();
   hideLoading();
@@ -1730,16 +1743,20 @@ function getCurrentOvertimeEstimate(){
     totalAmount: weekdayAmount + weekendAmount
   };
 }
-function handleDashNameClick(){
+async function handleDashNameClick(){
   if(canAccessSalarySettings()){
-    openSalaryDetailModal();
+    await openSalaryDetailModal();
   }else{
     openPwdModal();
   }
 }
-function openSalaryDetailModal(){
+async function openSalaryDetailModal(){
   if(!canAccessSalarySettings()) return;
-  var salarySettings = loadSalarySettings();
+  
+  showLoading('加载中...');
+  var salarySettings = await loadSalarySettings();
+  hideLoading();
+  
   var baseTotal = sumSalarySettingsGroup(salarySettings, 'base');
   var otherTotal = sumSalarySettingsGroup(salarySettings, 'other');
   var deductionTotal = sumSalarySettingsGroup(salarySettings, 'deduction');
@@ -1747,17 +1764,52 @@ function openSalaryDetailModal(){
   var grandTotal = baseTotal + otherTotal - deductionTotal + overtime.totalAmount;
 
   document.getElementById('salaryDetailPeriod').textContent = vYear + '年' + vMonth + '月预估';
-  document.getElementById('salaryDetailBaseTotal').textContent = baseTotal.toFixed(2);
-  document.getElementById('salaryDetailOtherTotal').textContent = otherTotal.toFixed(2);
-  document.getElementById('salaryDetailDeductionTotal').textContent = deductionTotal.toFixed(2);
+  // 合计加班费始终显示真实数据
   document.getElementById('salaryDetailOvertimeTotal').textContent = overtime.totalAmount.toFixed(2);
-  document.getElementById('salaryDetailGrandTotal').textContent = grandTotal.toFixed(2);
   document.getElementById('salaryDetailWeekdayOvertime').textContent = overtime.weekdayHours + 'H × ¥' + overtime.weekdayRate.toFixed(2) + '/H = ¥' + overtime.weekdayAmount.toFixed(2);
   document.getElementById('salaryDetailWeekendOvertime').textContent = overtime.weekendHours + 'H × ¥' + overtime.weekendRate.toFixed(2) + '/H = ¥' + overtime.weekendAmount.toFixed(2);
+  
+  // 根据解锁状态显示数据
+  if(salaryDetailUnlocked){
+    document.getElementById('salaryDetailBaseTotal').textContent = baseTotal.toFixed(2);
+    document.getElementById('salaryDetailOtherTotal').textContent = otherTotal.toFixed(2);
+    document.getElementById('salaryDetailDeductionTotal').textContent = deductionTotal.toFixed(2);
+    document.getElementById('salaryDetailGrandTotal').textContent = grandTotal.toFixed(2);
+    document.getElementById('salaryDetailTitle').textContent = '薪资明细 ✅';
+  }else{
+    document.getElementById('salaryDetailBaseTotal').textContent = '***';
+    document.getElementById('salaryDetailOtherTotal').textContent = '***';
+    document.getElementById('salaryDetailDeductionTotal').textContent = '***';
+    document.getElementById('salaryDetailGrandTotal').textContent = '***';
+    document.getElementById('salaryDetailTitle').textContent = '薪资明细';
+  }
+  
   document.getElementById('salaryDetailModal').classList.remove('hidden');
 }
 function closeSalaryDetailModal(){
   document.getElementById('salaryDetailModal').classList.add('hidden');
+  salaryDetailUnlocked=false; // 关闭时重置解锁状态
+}
+
+// ===================== SALARY PASSWORD VERIFICATION =====================
+async function verifyCurrentUserPassword(inputPassword){
+  if(!curUser || !inputPassword) return false;
+  var inputHash = await hashPassword(inputPassword);
+  if(CLOUD_MODE){
+    // 云端模式：从profiles表获取密码哈希比对
+    var {data,error} = await SB.from('profiles').select('password').eq('id',curUser.id).single();
+    if(error || !data) return false;
+    return data.password === inputHash;
+  }else{
+    // 本地模式：从localStorage获取密码哈希比对
+    var users = loadLocalUsers();
+    for(var i=0;i<users.length;i++){
+      if(users[i].id === curUser.id){
+        return users[i].passwordHash === inputHash;
+      }
+    }
+    return false;
+  }
 }
 
 // ===================== CLOUD FUNCTIONS =====================
@@ -2085,6 +2137,42 @@ async function cloudDeleteUser(userId){
   document.getElementById('pwdClose').addEventListener('click', closePwdModal);
   document.getElementById('pwdCancel').addEventListener('click', closePwdModal);
   document.getElementById('pwdSave').addEventListener('click', savePwd);
+  
+  // ========== 薪资明细标题密码验证事件 ==========
+  (function(){
+    var titleEl = document.getElementById('salaryDetailTitle');
+    if(!titleEl) return;
+    var pressTimer = null;
+    // 右键(PC)
+    titleEl.addEventListener('contextmenu', function(e){
+      e.preventDefault();
+      promptSalaryDetailPassword();
+    });
+    // 长按(手机)
+    titleEl.addEventListener('touchstart', function(e){
+      pressTimer = setTimeout(function(){ promptSalaryDetailPassword(); }, 600);
+    });
+    titleEl.addEventListener('touchend', function(){ clearTimeout(pressTimer); });
+    titleEl.addEventListener('touchmove', function(){ clearTimeout(pressTimer); });
+  })();
+  
+  async function promptSalaryDetailPassword(){
+    if(salaryDetailUnlocked){
+      // 已解锁则重新锁定
+      salaryDetailUnlocked = false;
+      await openSalaryDetailModal();
+      showToast('已锁定', '薪资敏感数据已隐藏', 'info');
+      return;
+    }
+    var pwd = prompt('请输入登录密码以查看薪资明细：');
+    if(pwd === null) return;
+    if(!pwd){alert('密码不能为空');return;}
+    var verified = await verifyCurrentUserPassword(pwd);
+    if(!verified){alert('密码错误');return;}
+    salaryDetailUnlocked = true;
+    await openSalaryDetailModal();
+    showToast('已解锁', '薪资敏感数据已显示', 'success');
+  }
 
   // ★ 修复：原代码此处有语法错误，两行代码被错误拼接
   document.getElementById('pwdNewPassword').addEventListener('keydown', function(e){
