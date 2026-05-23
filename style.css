@@ -682,7 +682,7 @@ td{color:var(--text)}
 }
 .salary-access-list{
   display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-columns:repeat(4,minmax(0,1fr));
   gap:10px;
   width:100%;
 }
@@ -1694,6 +1694,15 @@ td{color:var(--text)}
   color: var(--blue);
 }
 
+.wedding-stat:nth-child(4) {
+  background: var(--purple-bg);
+  border-color: var(--purple-b);
+}
+
+.wedding-stat:nth-child(4) .value {
+  color: var(--purple);
+}
+
 /* 婚礼计费操作按钮 */
 .wedding-actions {
   display: flex;
@@ -1885,17 +1894,23 @@ td{color:var(--text)}
 /* 移动端适配 */
 @media (max-width: 768px) {
   .wedding-stats {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
     margin-bottom: 12px;
   }
   
   .wedding-stat {
-    padding: 12px;
+    padding: 8px 6px;
+    border-radius: 8px;
+  }
+  
+  .wedding-stat .label {
+    font-size: 10px;
+    margin-bottom: 4px;
   }
   
   .wedding-stat .value {
-    font-size: 18px;
+    font-size: 14px;
   }
   
   .wedding-actions {
@@ -1912,22 +1927,42 @@ td{color:var(--text)}
   .wedding-item {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  
+  .wedding-item-category {
+    font-size: 13px;
+  }
+  
+  .wedding-item-date {
+    font-size: 11px;
+  }
+  
+  .wedding-item-desc {
+    font-size: 11px;
   }
   
   .wedding-item-amount {
     text-align: left;
   }
   
+  .wedding-item-amount .amount {
+    font-size: 16px;
+  }
+  
   .wedding-item-actions {
     width: 100%;
     display: flex;
-    gap: 8px;
+    gap: 6px;
   }
   
   .wedding-item-actions .btn-s {
     flex: 1;
     text-align: center;
+    font-size: 11px;
+    padding: 6px 8px;
   }
   
   .wedding-modal-ct {

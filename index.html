@@ -2,9 +2,19 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>个人考勤统计系统</title>
 <link rel="stylesheet" href="style.css">
+
+<!-- PWA 配置：添加到桌面时显示自定义图标 -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c49030">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="考勤统计">
+<link rel="apple-touch-icon" href="logo.jpg">
+<link rel="icon" type="image/jpeg" href="logo.jpg">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
@@ -329,8 +339,10 @@
 
 <!-- 菜单显示 -->
 <div id="contextMenu" class="context-menu">
-  <div class="menu-item" onclick="openOvertimeSettings()">加班工资设置</div>
-  <div class="menu-divider"></div>
+  <div id="overtimeSettingsMenuItem">
+    <div class="menu-item" onclick="openOvertimeSettings()">加班工资设置</div>
+    <div class="menu-divider"></div>
+  </div>
   <div id="salarySettingsMenuGroup" class="hidden">
     <div class="menu-item" onclick="openSalarySettingsModal()">薪资设置</div>
     <div class="menu-divider"></div>
@@ -343,8 +355,10 @@
   <div class="menu-divider"></div>
   <div class="menu-item" onclick="openPwdModal()">修改密码</div>
   <div class="menu-divider"></div>
-  <div class="menu-item" onclick="menuRefreshHoliday()">刷新假期数据</div>
-  <div class="menu-divider"></div>
+  <div id="refreshHolidayMenuItem">
+    <div class="menu-item" onclick="menuRefreshHoliday()">刷新假期数据</div>
+    <div class="menu-divider"></div>
+  </div>
   <div class="menu-item" onclick="manualMigrateData()">迁移旧数据到本地</div>
   <div class="menu-divider"></div>
   <div class="menu-item" onclick="logout()">退出登录</div>
@@ -419,24 +433,24 @@
     <div class="mo-bd" style="overflow-y: auto; padding: 0; max-height: calc(90vh - 160px);">
       <div style="padding: 20px;">
         <!-- 统计区域 -->
-        <div class="wedding-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px;">
-          <div class="st t" style="background: var(--accent-bg); border: 1px solid var(--accent-b); border-radius: 12px; padding: 16px; text-align: center;">
-            <div class="lb" style="font-size: 12px; color: var(--text2); margin-bottom: 8px;">总支出</div>
-            <div class="vl" style="font-size: 24px; font-weight: 700; color: var(--accent);"><span id="weddingTotal">¥0</span></div>
+        <div class="wedding-stats">
+          <div class="wedding-stat total">
+            <div class="label">总支出</div>
+            <div class="value"><span id="weddingTotal">¥0</span></div>
           </div>
-          <div class="st w" style="background: var(--green-bg); border: 1px solid var(--green-b); border-radius: 12px; padding: 16px; text-align: center;">
-            <div class="lb" style="font-size: 12px; color: var(--text2); margin-bottom: 8px;">本月支出</div>
-            <div class="vl" style="font-size: 24px; font-weight: 700; color: var(--green);"><span id="weddingMonth">¥0</span></div>
+          <div class="wedding-stat month">
+            <div class="label">本月支出</div>
+            <div class="value"><span id="weddingMonth">¥0</span></div>
           </div>
-          <div class="st e" style="background: var(--blue-bg); border: 1px solid var(--blue-b); border-radius: 12px; padding: 16px; text-align: center;">
-            <div class="lb" style="font-size: 12px; color: var(--text2); margin-bottom: 8px;">记录条数</div>
-            <div class="vl" style="font-size: 24px; font-weight: 700; color: var(--blue);"><span id="weddingCount">0</span></div>
+          <div class="wedding-stat count">
+            <div class="label">记录条数</div>
+            <div class="value"><span id="weddingCount">0</span></div>
           </div>
-          <div class="st" style="background: var(--purple-bg); border: 1px solid var(--purple-b); border-radius: 12px; padding: 16px; text-align: center;">
-            <div class="lb" style="font-size: 12px; color: var(--text2); margin-bottom: 8px;">预算</div>
-            <div class="vl" style="font-size: 24px; font-weight: 700; color: var(--purple);"><span id="weddingBudget">¥0</span></div>
-            <div style="margin-top: 8px;">
-              <button class="btn-s" style="padding: 4px 12px; font-size: 12px;" onclick="openBudgetModal()">设置预算</button>
+          <div class="wedding-stat">
+            <div class="label">预算</div>
+            <div class="value"><span id="weddingBudget">¥0</span></div>
+            <div style="margin-top: 4px;">
+              <button class="btn-s" style="padding: 2px 8px; font-size: 11px;" onclick="openBudgetModal()">设置预算</button>
             </div>
           </div>
         </div>
@@ -887,6 +901,17 @@ function toggleMenu(event) {
   menu.style.top = (rect.bottom + 5) + 'px';
   menu.style.left = (rect.left - 100) + 'px'; // 向左偏移，防止菜单超出屏幕右侧
 
+  // 管理员界面隐藏特定菜单项
+  var overtimeItem = document.getElementById('overtimeSettingsMenuItem');
+  var holidayItem = document.getElementById('refreshHolidayMenuItem');
+  if (isAdmin) {
+    overtimeItem.classList.add('hidden');
+    holidayItem.classList.add('hidden');
+  } else {
+    overtimeItem.classList.remove('hidden');
+    holidayItem.classList.remove('hidden');
+  }
+
   menu.classList.toggle('show');
 }
 
@@ -927,7 +952,7 @@ function saveOvertimeSettings() {
   };
   localStorage.setItem('att_overtime_settings', JSON.stringify(settings));
 
-  alert('加班工资设置已保存！');
+  showToast('保存成功', '加班工资设置已保存', 'success');
   closeOvertimeModal();
 }
 
@@ -956,7 +981,7 @@ async function refreshHolidayData(){
   saveCachedHolidays(cached);
   await updateHolidays(year);
   hideLoading();
-  alert(year + '年假期数据已更新');
+  showToast('更新成功', year + '年假期数据已更新', 'success');
   renderCal();
 }
 //==========================================
@@ -1527,7 +1552,7 @@ function saveSalarySettings(){
   var settings = collectSalarySettingsFromDom();
   localStorage.setItem(getSalarySettingsStorageKey(), JSON.stringify(settings));
   updateSalarySettingsTotals();
-  alert('薪资设置已保存');
+  showToast('保存成功', '薪资设置已保存', 'success');
   closeSalarySettingsModal();
 }
 function renderSalaryAccessSettings(users){
@@ -1594,7 +1619,7 @@ async function saveSalaryAccessSettings(){
     saveLocalUsers(localUsers);
   }
   await renderAdmin();
-  alert('薪资功能权限已保存，相关用户重新登录后生效');
+  showToast('保存成功', '薪资功能权限已保存，相关用户重新登录后生效', 'success');
 }
 function getCurrentOvertimeEstimate(){
   var settings = loadOvertimeSettings();
@@ -2071,7 +2096,7 @@ document.getElementById('forceSync').addEventListener('click', async function(){
     // 重新渲染，会从云端加载数据
     await render();
 
-    alert(vYear + '年' + vMonth + '月数据同步完成！');
+    showToast('同步成功', vYear + '年' + vMonth + '月数据同步完成', 'success');
   }catch(e){
     console.error('同步失败:', e);
     alert('同步失败: ' + e.message);
@@ -2441,10 +2466,10 @@ function manualMigrateData() {
   
   migrateOldData(false).then(function() {
     hideLoading();
-    alert('数据迁移完成！详细信息请查看控制台日志');
+    showToast('迁移完成', '数据迁移完成，详细信息请查看控制台日志', 'success');
   }).catch(function(e) {
     hideLoading();
-    alert('数据迁移失败: ' + e.message);
+    showToast('迁移失败', e.message, 'error');
   });
 }
 
@@ -2461,7 +2486,7 @@ async function doReg(){
     var result = await cloudRegister(u,p,n);
     hideLoading();
     if(result.error){alert('注册失败: '+result.error);return}
-    alert('注册成功！请登录');
+    showToast('注册成功', '请使用新账号登录', 'success');
   }else{
     var users=loadLocalUsers();
     for(var i=0;i<users.length;i++){if(users[i].username===u){hideLoading();alert('账号已存在');return}}
@@ -2476,7 +2501,7 @@ async function doReg(){
     });
     saveLocalUsers(users);
     hideLoading();
-    alert('注册成功！请登录');
+    showToast('注册成功', '请使用新账号登录', 'success');
   }
 
   document.getElementById('lUser').value=u;
@@ -2513,7 +2538,7 @@ async function saveRetainMonths() {
     }
   }
   
-  alert('设置已保存！\n数据保留月数：' + months + '个月\n\n新设置将在下次登录时生效');
+  showToast('设置已保存', '数据保留月数：' + months + '个月，新设置将在下次登录时生效', 'success');
 }
 
 // 获取保留月数
@@ -2593,7 +2618,7 @@ async function adminMigrateAllUsers() {
     }
     
     hideLoading();
-    alert('全员数据迁移完成！\n\n处理用户数：' + processedUsers + '人\n迁移记录数：' + totalMigrated + '条\n保留月数：' + retainMonths + '个月');
+    showToast('迁移完成', '处理用户数：' + processedUsers + '人，迁移记录数：' + totalMigrated + '条，保留月数：' + retainMonths + '个月', 'success');
     
   } catch(e) {
     hideLoading();
@@ -2648,17 +2673,16 @@ async function savePwd(){
 
     if(profileErr){hideLoading();alert('修改失败: '+profileErr.message);return}
 
-    // 同时更新 auth.users 的密码
-    var {error:authErr} = await SB.rpc('admin_update_user',{
+    // 同时更新 auth.users 的密码（只更新密码，不更新email）
+    var {error:authErr} = await SB.rpc('admin_update_user_password',{
       user_id: curUser.id,
-      new_email: curUser.username.indexOf('@')>=0 ? curUser.username : curUser.username+'@attendance.app',
       new_password: newPwd
     });
 
     if(authErr){hideLoading();alert('密码更新失败: '+authErr.message);return}
 
     hideLoading();
-    alert('密码修改成功！');
+    showToast('修改成功', '密码已更新', 'success');
   } else {
     // 本地模式：更新 localStorage 中的用户密码
     var users = loadLocalUsers();
@@ -2682,7 +2706,7 @@ async function savePwd(){
     }catch(e){}
 
     hideLoading();
-    alert('密码修改成功！');
+    showToast('修改成功', '密码已更新', 'success');
   }
 
   closePwdModal();
@@ -3237,7 +3261,7 @@ async function applyBatch(){
     clearAttCache(curUser.id, vYear, vMonth);
   }
 
-  alert('已成功批量设置 ' + dates.length + ' 天的考勤记录');
+  showToast('批量设置成功', '已设置 ' + dates.length + ' 天的考勤记录', 'success');
 
   clearSelection();
   renderCal();
@@ -3575,20 +3599,30 @@ async function saveEditUser(){
 
     if(profileErr){hideLoading();alert('更新失败: '+profileErr.message);return}
 
+    // 更新 auth 中的 email（工号改变时）
     var authErr = null;
+    var emailResult = await SB.rpc('admin_update_user_email',{
+      user_id: editTargetId,
+      new_email: newEmail
+    });
+    if(emailResult.error){
+      console.error('更新email失败:', emailResult.error);
+      // email更新失败不影响整体，继续执行
+    }
+
+    // 如果有新密码，更新密码
     if(newPassword){
-      var authResult = await SB.rpc('admin_update_user',{
+      var pwdResult = await SB.rpc('admin_update_user_password',{
         user_id: editTargetId,
-        new_email: newEmail,
         new_password: newPassword
       });
-      authErr = authResult.error;
+      authErr = pwdResult.error;
     }
 
     if(authErr){hideLoading();alert('密码更新失败: '+authErr.message);return}
 
     hideLoading();
-    alert(newPassword ? '账号和密码已更新' : '账号已更新');
+    showToast('更新成功', newPassword ? '账号和密码已更新' : '账号已更新', 'success');
   }else{
     var users=loadLocalUsers();
     for(var i=0;i<users.length;i++){
@@ -3608,7 +3642,7 @@ async function saveEditUser(){
     }
     saveLocalUsers(users);
     hideLoading();
-    alert(newPassword ? '账号和密码已更新' : '账号已更新');
+    showToast('更新成功', newPassword ? '账号和密码已更新' : '账号已更新', 'success');
   }
 
   closeEditModal();
@@ -4250,9 +4284,9 @@ function simulateApplyBatch() {
 
   // 根据是否有变化给出不同提示
   if (changedCount > 0) {
-    alert(`已成功批量设置 ${changedCount} 天的考勤记录`);
+    showToast('批量设置成功', '已设置 ' + changedCount + ' 天的考勤记录', 'success');
   } else {
-    alert('所选日期的考勤记录没有变化');
+    showToast('提示', '所选日期的考勤记录没有变化', 'info');
   }
 }
 
@@ -4580,7 +4614,7 @@ function saveSimulateToLocal() {
     localStorage.setItem('att_simulate_data', JSON.stringify(saveData));
     // ★ 保存后重置修改标记，这样关闭弹窗时不会再弹提醒
     simulateState.hasChanges = false;
-    alert('模拟考勤数据已保存至本地数据库');
+    showToast('保存成功', '模拟考勤数据已保存至本地数据库', 'success');
   } catch (e) {
     console.error('保存模拟考勤数据失败:', e);
     alert('保存失败: ' + e.message);
@@ -4648,7 +4682,7 @@ async function saveSimulateToCloud() {
 
     hideLoading();
     simulateState.hasSavedToCloud = true;
-    alert(year + '年' + month + '月的模拟考勤数据已成功保存至云端');
+    showToast('保存成功', year + '年' + month + '月的模拟考勤数据已保存至云端', 'success');
   } catch (e) {
     hideLoading();
     console.error('保存至云端失败:', e);
@@ -4745,7 +4779,7 @@ async function saveSimulateToCloud() {
       if (!confirm(confirmMsg)) {
         return;
       }
-      alert('模拟数据与云端数据一致，无需保存');
+      showToast('提示', '模拟数据与云端数据一致，无需保存', 'info');
       return;
     }
 
@@ -4776,7 +4810,7 @@ async function saveSimulateToCloud() {
 
     hideLoading();
     simulateState.hasSavedToCloud = true;
-    alert(year + '年' + month + '月的模拟考勤数据已成功保存至云端！\n共 ' + currentMonthCount + ' 条记录');
+    showToast('保存成功', year + '年' + month + '月的模拟考勤数据已保存至云端，共 ' + currentMonthCount + ' 条记录', 'success');
 
   } catch (e) {
     hideLoading();
@@ -4825,7 +4859,7 @@ function clearCurrentMonthSimData() {
   // 保存到本地
   saveSimulateToLocal();
 
-  alert(year + '年' + month + '月的模拟考勤数据已清空');
+  showToast('清空成功', year + '年' + month + '月的模拟考勤数据已清空', 'success');
 }
 
 
@@ -5429,7 +5463,7 @@ async function saveWeddingAccessSettings() {
     }
 
     hideLoading();
-    alert('婚礼计费权限设置已保存！用户重新登录后生效。');
+    showToast('保存成功', '婚礼计费权限设置已保存，用户重新登录后生效', 'success');
   } catch (e) {
     hideLoading();
     console.error('保存婚礼计费权限设置失败:', e);
