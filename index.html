@@ -1483,21 +1483,52 @@ function updateDashNameAction(){
 function getSalarySettingsStorageKey(){
   return 'att_salary_settings_' + (curUser ? curUser.id : 'anonymous');
 }
-function loadSalarySettings(){
+async function loadSalarySettings(){
   var defaults = {};
   Object.keys(SALARY_SETTING_FIELDS).forEach(function(group){
     SALARY_SETTING_FIELDS[group].forEach(function(field){
       defaults[field.key] = 0;
     });
   });
+  
   try{
+    var currentYear = new Date().getFullYear();
+    var currentMonth = new Date().getMonth() + 1;
+    
+    // 云端模式：从Supabase加载
+    if(CLOUD_MODE && curUser && curUser.id){
+      var { data, error } = await SB.from('salary_settings')
+        .select('*')
+        .eq('user_id', curUser.id)
+        .eq('salary_year', currentYear)
+        .eq('salary_month', currentMonth)
+        .single();
+      
+      if(!error && data){
+        defaults.baseSalary = toSafeNumber(data.base_salary);
+        defaults.postSalary = toSafeNumber(data.post_salary);
+        defaults.attendanceSalary = toSafeNumber(data.attendance_salary);
+        defaults.performance = toSafeNumber(data.performance);
+        defaults.seniorityBonus = toSafeNumber(data.seniority_bonus);
+        defaults.housingAllowance = toSafeNumber(data.housing_allowance);
+        defaults.mealAllowance = toSafeNumber(data.meal_allowance);
+        defaults.otherIncome = toSafeNumber(data.other_income);
+        defaults.insurance = toSafeNumber(data.insurance);
+        defaults.housingFund = toSafeNumber(data.housing_fund);
+        return defaults;
+      }
+    }
+    
+    // 本地模式或云端无数据时从本地加载
     var raw = localStorage.getItem(getSalarySettingsStorageKey());
     if(!raw) return defaults;
     var parsed = JSON.parse(raw);
     Object.keys(defaults).forEach(function(key){
       defaults[key] = toSafeNumber(parsed[key]);
     });
-  }catch(e){}
+  }catch(e){
+    console.error('加载薪资设置失败:', e);
+  }
   return defaults;
 }
 function fillSalarySettingsForm(settings){
@@ -1534,23 +1565,85 @@ function updateSalarySettingsTotals(){
   document.getElementById('salaryDeductionTotal').textContent = deductionTotal.toFixed(2);
   document.getElementById('salaryNetIncomeTotal').textContent = netTotal.toFixed(2);
 }
-function openSalarySettingsModal(){
+async function openSalarySettingsModal(){
   document.getElementById('contextMenu').classList.remove('show');
   if(!canAccessSalarySettings()) return;
-  fillSalarySettingsForm(loadSalarySettings());
+  
+  showLoading('加载中...');
+  var settings = await loadSalarySettings();
+  hideLoading();
+  
+  fillSalarySettingsForm(settings);
   updateSalarySettingsTotals();
   document.getElementById('salarySettingsModal').classList.remove('hidden');
 }
 function closeSalarySettingsModal(){
   document.getElementById('salarySettingsModal').classList.add('hidden');
 }
-function saveSalarySettings(){
+async function saveSalarySettings(){
   if(!curUser) return;
-  var settings = collectSalarySettingsFromDom();
-  localStorage.setItem(getSalarySettingsStorageKey(), JSON.stringify(settings));
-  updateSalarySettingsTotals();
-  showToast('保存成功', '薪资设置已保存', 'success');
-  closeSalarySettingsModal();
+  
+  showLoading('保存中...');
+  
+  try {
+    var settings = collectSalarySettingsFromDom();
+    var now = new Date().toISOString();
+    var currentYear = new Date().getFullYear();
+    var currentMonth = new Date().getMonth() + 1;
+    
+    // 云端模式：同步到Supabase
+    if(CLOUD_MODE && curUser && curUser.id){
+      var payload = {
+        user_id: curUser.id,
+        salary_year: currentYear,
+        salary_month: currentMonth,
+        base_salary: settings.baseSalary || 0,
+        post_salary: settings.postSalary || 0,
+        attendance_salary: settings.attendanceSalary || 0,
+        performance: settings.performance || 0,
+        seniority_bonus: settings.seniorityBonus || 0,
+        housing_allowance: settings.housingAllowance || 0,
+        meal_allowance: settings.mealAllowance || 0,
+        other_income: settings.otherIncome || 0,
+        insurance: settings.insurance || 0,
+        housing_fund: settings.housingFund || 0,
+        updated_at: now
+      };
+      
+      // 检查是否已存在当月记录
+      var { data: existing } = await SB.from('salary_settings')
+        .select('id')
+        .eq('user_id', curUser.id)
+        .eq('salary_year', currentYear)
+        .eq('salary_month', currentMonth)
+        .single();
+      
+      if(existing){
+        // 更新
+        var { error } = await SB.from('salary_settings')
+          .update(payload)
+          .eq('id', existing.id);
+        if(error) throw error;
+      } else {
+        // 新增
+        payload.created_at = now;
+        var { error } = await SB.from('salary_settings')
+          .insert(payload);
+        if(error) throw error;
+      }
+    }
+    
+    // 本地保存
+    localStorage.setItem(getSalarySettingsStorageKey(), JSON.stringify(settings));
+    updateSalarySettingsTotals();
+    hideLoading();
+    showToast('保存成功', '薪资设置已保存', 'success');
+    closeSalarySettingsModal();
+  } catch(e) {
+    hideLoading();
+    console.error('保存薪资设置失败:', e);
+    alert('保存失败: ' + e.message);
+  }
 }
 function renderSalaryAccessSettings(users){
   var list = document.getElementById('salaryAccessList');
