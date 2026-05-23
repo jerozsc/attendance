@@ -253,6 +253,19 @@
       <button class="btn-ok" onclick="saveSalaryAccessSettings()">保存权限</button>
     </div>
   </div>
+
+  <div class="setting-item salary-access-setting" style="margin-top: 20px;">
+    <div class="setting-label">
+      <span class="setting-title">婚礼计费功能可见人员</span>
+      <span class="setting-desc">勾选后，用户重新登录即可看到婚礼计费功能</span>
+    </div>
+    <div class="setting-control salary-access-control">
+      <div id="weddingAccessList" class="salary-access-list">
+        <div class="loading">加载可选人员</div>
+      </div>
+      <button class="btn-ok" onclick="saveWeddingAccessSettings()">保存权限</button>
+    </div>
+  </div>
   
   <div class="setting-item" style="margin-top: 20px;">
     <div class="setting-label">
@@ -322,6 +335,10 @@
     <div class="menu-item" onclick="openSalarySettingsModal()">薪资设置</div>
     <div class="menu-divider"></div>
   </div>
+  <div id="weddingMenuGroup" class="hidden">
+    <div class="menu-item" onclick="openWeddingModal()">婚礼计费</div>
+    <div class="menu-divider"></div>
+  </div>
   <div class="menu-item" onclick="openSimulateModal()">模拟考勤</div> <!-- 新增 -->
   <div class="menu-divider"></div>
   <div class="menu-item" onclick="openPwdModal()">修改密码</div>
@@ -388,6 +405,147 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- 婚礼计费弹窗 -->
+<div id="weddingModal" class="mo-bg hidden">
+  <div class="mo-ct" style="width: 90vw; max-width: 1200px;">
+    <div class="mo-hd">
+      <h3>💒 婚礼计费</h3>
+      <div class="dt" id="weddingDate"></div>
+      <button class="mo-x" onclick="closeWeddingModal()">×</button>
+    </div>
+    <div class="mo-bd" style="overflow-y: auto; padding: 0; max-height: calc(90vh - 160px);">
+      <div style="padding: 20px;">
+        <!-- 统计区域 -->
+        <div class="wedding-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px;">
+          <div class="st t" style="background: var(--accent-bg); border: 1px solid var(--accent-b); border-radius: 12px; padding: 16px; text-align: center;">
+            <div class="lb" style="font-size: 12px; color: var(--text2); margin-bottom: 8px;">总支出</div>
+            <div class="vl" style="font-size: 24px; font-weight: 700; color: var(--accent);"><span id="weddingTotal">¥0</span></div>
+          </div>
+          <div class="st w" style="background: var(--green-bg); border: 1px solid var(--green-b); border-radius: 12px; padding: 16px; text-align: center;">
+            <div class="lb" style="font-size: 12px; color: var(--text2); margin-bottom: 8px;">本月支出</div>
+            <div class="vl" style="font-size: 24px; font-weight: 700; color: var(--green);"><span id="weddingMonth">¥0</span></div>
+          </div>
+          <div class="st e" style="background: var(--blue-bg); border: 1px solid var(--blue-b); border-radius: 12px; padding: 16px; text-align: center;">
+            <div class="lb" style="font-size: 12px; color: var(--text2); margin-bottom: 8px;">记录条数</div>
+            <div class="vl" style="font-size: 24px; font-weight: 700; color: var(--blue);"><span id="weddingCount">0</span></div>
+          </div>
+          <div class="st" style="background: var(--purple-bg); border: 1px solid var(--purple-b); border-radius: 12px; padding: 16px; text-align: center;">
+            <div class="lb" style="font-size: 12px; color: var(--text2); margin-bottom: 8px;">预算</div>
+            <div class="vl" style="font-size: 24px; font-weight: 700; color: var(--purple);"><span id="weddingBudget">¥0</span></div>
+            <div style="margin-top: 8px;">
+              <button class="btn-s" style="padding: 4px 12px; font-size: 12px;" onclick="openBudgetModal()">设置预算</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 预算进度条 -->
+        <div id="budgetProgress" style="display: none; background: var(--surface2); border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 1px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 13px; color: var(--text2);">预算使用情况</span>
+            <span style="font-size: 13px; font-weight: 600;" id="budgetPercent">0%</span>
+          </div>
+          <div style="background: var(--bg); border-radius: 8px; height: 12px; overflow: hidden;">
+            <div id="budgetBar" style="height: 100%; border-radius: 8px; transition: width 0.5s ease; background: var(--green); width: 0%;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+            <span style="font-size: 12px; color: var(--text3);">已花费: <span id="budgetSpent">¥0</span></span>
+            <span style="font-size: 12px; color: var(--text3);">剩余: <span id="budgetRemaining">¥0</span></span>
+          </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+          <button class="btn-ok" onclick="openAddWeddingExpense()">➕ 添加支出</button>
+          <button class="btn-s" onclick="exportWeddingXlsx()">📊 导出Excel</button>
+          <button class="btn-s" onclick="filterWeddingExpenses('all')">全部</button>
+          <button class="btn-s" onclick="filterWeddingExpenses('红包')">红包</button>
+          <button class="btn-s" onclick="filterWeddingExpenses('餐饮')">餐饮</button>
+          <button class="btn-s" onclick="filterWeddingExpenses('摄影')">摄影</button>
+          <button class="btn-s" onclick="filterWeddingExpenses('婚庆')">婚庆</button>
+          <button class="btn-s" onclick="filterWeddingExpenses('装饰')">装饰</button>
+          <button class="btn-s" onclick="filterWeddingExpenses('烟酒')">烟酒</button>
+          <button class="btn-s" onclick="filterWeddingExpenses('喜糖')">喜糖</button>
+          <button class="btn-s" onclick="filterWeddingExpenses('接亲')">接亲</button>
+          <button class="btn-s" onclick="filterWeddingExpenses('其他')">其他</button>
+        </div>
+
+        <!-- 支出列表 -->
+        <div id="weddingList" style="max-height: 400px; overflow-y: auto;">
+          <div style="text-align: center; color: var(--text3); padding: 40px;">加载中...</div>
+        </div>
+      </div>
+    </div>
+    <div class="mo-ft" style="justify-content: flex-end; padding: 20px 24px;">
+      <button class="btn-c" onclick="closeWeddingModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 添加/编辑婚礼支出弹窗 -->
+<div id="weddingExpenseModal" class="mo-bg hidden">
+  <div class="mo-ct" style="width: 500px; max-width: 90vw;">
+    <div class="mo-hd">
+      <h3 id="weddingExpenseTitle">添加支出</h3>
+      <button class="mo-x" onclick="closeWeddingExpenseModal()">×</button>
+    </div>
+    <div class="mo-bd">
+      <div class="edit-row">
+        <label>支出类别</label>
+        <select id="weddingCategory" class="setting-select" style="width: 100%;">
+          <option value="红包">红包</option>
+          <option value="餐饮">餐饮</option>
+          <option value="摄影">摄影</option>
+          <option value="婚庆">婚庆</option>
+          <option value="装饰">装饰</option>
+          <option value="烟酒">烟酒</option>
+          <option value="喜糖">喜糖</option>
+          <option value="接亲">接亲</option>
+          <option value="其他">其他</option>
+        </select>
+      </div>
+      <div class="edit-row">
+        <label>金额（元）</label>
+        <input type="number" id="weddingAmount" placeholder="请输入金额" min="0" step="0.01">
+      </div>
+      <div class="edit-row">
+        <label>描述</label>
+        <input type="text" id="weddingDescription" placeholder="请输入描述（可选）">
+      </div>
+      <div class="edit-row">
+        <label>支出日期</label>
+        <input type="date" id="weddingExpenseDate">
+      </div>
+    </div>
+    <div class="mo-ft">
+      <button class="btn-c" onclick="closeWeddingExpenseModal()">取消</button>
+      <button class="btn-ok" id="weddingExpenseSaveBtn" onclick="saveWeddingExpense()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 预算设置弹窗 -->
+<div id="budgetModal" class="mo-bg hidden">
+  <div class="mo-ct" style="width: 400px; max-width: 90vw;">
+    <div class="mo-hd">
+      <h3>💰 设置婚礼预算</h3>
+      <button class="mo-x" onclick="closeBudgetModal()">×</button>
+    </div>
+    <div class="mo-bd">
+      <div class="edit-row">
+        <label>预算金额（元）</label>
+        <input type="number" id="budgetAmount" placeholder="请输入预算金额" min="0" step="100">
+      </div>
+      <div style="font-size: 12px; color: var(--text3); margin-top: 8px;">
+        设置预算后，系统将自动计算预算使用情况和剩余金额。
+      </div>
+    </div>
+    <div class="mo-ft">
+      <button class="btn-c" onclick="closeBudgetModal()">取消</button>
+      <button class="btn-ok" onclick="saveBudget()">保存</button>
+    </div>
   </div>
 </div>
 
@@ -1144,13 +1302,20 @@ function resolveSalaryAccess(user){
   if(typeof user.can_use_salary_feature === 'boolean') return user.can_use_salary_feature;
   return LEGACY_SALARY_ALLOWED_NAMES.indexOf(user.name) >= 0;
 }
+function resolveWeddingAccess(user){
+  if(!user) return false;
+  if(typeof user.canUseWeddingFeature === 'boolean') return user.canUseWeddingFeature;
+  if(typeof user.can_use_wedding_feature === 'boolean') return user.can_use_wedding_feature;
+  return user.name === '张少承';
+}
 function toSessionUser(user){
   return {
     id:user.id,
     username:user.username,
     name:user.name || user.display_name || user.username,
     role:user.role||'user',
-    canUseSalaryFeature: resolveSalaryAccess(user)
+    canUseSalaryFeature: resolveSalaryAccess(user),
+    canUseWeddingFeature: resolveWeddingAccess(user)
   };
 }
 function toSafeNumber(value){var num=parseFloat(value);return isNaN(num)?0:num}
@@ -1278,9 +1443,14 @@ async function cloudRefreshCurrentUserProfile(){
 function canAccessSalarySettings(){
   return !!(curUser && !isAdmin && resolveSalaryAccess(curUser));
 }
+function canAccessWeddingSettings(){
+  return !!(curUser && !isAdmin && resolveWeddingAccess(curUser));
+}
 function updateConditionalMenuItems(){
   var group = document.getElementById('salarySettingsMenuGroup');
   if(group) group.classList.toggle('hidden', !canAccessSalarySettings());
+  var weddingGroup = document.getElementById('weddingMenuGroup');
+  if(weddingGroup) weddingGroup.classList.toggle('hidden', !canAccessWeddingSettings());
 }
 function updateDashNameAction(){
   var dashName = document.getElementById('dashName');
@@ -1509,7 +1679,8 @@ async function cloudLogin(username, password){
     username: profile?profile.username:username,
     name: profile?profile.display_name:username,
     role: isAdminUser?'admin':(profile?profile.role:'user'),
-    canUseSalaryFeature: resolveSalaryAccess(profile ? profile : {name: username})
+    canUseSalaryFeature: resolveSalaryAccess(profile ? profile : {name: username}),
+    canUseWeddingFeature: resolveWeddingAccess(profile ? profile : {name: username})
   };
   return {user:user};
 }
@@ -1606,7 +1777,8 @@ async function cloudLoadUsers(){
       username:u.username,
       name:u.display_name,
       role:u.role,
-      canUseSalaryFeature: resolveSalaryAccess(u)
+      canUseSalaryFeature: resolveSalaryAccess(u),
+      canUseWeddingFeature: resolveWeddingAccess(u)
     };
   });
 }
@@ -1849,6 +2021,7 @@ async function cloudDeleteUser(userId){
       if(this.dataset.t === 's') {
         loadRetainMonths();
         loadSalaryAccessSettings();
+        loadWeddingAccessSettings();
       }
     });
   });
@@ -2298,7 +2471,8 @@ async function doReg(){
       passwordHash:await hashPassword(p),
       name:n,
       role:'user',
-      canUseSalaryFeature: LEGACY_SALARY_ALLOWED_NAMES.indexOf(n) >= 0
+      canUseSalaryFeature: LEGACY_SALARY_ALLOWED_NAMES.indexOf(n) >= 0,
+      canUseWeddingFeature: n === '张少承'
     });
     saveLocalUsers(users);
     hideLoading();
@@ -4711,6 +4885,572 @@ async function exportAdminXlsx(){
   XLSX.utils.book_append_sheet(wb,ws,'考勤汇总');
   XLSX.writeFile(wb,'考勤汇总_'+y+'年'+m+'月.xlsx');
 }
+
+// ===================== WEDDING EXPENSES =====================
+var weddingState = {
+  expenses: [],
+  currentFilter: 'all',
+  editingId: null,
+  budget: 0
+};
+
+// 打开婚礼计费弹窗
+function openWeddingModal() {
+  document.getElementById('contextMenu').classList.remove('show');
+  document.getElementById('weddingModal').classList.remove('hidden');
+  document.getElementById('weddingDate').textContent = new Date().toLocaleDateString('zh-CN');
+  loadWeddingExpenses();
+  loadBudget();
+}
+
+// 打开预算设置弹窗
+function openBudgetModal() {
+  document.getElementById('budgetAmount').value = weddingState.budget || '';
+  document.getElementById('budgetModal').classList.remove('hidden');
+}
+
+// 关闭预算设置弹窗
+function closeBudgetModal() {
+  document.getElementById('budgetModal').classList.add('hidden');
+}
+
+// 保存预算
+function saveBudget() {
+  var amount = parseFloat(document.getElementById('budgetAmount').value);
+  if (isNaN(amount) || amount < 0) {
+    alert('请输入有效的预算金额');
+    return;
+  }
+  
+  weddingState.budget = amount;
+  saveBudgetLocal();
+  updateWeddingStats();
+  closeBudgetModal();
+}
+
+// 加载预算
+function loadBudget() {
+  try {
+    var key = 'att_wedding_budget_' + (curUser ? curUser.id : 'local');
+    var saved = localStorage.getItem(key);
+    if (saved) {
+      weddingState.budget = parseFloat(saved) || 0;
+    } else {
+      weddingState.budget = 0;
+    }
+  } catch (e) {
+    console.error('加载预算失败:', e);
+    weddingState.budget = 0;
+  }
+  updateWeddingStats();
+}
+
+// 保存预算到本地
+function saveBudgetLocal() {
+  try {
+    var key = 'att_wedding_budget_' + (curUser ? curUser.id : 'local');
+    localStorage.setItem(key, weddingState.budget.toString());
+  } catch (e) {
+    console.error('保存预算失败:', e);
+  }
+}
+
+// 关闭婚礼计费弹窗
+function closeWeddingModal() {
+  document.getElementById('weddingModal').classList.add('hidden');
+}
+
+// 打开添加支出弹窗
+function openAddWeddingExpense() {
+  weddingState.editingId = null;
+  document.getElementById('weddingExpenseTitle').textContent = '添加支出';
+  document.getElementById('weddingCategory').value = '红包';
+  document.getElementById('weddingAmount').value = '';
+  document.getElementById('weddingDescription').value = '';
+  document.getElementById('weddingExpenseDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('weddingExpenseModal').classList.remove('hidden');
+}
+
+// 打开编辑支出弹窗
+function openEditWeddingExpense(id) {
+  var expense = weddingState.expenses.find(function(e) { return e.id === id; });
+  if (!expense) return;
+  
+  weddingState.editingId = id;
+  document.getElementById('weddingExpenseTitle').textContent = '编辑支出';
+  document.getElementById('weddingCategory').value = expense.category;
+  document.getElementById('weddingAmount').value = expense.amount;
+  document.getElementById('weddingDescription').value = expense.description || '';
+  document.getElementById('weddingExpenseDate').value = expense.expense_date;
+  document.getElementById('weddingExpenseModal').classList.remove('hidden');
+}
+
+// 关闭支出弹窗
+function closeWeddingExpenseModal() {
+  document.getElementById('weddingExpenseModal').classList.add('hidden');
+}
+
+// 保存支出
+async function saveWeddingExpense() {
+  var category = document.getElementById('weddingCategory').value;
+  var amount = parseFloat(document.getElementById('weddingAmount').value);
+  var description = document.getElementById('weddingDescription').value;
+  var expenseDate = document.getElementById('weddingExpenseDate').value;
+
+  if (isNaN(amount) || amount <= 0) {
+    alert('请输入有效的金额');
+    return;
+  }
+
+  if (!expenseDate) {
+    alert('请选择支出日期');
+    return;
+  }
+
+  showLoading('保存中...');
+
+  try {
+    if (CLOUD_MODE && curUser && curUser.id) {
+      if (weddingState.editingId) {
+        // 更新
+        var { error } = await SB.from('wedding_expenses').update({
+          category: category,
+          amount: amount,
+          description: description,
+          expense_date: expenseDate,
+          updated_at: new Date().toISOString()
+        }).eq('id', weddingState.editingId);
+        
+        if (error) throw error;
+      } else {
+        // 新增
+        var { error } = await SB.from('wedding_expenses').insert({
+          user_id: curUser.id,
+          category: category,
+          amount: amount,
+          description: description,
+          expense_date: expenseDate
+        });
+        
+        if (error) throw error;
+      }
+    } else {
+      // 本地模式
+      if (weddingState.editingId) {
+        var index = weddingState.expenses.findIndex(function(e) { return e.id === weddingState.editingId; });
+        if (index !== -1) {
+          weddingState.expenses[index] = {
+            ...weddingState.expenses[index],
+            category: category,
+            amount: amount,
+            description: description,
+            expense_date: expenseDate,
+            updated_at: new Date().toISOString()
+          };
+        }
+      } else {
+        weddingState.expenses.push({
+          id: 'local_' + Date.now(),
+          user_id: curUser ? curUser.id : 'local',
+          category: category,
+          amount: amount,
+          description: description,
+          expense_date: expenseDate,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      }
+      saveWeddingExpensesLocal();
+    }
+
+    hideLoading();
+    closeWeddingExpenseModal();
+    loadWeddingExpenses();
+  } catch (e) {
+    hideLoading();
+    console.error('保存婚礼支出失败:', e);
+    alert('保存失败: ' + e.message);
+  }
+}
+
+// 删除支出
+async function deleteWeddingExpense(id) {
+  if (!confirm('确定要删除这条支出记录吗？')) return;
+
+  showLoading('删除中...');
+
+  try {
+    if (CLOUD_MODE && curUser && curUser.id) {
+      var { error } = await SB.from('wedding_expenses').delete().eq('id', id);
+      if (error) throw error;
+    } else {
+      weddingState.expenses = weddingState.expenses.filter(function(e) { return e.id !== id; });
+      saveWeddingExpensesLocal();
+    }
+
+    hideLoading();
+    loadWeddingExpenses();
+  } catch (e) {
+    hideLoading();
+    console.error('删除婚礼支出失败:', e);
+    alert('删除失败: ' + e.message);
+  }
+}
+
+// 加载支出记录
+async function loadWeddingExpenses() {
+  try {
+    if (CLOUD_MODE && curUser && curUser.id) {
+      var { data, error } = await SB.from('wedding_expenses')
+        .select('*')
+        .eq('user_id', curUser.id)
+        .order('expense_date', { ascending: false });
+      
+      if (error) throw error;
+      weddingState.expenses = data || [];
+    } else {
+      loadWeddingExpensesLocal();
+    }
+
+    renderWeddingList();
+    updateWeddingStats();
+  } catch (e) {
+    console.error('加载婚礼支出失败:', e);
+    document.getElementById('weddingList').innerHTML = '<div style="text-align: center; color: var(--red); padding: 40px;">加载失败: ' + e.message + '</div>';
+  }
+}
+
+// 本地存储
+function loadWeddingExpensesLocal() {
+  try {
+    var key = 'att_wedding_expenses_' + (curUser ? curUser.id : 'local');
+    var saved = localStorage.getItem(key);
+    if (saved) {
+      weddingState.expenses = JSON.parse(saved);
+    } else {
+      weddingState.expenses = [];
+    }
+  } catch (e) {
+    console.error('加载本地婚礼支出失败:', e);
+    weddingState.expenses = [];
+  }
+}
+
+function saveWeddingExpensesLocal() {
+  try {
+    var key = 'att_wedding_expenses_' + (curUser ? curUser.id : 'local');
+    localStorage.setItem(key, JSON.stringify(weddingState.expenses));
+  } catch (e) {
+    console.error('保存本地婚礼支出失败:', e);
+  }
+}
+
+// 渲染列表
+function renderWeddingList() {
+  var container = document.getElementById('weddingList');
+  var filtered = weddingState.currentFilter === 'all' 
+    ? weddingState.expenses 
+    : weddingState.expenses.filter(function(e) { return e.category === weddingState.currentFilter; });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="text-align: center; color: var(--text3); padding: 40px;">暂无支出记录</div>';
+    return;
+  }
+
+  var html = '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">';
+  filtered.forEach(function(expense) {
+    var date = expense.expense_date || expense.created_at.split('T')[0];
+    html += '<div class="wedding-expense-item" data-id="' + expense.id + '" style="background: var(--surface2); border-radius: 10px; padding: 16px; cursor: context-menu; user-select: none;">';
+    html += '  <div>';
+    html += '    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">';
+    html += '      <span style="font-weight: 600;">' + expense.category + '</span>';
+    html += '      <span style="font-size: 16px; font-weight: 700; color: var(--accent);">¥' + expense.amount.toFixed(2) + '</span>';
+    html += '    </div>';
+    html += '    <div style="display: flex; align-items: center; gap: 8px; font-size: 12px;">';
+    html += '      <span style="color: var(--text2);">' + date + '</span>';
+    if (expense.description) {
+      html += '      <span style="color: var(--text3); word-break: break-all;">' + expense.description + '</span>';
+    }
+    html += '    </div>';
+    html += '  </div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  container.innerHTML = html;
+  
+  // 绑定右键和长按事件
+  bindExpenseItemEvents();
+}
+
+// 绑定支出项的右键和长按事件
+function bindExpenseItemEvents() {
+  var items = document.querySelectorAll('.wedding-expense-item');
+  var longPressTimer = null;
+  var isLongPress = false;
+  
+  items.forEach(function(item) {
+    // 右键点击（PC端）
+    item.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      var id = this.getAttribute('data-id');
+      showWeddingContextMenu(e.clientX, e.clientY, id);
+    });
+    
+    // 触摸开始（移动端长按）
+    item.addEventListener('touchstart', function(e) {
+      isLongPress = false;
+      var id = this.getAttribute('data-id');
+      longPressTimer = setTimeout(function() {
+        isLongPress = true;
+        var touch = e.touches[0];
+        showWeddingContextMenu(touch.clientX, touch.clientY, id);
+      }, 500);
+    });
+    
+    // 触摸结束
+    item.addEventListener('touchend', function(e) {
+      clearTimeout(longPressTimer);
+      if (isLongPress) {
+        e.preventDefault();
+      }
+    });
+    
+    // 触摸移动（取消长按）
+    item.addEventListener('touchmove', function() {
+      clearTimeout(longPressTimer);
+    });
+  });
+}
+
+// 显示婚礼支出右键菜单
+function showWeddingContextMenu(x, y, id) {
+  // 移除已存在的菜单
+  var existingMenu = document.getElementById('weddingContextMenu');
+  if (existingMenu) existingMenu.remove();
+  
+  // 创建菜单
+  var menu = document.createElement('div');
+  menu.id = 'weddingContextMenu';
+  menu.style.cssText = 'position: fixed; z-index: 10000; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.15); min-width: 120px; padding: 4px 0;';
+  
+  menu.innerHTML = '<div class="wedding-context-item" data-action="edit" data-id="' + id + '" style="padding: 10px 16px; cursor: pointer; font-size: 14px; color: var(--text); display: flex; align-items: center; gap: 8px;">' +
+    '<span>✏️</span><span>编辑</span></div>' +
+    '<div class="wedding-context-item" data-action="delete" data-id="' + id + '" style="padding: 10px 16px; cursor: pointer; font-size: 14px; color: var(--red); display: flex; align-items: center; gap: 8px;">' +
+    '<span>🗑️</span><span>删除</span></div>';
+  
+  // 定位菜单
+  var menuWidth = 120;
+  var menuHeight = 80;
+  var finalX = x;
+  var finalY = y;
+  
+  // 防止菜单超出屏幕
+  if (x + menuWidth > window.innerWidth) finalX = x - menuWidth;
+  if (y + menuHeight > window.innerHeight) finalY = y - menuHeight;
+  if (finalX < 0) finalX = 0;
+  if (finalY < 0) finalY = 0;
+  
+  menu.style.left = finalX + 'px';
+  menu.style.top = finalY + 'px';
+  
+  document.body.appendChild(menu);
+  
+  // 绑定菜单项点击事件
+  var menuItems = menu.querySelectorAll('.wedding-context-item');
+  menuItems.forEach(function(item) {
+    // 悬停效果
+    item.addEventListener('mouseenter', function() {
+      this.style.background = 'var(--accent-bg)';
+    });
+    item.addEventListener('mouseleave', function() {
+      this.style.background = '';
+    });
+    
+    // 点击事件
+    item.addEventListener('click', function() {
+      var action = this.getAttribute('data-action');
+      var expenseId = this.getAttribute('data-id');
+      menu.remove();
+      
+      if (action === 'edit') {
+        openEditWeddingExpense(expenseId);
+      } else if (action === 'delete') {
+        deleteWeddingExpense(expenseId);
+      }
+    });
+  });
+  
+  // 点击其他地方关闭菜单
+  setTimeout(function() {
+    document.addEventListener('click', function closeMenu(e) {
+      if (!menu.contains(e.target)) {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+      }
+    });
+  }, 10);
+}
+
+// 更新统计
+function updateWeddingStats() {
+  var total = 0;
+  var monthTotal = 0;
+  var now = new Date();
+  var currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+  weddingState.expenses.forEach(function(expense) {
+    total += expense.amount;
+    if (expense.expense_date && expense.expense_date.startsWith(currentMonth)) {
+      monthTotal += expense.amount;
+    }
+  });
+
+  document.getElementById('weddingTotal').textContent = '¥' + total.toFixed(2);
+  document.getElementById('weddingMonth').textContent = '¥' + monthTotal.toFixed(2);
+  document.getElementById('weddingCount').textContent = weddingState.expenses.length;
+  document.getElementById('weddingBudget').textContent = '¥' + (weddingState.budget || 0).toFixed(2);
+  
+  // 更新预算进度条
+  var budgetProgress = document.getElementById('budgetProgress');
+  if (weddingState.budget > 0) {
+    budgetProgress.style.display = 'block';
+    var percent = Math.min((total / weddingState.budget) * 100, 100);
+    var remaining = weddingState.budget - total;
+    
+    document.getElementById('budgetPercent').textContent = percent.toFixed(1) + '%';
+    document.getElementById('budgetSpent').textContent = '¥' + total.toFixed(2);
+    document.getElementById('budgetRemaining').textContent = '¥' + remaining.toFixed(2);
+    
+    var budgetBar = document.getElementById('budgetBar');
+    budgetBar.style.width = percent + '%';
+    
+    // 根据预算使用比例改变颜色
+    if (percent >= 90) {
+      budgetBar.style.background = 'var(--red)';
+    } else if (percent >= 70) {
+      budgetBar.style.background = 'var(--orange)';
+    } else {
+      budgetBar.style.background = 'var(--green)';
+    }
+  } else {
+    budgetProgress.style.display = 'none';
+  }
+}
+
+// 筛选
+function filterWeddingExpenses(category) {
+  weddingState.currentFilter = category;
+  renderWeddingList();
+}
+
+// 导出Excel
+function exportWeddingXlsx() {
+  if (typeof XLSX === 'undefined') {
+    alert('导出库加载中，请稍后重试');
+    return;
+  }
+
+  var data = [['类别', '金额', '描述', '日期']];
+  weddingState.expenses.forEach(function(expense) {
+    data.push([
+      expense.category,
+      expense.amount,
+      expense.description || '',
+      expense.expense_date
+    ]);
+  });
+
+  var ws = XLSX.utils.aoa_to_sheet(data);
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '婚礼支出');
+  XLSX.writeFile(wb, '婚礼支出_' + new Date().toLocaleDateString('zh-CN').replace(/\//g, '-') + '.xlsx');
+}
+
+// 管理员权限设置相关函数
+function renderWeddingAccessSettings(users) {
+  var list = document.getElementById('weddingAccessList');
+  var allUsers = users || [];
+  
+  if (!allUsers.length) {
+    list.innerHTML = '<div style="color:var(--text3);font-size:13px;">暂无可选人员</div>';
+    return;
+  }
+
+  var html = '';
+  allUsers.forEach(function(user) {
+    var checked = resolveWeddingAccess(user) ? ' checked' : '';
+    html += '<label class="salary-access-item">';
+    html += '<input type="checkbox" class="wedding-access-checkbox" value="' + user.id + '"' + checked + '>';
+    html += '<span class="salary-access-name">' + user.name + '</span>';
+    html += '<span class="salary-access-user">' + user.username + '</span>';
+    html += '</label>';
+  });
+  list.innerHTML = html;
+}
+
+async function loadWeddingAccessSettings() {
+  var list = document.getElementById('weddingAccessList');
+  list.innerHTML = '<div class="loading">加载可选人员</div>';
+  renderWeddingAccessSettings(await getAdminSelectableUsers());
+}
+
+async function saveWeddingAccessSettings() {
+  var checkedIds = Array.from(document.querySelectorAll('.wedding-access-checkbox:checked')).map(function(input) {
+    return input.value;
+  });
+
+  showLoading('保存权限设置中...');
+
+  try {
+    if (CLOUD_MODE) {
+      var users = await getAdminSelectableUsers();
+      for (var i = 0; i < users.length; i++) {
+        var user = users[i];
+        var shouldHaveAccess = checkedIds.indexOf(user.id) >= 0;
+        
+        var result = await SB.from('profiles').update({
+          can_use_wedding_feature: shouldHaveAccess
+        }).eq('id', user.id).select('id,can_use_wedding_feature').single();
+        
+        if (result.error) {
+          console.error('更新用户', user.username, '的婚礼计费权限失败:', result.error);
+          alert('保存失败：云端未实际写入该用户权限。请检查 Supabase 的 RLS/UPDATE 策略是否允许管理员修改 profiles.can_use_wedding_feature');
+          hideLoading();
+          return;
+        }
+      }
+    } else {
+      var localUsers = loadLocalUsers();
+      localUsers.forEach(function(user) {
+        user.canUseWeddingFeature = checkedIds.indexOf(user.id) >= 0;
+      });
+      saveLocalUsers(localUsers);
+    }
+
+    hideLoading();
+    alert('婚礼计费权限设置已保存！用户重新登录后生效。');
+  } catch (e) {
+    hideLoading();
+    console.error('保存婚礼计费权限设置失败:', e);
+    alert('保存失败: ' + e.message);
+  }
+}
+
+// 初始化时加载权限设置（管理员后台）
+function initWeddingAccessSettings() {
+  // 在管理员后台显示时加载
+  var adminView = document.getElementById('adminView');
+  if (adminView && !adminView.classList.contains('hidden')) {
+    loadWeddingAccessSettings();
+  }
+}
+
+// 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+  // 延迟加载，确保其他初始化完成
+  setTimeout(initWeddingAccessSettings, 1000);
+});
 </script>
 </body>
 </html>
