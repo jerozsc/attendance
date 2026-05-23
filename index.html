@@ -5191,21 +5191,17 @@ function renderWeddingList() {
     return;
   }
 
-  var html = '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">';
+  var html = '<div class="wedding-list">';
   filtered.forEach(function(expense) {
     var date = expense.expense_date || expense.created_at.split('T')[0];
-    html += '<div class="wedding-expense-item" data-id="' + expense.id + '" style="background: var(--surface2); border-radius: 10px; padding: 16px; cursor: context-menu; user-select: none;">';
-    html += '  <div>';
-    html += '    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">';
-    html += '      <span style="font-weight: 600;">' + expense.category + '</span>';
-    html += '      <span style="font-size: 16px; font-weight: 700; color: var(--accent);">¥' + expense.amount.toFixed(2) + '</span>';
-    html += '    </div>';
-    html += '    <div style="display: flex; align-items: center; gap: 8px; font-size: 12px;">';
-    html += '      <span style="color: var(--text2);">' + date + '</span>';
+    html += '<div class="wedding-item" data-id="' + expense.id + '">';
+    html += '  <div class="wedding-item-info">';
+    html += '    <div class="wedding-item-category">' + expense.category + '</div>';
+    html += '    <div class="wedding-item-amount"><span class="amount">¥' + expense.amount.toFixed(2) + '</span></div>';
+    html += '    <div class="wedding-item-date">' + date + '</div>';
     if (expense.description) {
-      html += '      <span style="color: var(--text3); word-break: break-all;">' + expense.description + '</span>';
+      html += '    <div class="wedding-item-desc">' + expense.description + '</div>';
     }
-    html += '    </div>';
     html += '  </div>';
     html += '</div>';
   });

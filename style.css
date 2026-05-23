@@ -1894,23 +1894,23 @@ td{color:var(--text)}
 /* 移动端适配 */
 @media (max-width: 768px) {
   .wedding-stats {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
     margin-bottom: 12px;
   }
   
   .wedding-stat {
-    padding: 8px 6px;
-    border-radius: 8px;
+    padding: 10px 8px;
+    border-radius: 10px;
   }
   
   .wedding-stat .label {
-    font-size: 10px;
+    font-size: 11px;
     margin-bottom: 4px;
   }
   
   .wedding-stat .value {
-    font-size: 14px;
+    font-size: 16px;
   }
   
   .wedding-actions {
@@ -1927,29 +1927,42 @@ td{color:var(--text)}
   .wedding-item {
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: 4px;
     padding: 10px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
+  }
+  
+  .wedding-item-info {
+    width: 100%;
   }
   
   .wedding-item-category {
-    font-size: 13px;
-  }
-  
-  .wedding-item-date {
-    font-size: 11px;
-  }
-  
-  .wedding-item-desc {
-    font-size: 11px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 0;
+    display: inline;
   }
   
   .wedding-item-amount {
-    text-align: left;
+    display: inline;
+    margin-left: 8px;
+    vertical-align: baseline;
   }
   
   .wedding-item-amount .amount {
-    font-size: 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  
+  .wedding-item-date {
+    font-size: 10px;
+    margin-bottom: 2px;
+  }
+  
+  .wedding-item-desc {
+    font-size: 10px;
+    margin-top: 0;
   }
   
   .wedding-item-actions {
