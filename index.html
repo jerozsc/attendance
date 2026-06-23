@@ -34,7 +34,7 @@
 <button class="theme-btn" id="themeBtn" title="切换主题">🌙</button>
 
 <!-- LOGIN -->
-<div id="loginView" class="login-wrap">
+<div id="loginView" class="login-wrap hidden">
   <div class="login-card">
     <div style="text-align:center"><span class="cloud-badge">☁️ 云端数据同步</span></div>
     <h1>考勤统计系统</h1>
@@ -67,7 +67,10 @@
 <!-- DASHBOARD -->
 <div id="dashView" class="dash hidden">
   <header class="dash-hd">
-    <h2 style="cursor:pointer" onclick="openSalaryModal()" title="点击查看加班费">📊 考勤管理系统</h2>
+    <h2 style="cursor:pointer;flex-shrink:0" onclick="openSalaryModal()" title="点击查看加班费">📊 考勤管理系统</h2>
+    <div class="overtime-marquee" id="overtimeMarquee">
+      <span id="overtimeMarqueeText" class="overtime-marquee-text"></span>
+    </div>
     <div class="right">
       <span class="uname" id="dashName"></span>
       <!-- <button class="btn-s" id="btnLogout">退出登录</button>-->
@@ -181,6 +184,140 @@
       <button class="btn-s" id="btnExport" style="padding:10px 28px;font-size:13px">📥 导出本月考勤 (Excel)</button>
     </div>
   </div>
+
+  <!-- 婚礼计费子页面 -->
+  <div id="weddingPage" class="wedding-page hidden">
+    <div class="wedding-page-header">
+      <div class="wedding-header-left">
+        <button class="btn-back" onclick="goBackToMain()" title="返回日历">←</button>
+        <h2>💒 婚礼计费</h2>
+      </div>
+      <div class="wedding-header-right" id="weddingPageDate"></div>
+    </div>
+    <div class="wedding-page-body">
+      <div class="wedding-page-layout">
+        <!-- 左侧：统计面板 + 操作 -->
+        <div class="wedding-main-panel">
+          <!-- 统计卡片 -->
+          <div class="wedding-stats">
+            <div class="wedding-stat total">
+              <div class="label">总支出</div>
+              <div class="value"><span id="weddingTotal">¥0</span></div>
+            </div>
+            <div class="wedding-stat month">
+              <div class="label">本月支出</div>
+              <div class="value"><span id="weddingMonth">¥0</span></div>
+            </div>
+            <div class="wedding-stat count">
+              <div class="label">记录条数</div>
+              <div class="value"><span id="weddingCount">0</span></div>
+            </div>
+            <div class="wedding-stat" id="budgetStatItem" style="cursor: pointer;">
+              <div class="label">预算</div>
+              <div class="value"><span id="weddingBudget">¥0</span></div>
+            </div>
+          </div>
+
+          <!-- 预算进度条 -->
+          <div id="budgetProgress" style="display: none; background: var(--surface2); border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 13px; color: var(--text2);">预算使用情况</span>
+              <span style="font-size: 13px; font-weight: 600;" id="budgetPercent">0%</span>
+            </div>
+            <div style="background: var(--bg); border-radius: 8px; height: 12px; overflow: hidden;">
+              <div id="budgetBar" style="height: 100%; border-radius: 8px; transition: width 0.5s ease; background: var(--green); width: 0%;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+              <span style="font-size: 12px; color: var(--text3);">已花费: <span id="budgetSpent">¥0</span></span>
+              <span style="font-size: 12px; color: var(--text3);">剩余: <span id="budgetRemaining">¥0</span></span>
+            </div>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="wedding-actions-row">
+            <button class="btn-ok" onclick="openAddWeddingExpense()">➕ 添加支出</button>
+            <button class="btn-s" onclick="exportWeddingXlsx()">📊 导出Excel</button>
+          </div>
+
+          <!-- 分类筛选 -->
+          <div class="wedding-filter-bar">
+            <button class="btn-s active" data-filter="all" onclick="filterWeddingExpenses('all', this)">全部</button>
+            <button class="btn-s" data-filter="红包" onclick="filterWeddingExpenses('红包', this)">红包</button>
+            <button class="btn-s" data-filter="餐饮" onclick="filterWeddingExpenses('餐饮', this)">餐饮</button>
+            <button class="btn-s" data-filter="摄影" onclick="filterWeddingExpenses('摄影', this)">摄影</button>
+            <button class="btn-s" data-filter="婚庆" onclick="filterWeddingExpenses('婚庆', this)">婚庆</button>
+            <button class="btn-s" data-filter="装饰" onclick="filterWeddingExpenses('装饰', this)">装饰</button>
+            <button class="btn-s" data-filter="烟酒" onclick="filterWeddingExpenses('烟酒', this)">烟酒</button>
+            <button class="btn-s" data-filter="喜糖" onclick="filterWeddingExpenses('喜糖', this)">喜糖</button>
+            <button class="btn-s" data-filter="接亲" onclick="filterWeddingExpenses('接亲', this)">接亲</button>
+            <button class="btn-s" data-filter="服饰" onclick="filterWeddingExpenses('服饰', this)">服饰</button>
+            <button class="btn-s" data-filter="其他" onclick="filterWeddingExpenses('其他', this)">其他</button>
+          </div>
+        </div>
+
+        <!-- 右侧：支出列表 -->
+        <div class="wedding-list-panel">
+          <div id="weddingList" class="wedding-list-container">
+            <div style="text-align: center; color: var(--text3); padding: 40px;">加载中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模拟考勤子页面 -->
+  <div id="simulatePage" class="simulate-page hidden">
+  <div class="sim-page-header">
+    <div class="sim-header-left">
+      <button class="btn-back" onclick="goBackToMain()" title="返回日历">←</button>
+      <h2>📊 模拟考勤编排</h2>
+    </div>
+    <div class="sim-header-right" id="simulatePageDate"></div>
+  </div>
+  <div class="sim-page-body">
+    <div class="sim-page-layout">
+      <!-- 模拟考勤日历内容（JS动态渲染） -->
+      <div id="simulateContent" class="simulate-content"></div>
+      <!-- 底部操作栏 -->
+      <div class="sim-page-actions">
+        <div class="sim-btn-group">
+          <button class="btn-s" onclick="saveSimulateToLocal()">💾 保存至本地数据库</button>
+          <button class="btn-ok" onclick="saveSimulateToCloud()">☁️ 将当前月份的模拟考勤保存至云端</button>
+          <button class="btn-c" onclick="clearCurrentMonthSimData()" style="color: var(--red); border-color: var(--red);">🗑️ 清空当前月份的模拟考勤数据</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模拟考勤专用编辑弹窗（保留弹窗） -->
+  <div id="simEditModal" class="mo-bg hidden" style="position:fixed;inset:0;z-index:100;">
+    <div class="mo-ct">
+      <div class="mo-hd">
+        <h3>考勤记录</h3>
+        <div class="dt" id="simMDate"></div>
+        <button class="mo-x" onclick="closeSimEditModal()">×</button>
+      </div>
+      <div class="mo-bd">
+        <div class="fl">上班类型</div>
+        <div class="rg" id="simMType">
+          <div class="ro"><input type="radio" name="simatype" value="上班" id="st0" checked><label for="st0">上班</label></div>
+          <div class="ro"><input type="radio" name="simatype" value="周末调休" id="st5"><label for="st5">周末调休</label></div>
+          <div class="ro"><input type="radio" name="simatype" value="法休" id="st1"><label for="st1">法休</label></div>
+          <div class="ro"><input type="radio" name="simatype" value="年假" id="st2"><label for="st2">年假</label></div>
+          <div class="ro"><input type="radio" name="simatype" value="事假" id="st3"><label for="st3">事假</label></div>
+          <div class="ro"><input type="radio" name="simatype" value="病假" id="st4"><label for="st4">病假</label></div>
+        </div>
+        <div class="fl">上班时长</div>
+        <div class="hours-grid" id="simMHours"></div>
+      </div>
+      <div class="mo-ft">
+        <button class="btn-c" onclick="clearSimAttFromModal()" style="color:var(--red);border-color:var(--red)">清空</button>
+        <button class="btn-c" onclick="closeSimEditModal()">取消</button>
+        <button class="btn-ok" onclick="saveSimAttFromModal()">确认</button>
+      </div>
+    </div>
+</div>
+</div>
 </div>
 
 <!-- ADMIN -->
@@ -366,136 +503,6 @@
 
 
 
-<!-- ============================================================-->
-<!-- 模拟考勤弹窗 -->
-<div id="simulateModal" class="mo-bg hidden">
-  <div class="mo-ct simulate-modal-ct" style="width: 90vw; max-width: 1500px;">
-    <div class="mo-hd">
-      <h3>📊 模拟考勤编排</h3>
-      <div class="dt" id="simulateDate"></div>
-      <button class="mo-x" onclick="closeSimulateModal()">×</button>
-    </div>
-    <div class="mo-bd" style="overflow-y: auto; padding: 0; max-height: calc(90vh - 160px);">
-      <!-- 模拟考勤内容区域 -->
-      <div id="simulateContent" style="padding: 20px;"></div>
-    </div>
-    <div class="mo-ft simulate-modal-footer" style="justify-content: space-between; padding: 20px 24px;">
-      <div>
-        <button class="btn-s" onclick="saveSimulateToLocal()">💾 保存至本地数据库</button>
-        <button class="btn-ok" onclick="saveSimulateToCloud()">☁️ 将当前月份的模拟考勤保存至云端</button>
-        <button class="btn-c" onclick="clearCurrentMonthSimData()" style="color: var(--red); border-color: var(--red);">🗑️ 清空当前月份的模拟考勤数据</button>
-      </div>
-      <div>
-        <button class="btn-c" onclick="closeSimulateModal()">关闭</button>
-      </div>
-    </div>
-
-    <!-- ★★★ 新增：模拟考勤专用编辑弹窗 ★★★ -->
-    <div id="simEditModal" class="mo-bg hidden" style="position:absolute;inset:0;z-index:10;">
-      <div class="mo-ct">
-        <div class="mo-hd">
-          <h3>考勤记录</h3>
-          <div class="dt" id="simMDate"></div>
-          <button class="mo-x" onclick="closeSimEditModal()">×</button>
-        </div>
-        <div class="mo-bd">
-          <div class="fl">上班类型</div>
-          <div class="rg" id="simMType">
-            <div class="ro"><input type="radio" name="simatype" value="上班" id="st0" checked><label for="st0">上班</label></div>
-            <div class="ro"><input type="radio" name="simatype" value="周末调休" id="st5"><label for="st5">周末调休</label></div>
-            <div class="ro"><input type="radio" name="simatype" value="法休" id="st1"><label for="st1">法休</label></div>
-            <div class="ro"><input type="radio" name="simatype" value="年假" id="st2"><label for="st2">年假</label></div>
-            <div class="ro"><input type="radio" name="simatype" value="事假" id="st3"><label for="st3">事假</label></div>
-            <div class="ro"><input type="radio" name="simatype" value="病假" id="st4"><label for="st4">病假</label></div>
-          </div>
-          <div class="fl">上班时长</div>
-          <div class="hours-grid" id="simMHours"></div>
-        </div>
-        <div class="mo-ft">
-          <button class="btn-c" onclick="clearSimAttFromModal()" style="color:var(--red);border-color:var(--red)">清空</button>
-          <button class="btn-c" onclick="closeSimEditModal()">取消</button>
-          <button class="btn-ok" onclick="saveSimAttFromModal()">确认</button>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- 婚礼计费弹窗 -->
-<div id="weddingModal" class="mo-bg hidden">
-  <div class="mo-ct" style="width: 90vw; max-width: 1200px;">
-    <div class="mo-hd">
-      <h3>💒 婚礼计费</h3>
-      <div class="dt" id="weddingDate"></div>
-      <button class="mo-x" onclick="closeWeddingModal()">×</button>
-    </div>
-    <div class="mo-bd" style="overflow-y: auto; padding: 0; max-height: calc(90vh - 160px);">
-      <div style="padding: 20px;">
-        <!-- 统计区域 -->
-        <div class="wedding-stats">
-          <div class="wedding-stat total">
-            <div class="label">总支出</div>
-            <div class="value"><span id="weddingTotal">¥0</span></div>
-          </div>
-          <div class="wedding-stat month">
-            <div class="label">本月支出</div>
-            <div class="value"><span id="weddingMonth">¥0</span></div>
-          </div>
-          <div class="wedding-stat count">
-            <div class="label">记录条数</div>
-            <div class="value"><span id="weddingCount">0</span></div>
-          </div>
-          <div class="wedding-stat" id="budgetStatItem" style="cursor: pointer;">
-            <div class="label">预算</div>
-            <div class="value"><span id="weddingBudget">¥0</span></div>
-          </div>
-        </div>
-
-        <!-- 预算进度条 -->
-        <div id="budgetProgress" style="display: none; background: var(--surface2); border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 1px solid var(--border);">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-            <span style="font-size: 13px; color: var(--text2);">预算使用情况</span>
-            <span style="font-size: 13px; font-weight: 600;" id="budgetPercent">0%</span>
-          </div>
-          <div style="background: var(--bg); border-radius: 8px; height: 12px; overflow: hidden;">
-            <div id="budgetBar" style="height: 100%; border-radius: 8px; transition: width 0.5s ease; background: var(--green); width: 0%;"></div>
-          </div>
-          <div style="display: flex; justify-content: space-between; margin-top: 8px;">
-            <span style="font-size: 12px; color: var(--text3);">已花费: <span id="budgetSpent">¥0</span></span>
-            <span style="font-size: 12px; color: var(--text3);">剩余: <span id="budgetRemaining">¥0</span></span>
-          </div>
-        </div>
-
-        <!-- 操作按钮 -->
-        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-          <button class="btn-ok" onclick="openAddWeddingExpense()">➕ 添加支出</button>
-          <button class="btn-s" onclick="exportWeddingXlsx()">📊 导出Excel</button>
-          <button class="btn-s" onclick="filterWeddingExpenses('all')">全部</button>
-          <button class="btn-s" onclick="filterWeddingExpenses('红包')">红包</button>
-          <button class="btn-s" onclick="filterWeddingExpenses('餐饮')">餐饮</button>
-          <button class="btn-s" onclick="filterWeddingExpenses('摄影')">摄影</button>
-          <button class="btn-s" onclick="filterWeddingExpenses('婚庆')">婚庆</button>
-          <button class="btn-s" onclick="filterWeddingExpenses('装饰')">装饰</button>
-          <button class="btn-s" onclick="filterWeddingExpenses('烟酒')">烟酒</button>
-          <button class="btn-s" onclick="filterWeddingExpenses('喜糖')">喜糖</button>
-          <button class="btn-s" onclick="filterWeddingExpenses('接亲')">接亲</button>
-          <button class="btn-s" onclick="filterWeddingExpenses('服饰')">服饰</button>
-          <button class="btn-s" onclick="filterWeddingExpenses('其他')">其他</button>
-        </div>
-
-        <!-- 支出列表 -->
-        <div id="weddingList" style="max-height: 400px; overflow-y: auto;">
-          <div style="text-align: center; color: var(--text3); padding: 40px;">加载中...</div>
-        </div>
-      </div>
-    </div>
-    <div class="mo-ft" style="justify-content: flex-end; padding: 20px 24px;">
-      <button class="btn-c" onclick="closeWeddingModal()">关闭</button>
-    </div>
-  </div>
-</div>
-
 <!-- 添加/编辑婚礼支出弹窗 -->
 <div id="weddingExpenseModal" class="mo-bg hidden">
   <div class="mo-ct" style="width: 500px; max-width: 90vw;">
@@ -650,6 +657,42 @@
     <div class="mo-ft">
       <button class="btn-c" id="weekendCancel">取消</button>
       <button class="btn-ok" id="weekendConfirm">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================-->
+<!-- 加班费统计弹窗 -->
+<div id="salaryModal" class="mo-bg hidden">
+  <div class="mo-ct" style="width:380px">
+    <div class="mo-hd">
+      <h3>💰 本月加班费统计</h3>
+      <button class="mo-x" onclick="closeSalaryModal()">×</button>
+    </div>
+    <div class="mo-bd" style="padding:24px">
+      <div style="background:var(--green-bg);border:1px solid var(--green-b);border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">平时加班费：<span id="weekdayCalc" style="color:var(--green);font-weight:600">0H×¥0.00/H</span></div>
+        <div style="font-size:28px;font-weight:700;color:var(--green)">
+          ¥<span id="salaryWeekday">0.00</span>
+        </div>
+      </div>
+
+      <div style="background:var(--orange-bg);border:1px solid var(--orange-b);border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">周末加班费：<span id="weekendCalc" style="color:var(--orange);font-weight:600">0H×¥0.00/H</span></div>
+        <div style="font-size:28px;font-weight:700;color:var(--orange)">
+          ¥<span id="salaryWeekend">0.00</span>
+        </div>
+      </div>
+
+      <div style="background:var(--accent-bg);border:2px solid var(--accent);border-radius:12px;padding:16px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">合计加班费</div>
+        <div style="font-size:36px;font-weight:800;color:#d64545">
+          ¥<span id="salaryTotal">0.00</span>
+        </div>
+      </div>
+    </div>
+    <div class="mo-ft">
+      <button class="btn-ok" onclick="closeSalaryModal()">关闭</button>
     </div>
   </div>
 </div>
@@ -833,44 +876,6 @@
   </div>
 </div>
 
-<!-- ============================================================-->
-<!-- 加班费统计弹窗 -->
-<div id="salaryModal" class="mo-bg hidden">
-  <div class="mo-ct" style="width:380px">
-    <div class="mo-hd">
-      <h3>💰 本月加班费统计</h3>
-      <button class="mo-x" onclick="closeSalaryModal()">×</button>
-    </div>
-    <div class="mo-bd" style="padding:24px">
-      <div style="background:var(--green-bg);border:1px solid var(--green-b);border-radius:12px;padding:16px;margin-bottom:16px">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">平时加班费：<span id="weekdayCalc" style="color:var(--green);font-weight:600">0H×¥0.00/H</span></div>
-        <div style="font-size:28px;font-weight:700;color:var(--green)">
-          ¥<span id="salaryWeekday">0.00</span>
-        </div>
-      </div>
-
-      <div style="background:var(--orange-bg);border:1px solid var(--orange-b);border-radius:12px;padding:16px;margin-bottom:16px">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">周末加班费：<span id="weekendCalc" style="color:var(--orange);font-weight:600">0H×¥0.00/H</span></div>
-        <div style="font-size:28px;font-weight:700;color:var(--orange)">
-          ¥<span id="salaryWeekend">0.00</span>
-        </div>
-      </div>
-
-      <div style="background:var(--accent-bg);border:2px solid var(--accent);border-radius:12px;padding:16px">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">合计加班费</div>
-        <div style="font-size:36px;font-weight:800;color:#d64545">
-          ¥<span id="salaryTotal">0.00</span>
-        </div>
-      </div>
-    </div>
-    <div class="mo-ft">
-      <button class="btn-ok" onclick="closeSalaryModal()">关闭</button>
-    </div>
-  </div>
-</div>
-
-
-
 <script>
 var SUPABASE_URL = 'https://ymuctuibvvsarwtqmxcw.supabase.co';
 var SUPABASE_ANON_KEY = 'sb_publishable_wcQOhFspiXXs6ZJRLcyV2A_JbSdFA0-';
@@ -921,6 +926,96 @@ document.addEventListener('click', function(e) {
   }
 });
 
+//=====================================================
+// Hash 路由：支持 #/wedding 等子页面
+function navigateTo(page) {
+  if (page) {
+    location.hash = '#/' + page;
+  } else {
+    location.hash = '';
+  }
+}
+
+function goBackToMain() {
+  // 如果是模拟考勤页面，先检查是否有未保存的修改
+  if (location.hash === '#/simulate') {
+    if (simulateState.hasChanges && !simulateState.hasSavedToCloud) {
+      if (confirm('请注意：退出后将默认保存至本地数据库')) {
+        saveSimulateToLocal();
+      }
+    }
+    // 重置拖拽状态
+    simulateState.mouseDownTime = 0;
+    simulateState.isDragging = false;
+    isDragging = false;
+    mouseDownTime = 0;
+  }
+  // 清除hash回到主日历
+  history.pushState(null, '', window.location.pathname);
+  handleRoute();
+}
+
+function handleRoute() {
+  var hash = location.hash;
+  var dashHd = document.querySelector('#dashView .dash-hd');
+  var mainContent = document.querySelector('#dashView .main');
+  var weddingPage = document.getElementById('weddingPage');
+  var simulatePage = document.getElementById('simulatePage');
+
+  // 先隐藏所有子页面
+  if (weddingPage) weddingPage.classList.add('hidden');
+  if (simulatePage) simulatePage.classList.add('hidden');
+
+  if (hash === '#/wedding') {
+    // 显示婚礼计费子页面
+    if (dashHd) dashHd.style.display = 'none';
+    if (mainContent) mainContent.style.display = 'none';
+    weddingPage.classList.remove('hidden');
+    document.getElementById('weddingPageDate').textContent = new Date().toLocaleDateString('zh-CN');
+    loadWeddingExpenses();
+    loadBudget();
+    setTimeout(bindBudgetEvents, 100);
+  } else if (hash === '#/simulate') {
+    // 显示模拟考勤子页面
+    if (dashHd) dashHd.style.display = 'none';
+    if (mainContent) mainContent.style.display = 'none';
+    simulatePage.classList.remove('hidden');
+    document.getElementById('simulatePageDate').textContent = new Date().toLocaleDateString('zh-CN');
+
+    // 模拟考勤初始化逻辑
+    simulateState.year = new Date().getFullYear();
+    simulateState.month = new Date().getMonth() + 1;
+    simulateState.data = {};
+    simulateState.selectedDates.clear();
+    simulateState.hasSavedToCloud = false;
+    simulateState.hasChanges = false;
+    simulateState.mouseDownTime = 0;
+    simulateState.isDragging = false;
+    isDragging = false;
+    mouseDownTime = 0;
+    loadSimulateData();
+    renderSimulateContent();
+  } else {
+    // 显示主日历（默认）
+    if (dashHd) dashHd.style.display = '';
+    if (mainContent) mainContent.style.display = '';
+  }
+}
+
+// 监听浏览器前进/后退
+window.addEventListener('hashchange', function() {
+  // 仅在登录后响应路由
+  if (!document.getElementById('dashView').classList.contains('hidden')) {
+    handleRoute();
+  }
+});
+
+// 页面初始化时检查hash（需要等登录完成后由 doLogin 触发）
+function checkInitRoute() {
+  if (location.hash) {
+    handleRoute();
+  }
+}
 //=====================================================
 //加班工资设置相关函数
 // 打开加班设置弹窗
@@ -1022,6 +1117,7 @@ function closeSalaryModal(){
 document.getElementById('salaryModal').addEventListener('click', function(e){
   if(e.target.id === 'salaryModal') closeSalaryModal();
 });
+
 
 
 
@@ -2005,6 +2101,7 @@ async function cloudDeleteUser(userId){
 // ===================== INIT =====================
 // ===================== INIT =====================
 (async function init(){
+  showLoading('正在加载...');
   // 1. 首先填充所有下拉菜单（无论是否登录）
   var ay = document.getElementById('aYear');
   var am = document.getElementById('aMonth');
@@ -2201,12 +2298,8 @@ async function cloudDeleteUser(userId){
     if(e.target.id === 'weekendModal') closeWeekendModal();
   });
 
- // ========== 模拟考勤弹窗背景点击关闭 ==========  ← 在这里添加
- document.getElementById('simulateModal').addEventListener('click', function(e) {
-   if (e.target.id === 'simulateModal') {
-     closeSimulateModal();
-  }
-});
+
+
 
   // ========== 导出按钮事件 ==========
   document.getElementById('btnExport').addEventListener('click', exportXlsx);
@@ -2313,7 +2406,6 @@ document.getElementById('forceSync').addEventListener('click', async function(){
 
       // 云端模式：恢复 Supabase auth session
       if(CLOUD_MODE){
-        showLoading('正在验证登录状态...');
         try{
           var sessionResult = await SB.auth.getSession();
           var sessionData = sessionResult.data;
@@ -2361,7 +2453,6 @@ document.getElementById('forceSync').addEventListener('click', async function(){
           showV('login');
           return;
         }
-        hideLoading();
       }
 
       // 根据角色显示对应页面
@@ -2391,14 +2482,20 @@ document.getElementById('forceSync').addEventListener('click', async function(){
       document.getElementById('lUser').value = rem.username;
       document.getElementById('lPass').value = rem.password;
       document.getElementById('lRemember').checked = true;
+      hideLoading();
       setTimeout(function(){
         if(rem && rem.username && rem.password){
           doAutoLogin(rem.username, rem.password);
         }
       }, 500);
+    } else {
+      hideLoading();
+      showV('login');
     }
   }catch(e){
     console.warn('读取记住密码失败:', e);
+    hideLoading();
+    showV('login');
   }
 
 })();
@@ -2420,6 +2517,7 @@ function showV(v){
   else if(v==='admin')document.getElementById('adminView').classList.remove('hidden');
   updateConditionalMenuItems();
   updateDashNameAction();
+  if(v==='dash') checkInitRoute();
 }
 
 // 新增：自动登录函数
@@ -2430,8 +2528,9 @@ async function doAutoLogin(username, password) {
     var result = await cloudLogin(username, password);
     hideLoading();
     if(result.error){
-      // 自动登录失败，停留在登录页面
+      // 自动登录失败，显示登录页面
       console.log('自动登录失败:', result.error);
+      showV('login');
       return;
     }
     curUser = result.user;
@@ -2442,7 +2541,8 @@ async function doAutoLogin(username, password) {
       var found = await findLocalUserByCredentials(username, password);
       if(!found){
         hideLoading();
-        return; // 自动登录失败，停留在登录页面
+        showV('login');
+        return; // 自动登录失败，显示登录页面
       }
       curUser = toSessionUser(found);
     }
@@ -2810,8 +2910,9 @@ async function logout(){
   await cloudLogout();
   curUser=null;isAdmin=false;
 
-  // ★ 新增：清除登录状态
+  // 清除登录状态和路由hash
   localStorage.removeItem('att_login_state');
+  if (location.hash) location.hash = '';
 
   hideLoading();
   showV('login');
@@ -3073,8 +3174,37 @@ async function render(){
   }
   renderCal();
   calcStats();
+  updateOvertimeMarquee();
 }
 
+
+function updateOvertimeMarquee(){
+  var marqueeText = document.getElementById('overtimeMarqueeText');
+  if(!marqueeText) return;
+  // 计算加班费（与openSalaryModal相同逻辑）
+  var settings = loadOvertimeSettings();
+  var weekdayRate = settings.weekday || 0;
+  var weekendRate = settings.weekend || 0;
+  var weekdayHours = parseFloat(document.getElementById('sW').textContent) || 0;
+  var weekendHours = parseFloat(document.getElementById('sE').textContent) || 0;
+  var totalSalary = weekdayHours * weekdayRate + weekendHours * weekendRate;
+  var text;
+  if(totalSalary <= 0){
+    marqueeText.textContent = '';
+    return;
+  }
+  if(totalSalary < 1000){
+    text = '本月合计加班费为 ¥' + totalSalary.toFixed(2) + ' 元，😊 要加油哦';
+    marqueeText.className = 'overtime-marquee-text normal';
+  } else if(totalSalary >= 1500){
+    text = '本月合计加班费为 ¥' + totalSalary.toFixed(2) + ' 元，🎉 你太棒了';
+    marqueeText.className = 'overtime-marquee-text red';
+  } else {
+    text = '本月合计加班费为 ¥' + totalSalary.toFixed(2) + ' 元';
+    marqueeText.className = 'overtime-marquee-text normal';
+  }
+  marqueeText.textContent = text;
+}
 
 function renderCal(){
   var fd=new Date(vYear,vMonth-1,1).getDay();
@@ -3390,6 +3520,7 @@ async function clearCurrentMonthData(){
     // 3. 重新渲染日历和统计
     renderCal();
     calcStats();
+  updateOvertimeMarquee();
     
     showToast('清空成功', monthStr + '的考勤数据已全部清空', 'success');
     
@@ -3444,6 +3575,7 @@ async function applyBatch(){
   clearSelection();
   renderCal();
   calcStats();
+  updateOvertimeMarquee();
 }
 
 
@@ -3665,6 +3797,7 @@ async function saveAtt(){
   closeModal();
   renderCal();
   calcStats();
+  updateOvertimeMarquee();
 }
 
 
@@ -3710,6 +3843,7 @@ async function clearAtt(){
   closeModal();
   renderCal();
   calcStats();
+  updateOvertimeMarquee();
 }
 
 
@@ -3967,35 +4101,12 @@ var simulateState = {
 // 打开模拟考勤弹窗
 function openSimulateModal() {
   document.getElementById('contextMenu').classList.remove('show');
-
-  // 重置模拟考勤状态
-  simulateState.year = new Date().getFullYear();
-  simulateState.month = new Date().getMonth() + 1;
-  simulateState.data = {};
-  simulateState.selectedDates.clear();
-  simulateState.hasSavedToCloud = false;
-  // ★ 关键：每次打开弹窗，重置修改标记为 false
-  simulateState.hasChanges = false;
-  // 重置拖拽相关状态
-  simulateState.mouseDownTime = 0;
-  simulateState.isDragging = false;
-  // 同时重置全局拖拽变量
-  isDragging = false;
-  mouseDownTime = 0;
-
-  // 加载本地模拟数据（如果有）
-  loadSimulateData();
-
-  // 显示弹窗
-  document.getElementById('simulateModal').classList.remove('hidden');
-
-  // 渲染模拟考勤内容
-  renderSimulateContent();
+  navigateTo('simulate');
 }
 
 
 
-// 关闭模拟考勤弹窗
+// 关闭模拟考勤页面（同返回）
 function closeSimulateModal() {
   if (simulateState.hasChanges && !simulateState.hasSavedToCloud) {
     if (!confirm('请注意：退出后将默认保存至本地数据库')) {
@@ -4003,14 +4114,12 @@ function closeSimulateModal() {
     }
     saveSimulateToLocal();
   }
-
-  // ★ 关闭时重置拖拽状态
+  // 重置拖拽状态
   simulateState.mouseDownTime = 0;
   simulateState.isDragging = false;
   isDragging = false;
   mouseDownTime = 0;
-
-  document.getElementById('simulateModal').classList.add('hidden');
+  goBackToMain();
 }
 
 
@@ -5106,16 +5215,10 @@ var weddingState = {
   budget: 0
 };
 
-// 打开婚礼计费弹窗
+// 打开婚礼计费页面（通过hash路由）
 function openWeddingModal() {
   document.getElementById('contextMenu').classList.remove('show');
-  document.getElementById('weddingModal').classList.remove('hidden');
-  document.getElementById('weddingDate').textContent = new Date().toLocaleDateString('zh-CN');
-  loadWeddingExpenses();
-  loadBudget();
-  
-  // 绑定预算板块事件
-  setTimeout(bindBudgetEvents, 100);
+  navigateTo('wedding');
 }
 
 // 绑定预算板块的右键和长按事件
@@ -5240,11 +5343,6 @@ function saveBudgetLocal() {
   } catch (e) {
     console.error('保存预算失败:', e);
   }
-}
-
-// 关闭婚礼计费弹窗
-function closeWeddingModal() {
-  document.getElementById('weddingModal').classList.add('hidden');
 }
 
 // 打开添加支出弹窗
@@ -5622,8 +5720,16 @@ function updateWeddingStats() {
 }
 
 // 筛选
-function filterWeddingExpenses(category) {
+function filterWeddingExpenses(category, btn) {
   weddingState.currentFilter = category;
+  // 更新筛选按钮激活状态
+  if (btn) {
+    var bar = btn.parentElement;
+    if (bar) {
+      bar.querySelectorAll('.btn-s').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    }
+  }
   renderWeddingList();
 }
 

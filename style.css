@@ -128,6 +128,12 @@ input,textarea{user-select:text;-webkit-user-select:text}
 .dash-hd h2{font-size:16px;font-weight:600}
 .dash-hd .right{display:flex;align-items:center;gap:14px}
 .dash-hd .uname{font-size:13px;color:var(--text2)}
+/* 加班费滚动条 */
+.overtime-marquee{flex:1;margin:0 18px;overflow:hidden;white-space:nowrap;position:relative;min-width:0}
+.overtime-marquee-text{display:inline-block;font-size:16px;font-weight:600;animation:marqueeScroll 12s linear infinite;padding-left:100%}
+.overtime-marquee-text.red{color:#d64545}
+.overtime-marquee-text.normal{color:var(--text)}
+@keyframes marqueeScroll{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
 .btn-s{padding:7px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;cursor:pointer;transition:all .2s}
 .btn-s:hover{background:var(--border)}
 .btn-s[disabled]{opacity:.5;cursor:not-allowed}
@@ -1982,5 +1988,197 @@ td{color:var(--text)}
   
   .wedding-modal-ct {
     width: 95vw;
+  }
+}
+
+/* ========== 婚礼计费子页面 ========== */
+.wedding-page {
+  background: var(--bg);
+}
+
+.wedding-page-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s;
+}
+
+.wedding-page-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.wedding-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wedding-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.22s ease;
+  line-height: 1;
+}
+
+.btn-back:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  transform: translateX(-2px);
+}
+
+.wedding-page-body {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 28px 40px 56px;
+}
+
+.wedding-page-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.wedding-main-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.wedding-main-panel .wedding-stats {
+  margin: 0;
+}
+
+.wedding-list-panel {
+}
+
+.wedding-actions-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wedding-filter-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wedding-filter-bar .btn-s {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+.wedding-filter-bar .btn-s.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.wedding-list-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* 响应式：移动端单列 */
+@media (max-width: 768px) {
+  .wedding-page-header {
+    padding: 0 16px;
+  }
+  .wedding-page-body {
+    padding: 20px;
+  }
+}
+
+/* ========== 模拟考勤子页面 ========== */
+.simulate-page {
+  background: var(--bg);
+}
+
+.sim-page-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sim-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sim-header-left h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.sim-header-right {
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.sim-page-body {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 32px 32px;
+}
+
+.simulate-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.sim-page-actions {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 20px;
+}
+
+.sim-btn-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .sim-page-header {
+    padding: 0 16px;
+  }
+  .sim-page-body {
+    padding: 16px;
   }
 }
