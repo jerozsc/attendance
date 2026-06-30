@@ -458,7 +458,7 @@
           <button class="hours-custom-btn" id="hoursCustomBtn" onclick="enableCustomHours()">自定义</button>
           <div class="hours-custom-input" id="hoursCustomInput">
             <button class="hours-arrow" onclick="adjustHours(-0.5)">▼</button>
-            <input type="number" id="customHoursValue" value="8" min="0" max="12" step="0.5" onchange="onCustomHoursChange()">
+            <input type="number" id="customHoursValue" value="8" min="0" max="14" step="0.5" onchange="onCustomHoursChange()">
             <button class="hours-arrow" onclick="adjustHours(0.5)">▲</button>
             <span class="hours-unit">H</span>
           </div>
@@ -3649,9 +3649,9 @@ function adjustHours(delta) {
   var input = document.getElementById('customHoursValue');
   var newValue = parseFloat(input.value) + delta;
   
-  // 限制范围 0-12
+  // 限制范围 0-14
   if (newValue < 0) newValue = 0;
-  if (newValue > 12) newValue = 12;
+  if (newValue > 14) newValue = 14;
   
   input.value = newValue;
   currentSelectedHours = newValue;
@@ -3665,9 +3665,9 @@ function onCustomHoursChange() {
   var input = document.getElementById('customHoursValue');
   var newValue = parseFloat(input.value);
   
-  // 限制范围 0-12
+  // 限制范围 0-14
   if (isNaN(newValue) || newValue < 0) newValue = 0;
-  if (newValue > 12) newValue = 12;
+  if (newValue > 14) newValue = 14;
   
   // 修正步长为0.5
   newValue = Math.round(newValue * 2) / 2;
