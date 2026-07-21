@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海外小组</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div id="toastContainer"></div>
+
+<!-- 顶部角色状态栏 -->
+<div class="role-bar">
+  <div class="role-bar-left">
+    <a class="back-link" href="../index.html">← 返回</a>
+    <span class="page-title"><svg class="title-icon" viewBox="0 0 24 24" fill="#c49030"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg> 海外实验室</span>
+  </div>
+  <div class="role-bar-right">
+    <span id="themeToggle" class="role-link" onclick="toggleTheme()" title="切换主题">
+      <svg class="theme-icon" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+    </span>
+    <span id="roleBar"></span>
+  </div>
+</div>
+
+<!-- 侧边栏 + 内容区布局 -->
+<div class="app-layout">
+
+  <!-- 侧边栏（仅工程师可见） -->
+  <div data-role="engineer" class="sidebar" id="sidebar">
+    <div class="sidebar-menu">
+      <div class="sidebar-item active" data-page="home" onclick="navigateTo('home')">
+        <span class="sidebar-icon"><svg viewBox="0 0 24 24"><path d="M3 13h1v7c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-7h1a1 1 0 0 0 .7-1.7l-9-8.5a1 1 0 0 0-1.4 0l-9 8.5A1 1 0 0 0 3 13zm7 7v-5h4v5h-4zm2-15.6 7 6.6H5l7-6.6z"/></svg></span> 主页
+      </div>
+      <div class="sidebar-item" data-page="pickup" onclick="navigateTo('pickup')">
+        <span class="sidebar-icon"><svg viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm6 5h8v2h-8v-2zm0-3h8v2h-8V8zm0 6h5v2h-5v-2z"/></svg></span> 取放实验登记
+      </div>
+      <div class="sidebar-item" data-page="history" onclick="navigateTo('history')">
+        <span class="sidebar-icon"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg></span> 历史记录
+      </div>
+      <div class="sidebar-item" data-page="stats" onclick="navigateTo('stats')">
+        <span class="sidebar-icon"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg></span> 统计报表
+      </div>
+      <div class="sidebar-item" data-page="machines" onclick="navigateTo('machines')">
+        <span class="sidebar-icon"><svg viewBox="0 0 24 24"><path d="M22 9V7h-2V5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-2h2v-2h-2v-2h2v-2h-2V9h2zm-4 10H4V5h14v14zM6 13h5v4H6v-4zm6-6h4v3h-4V7zM6 7h5v5H6V7zm6 4h4v6h-4v-6z"/></svg></span> 机台管理
+      </div>
+      <div class="sidebar-item" data-page="projects" onclick="navigateTo('projects')">
+        <span class="sidebar-icon"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></span> 项目管理
+      </div>
+      <div class="sidebar-item" data-page="settings" onclick="navigateTo('settings')">
+        <span class="sidebar-icon"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.37-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.37 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg></span> 设置
+      </div>
+    </div>
+  </div>
+
+  <!-- 主内容区 -->
+  <div class="main-content" id="mainContent">
+
+    <!-- ===== 页面：主页（访客可见） ===== -->
+    <div id="page-home" class="page-content">
+      <div class="stats">
+        <div class="stat-card" onclick="showStatDetail('today')" style="cursor:pointer">
+          <div class="num" id="statToday">0</div>
+          <div class="label">今日应取</div>
+        </div>
+        <div class="stat-card" onclick="showStatDetail('tomorrow')" style="cursor:pointer">
+          <div class="num" id="statTomorrow">0</div>
+          <div class="label">明日应取</div>
+        </div>
+        <div class="stat-card" onclick="showStatDetail('running')" style="cursor:pointer">
+          <div class="num" id="statRunning">0</div>
+          <div class="label">进行中项目</div>
+        </div>
+        <div class="stat-card stat-overdue" onclick="showStatDetail('overdue')" style="cursor:pointer">
+          <div class="num" id="statOverdue">0</div>
+          <div class="label"><svg class="stat-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg> 已逾期</div>
+        </div>
+      </div>
+
+      <!-- 新增登记按钮（仅工程师） -->
+      <div data-role="engineer" style="margin-bottom:16px">
+        <button class="tb-btn" onclick="openRegisterModal()">+ 新增实验登记</button>
+      </div>
+
+      <!-- 今日应取详细信息 -->
+      <div class="section">
+        <div class="section-hd">
+          <h2><svg class="h2-icon" viewBox="0 0 24 24" fill="var(--gold)"><path d="M19 3H4.99C3.89 3 3 3.9 3 5l.01 14c0 1.1.89 2 1.99 2h10l6-6V5c0-1.1-.9-2-2-2zM7 8h10v2H7V8zm0 4h10v2H7v-2zm5 6H7v-2h5v2zm2 0v-4h4l-4 4z"/></svg> 今日应取</h2>
+          <div class="filter-btns" id="floorFilter">
+            <button class="filter-btn active" data-floor="all" onclick="setFloorFilter('all')">全部</button>
+            <button class="filter-btn" data-floor="1F" onclick="setFloorFilter('1F')">1F</button>
+            <button class="filter-btn" data-floor="3F" onclick="setFloorFilter('3F')">3F</button>
+            <button class="filter-btn" data-floor="5F" onclick="setFloorFilter('5F')">5F</button>
+          </div>
+        </div>
+        <div id="todayList" class="exp-list">
+          <div class="placeholder"><svg class="placeholder-icon" viewBox="0 0 24 24" width="28" height="28" fill="var(--text3)"><path d="M19 3h-2.25a1 1 0 0 0-.75-.3h-8a1 1 0 0 0-.75.3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm4 6H8c-.55 0-1-.45-1-1s.45-1 1-1h8c.55 0 1 .45 1 1s-.45 1-1 1zm0-4H8c-.55 0-1-.45-1-1s.45-1 1-1h8c.55 0 1 .45 1 1s-.45 1-1 1zm-2 8H8c-.55 0-1-.45-1-1s.45-1 1-1h6c.55 0 1 .45 1 1s-.45 1-1 1z"/></svg><div class="placeholder-text">暂无今日待取实验</div></div>
+        </div>
+      </div>
+
+      <!-- 今日已完成统计 -->
+      <div class="section">
+        <div class="section-hd">
+          <h2><svg class="h2-icon" viewBox="0 0 24 24" fill="var(--green)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> 今日已完成</h2>
+        </div>
+        <div id="todayComplete" class="exp-list">
+          <div class="placeholder"><div class="placeholder-text">暂无已完成实验</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px"><svg class="h2-icon" viewBox="0 0 24 24" fill="var(--text2)"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg> 本周实验概览</h2>
+        <div id="weeklyOverview" class="week-table-wrap"><div class="placeholder"><div class="placeholder-text">加载中...</div></div></div>
+      </div>
+    </div>
+
+    <!-- ===== 页面：取放实验登记（仅工程师） ===== -->
+    <div id="page-pickup" class="page-content hidden" data-role="engineer">
+      <div class="page-header">
+        <h2>📦 取放实验登记</h2>
+        <p class="page-desc">查看和管理所有实验设备的取放记录</p>
+      </div>
+      <div class="toolbar">
+        <button class="tb-btn" onclick="openRegisterModal()">+ 新增登记</button>
+        <button class="tb-btn danger" onclick="deleteSelected()">🗑 删除选中</button>
+        <input class="tb-search" id="pickupSearch" type="text" placeholder="搜索机台/类型/位置..." oninput="filterPickupList()" style="margin-left:12px">
+        <button class="tb-btn" onclick="exportExcel()" style="margin-left:auto">📥 导出 Excel</button>
+      </div>
+      <div id="allExpList" class="exp-list">
+        <div class="placeholder"><div class="placeholder-icon">📦</div><div class="placeholder-text">加载中...</div></div>
+      </div>
+    </div>
+
+    <!-- ===== 页面：历史记录 ===== -->
+    <div id="page-history" class="page-content hidden" data-role="engineer">
+      <div class="page-header">
+        <h2><svg class="h2-icon" viewBox="0 0 24 24" fill="var(--gold)"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg> 历史记录</h2>
+        <p class="page-desc">查看已完成的实验历史，按日期筛选</p>
+      </div>
+      <div class="toolbar">
+        <input type="date" id="historyStart" class="tb-search" style="width:160px" onchange="renderHistory()">
+        <span style="color:var(--text3)">至</span>
+        <input type="date" id="historyEnd" class="tb-search" style="width:160px" onchange="renderHistory()">
+        <select id="historyStatus" class="tb-search" style="width:120px" onchange="renderHistory()">
+          <option value="all">全部状态</option>
+          <option value="completed">已完成</option>
+          <option value="picked">已取</option>
+        </select>
+      </div>
+      <div id="historyList" class="exp-list">
+        <div class="placeholder"><svg class="placeholder-icon" viewBox="0 0 24 24" width="28" height="28" fill="var(--text3)"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18z"/></svg><div class="placeholder-text">加载历史记录...</div></div>
+      </div>
+    </div>
+
+    <!-- ===== 页面：统计报表 ===== -->
+    <div id="page-stats" class="page-content hidden" data-role="engineer">
+      <div class="page-header">
+        <h2><svg class="h2-icon" viewBox="0 0 24 24" fill="var(--gold)"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg> 统计报表</h2>
+        <p class="page-desc">实验数据可视化分析</p>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card"><canvas id="chartStatus"></canvas></div>
+        <div class="chart-card"><canvas id="chartFloor"></canvas></div>
+      </div>
+      <div class="chart-card chart-wide"><canvas id="chartTrend"></canvas></div>
+    </div>
+
+    <!-- ===== 页面：机台管理 ===== -->
+    <div id="page-machines" class="page-content hidden" data-role="engineer">
+      <div class="page-header">
+        <h2><svg class="h2-icon" viewBox="0 0 24 24" fill="var(--gold)"><path d="M22 9V7h-2V5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-2h2v-2h-2v-2h2v-2h-2V9h2zm-4 10H4V5h14v14zM6 13h5v4H6v-4zm6-6h4v3h-4V7zM6 7h5v5H6V7zm6 4h4v6h-4v-6z"/></svg> 机台管理</h2>
+        <p class="page-desc">管理各楼层的机台设备</p>
+      </div>
+      <div class="toolbar">
+        <button class="tb-btn" onclick="openMachineModal()">+ 新增机台</button>
+        <select id="machineFloorFilter" class="tb-search" style="width:120px" onchange="renderMachines()">
+          <option value="all">全部楼层</option>
+          <option value="1F">1F</option>
+          <option value="3F">3F</option>
+          <option value="5F">5F</option>
+        </select>
+      </div>
+      <div id="machineList" class="exp-list"></div>
+    </div>
+
+    <!-- ===== 页面：项目管理（占位） ===== -->
+    <div id="page-projects" class="page-content hidden" data-role="engineer">
+      <div class="page-header">
+        <h2><svg class="h2-icon" viewBox="0 0 24 24" fill="var(--gold)"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg> 项目管理</h2>
+        <p class="page-desc">功能开发中...</p>
+      </div>
+      <div class="placeholder" style="min-height:200px">
+        <svg class="placeholder-icon" viewBox="0 0 24 24" width="28" height="28" fill="var(--text3)"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
+        <div class="placeholder-text">项目管理（待开发）</div>
+      </div>
+    </div>
+
+    <!-- ===== 页面：设置 ===== -->
+    <div id="page-settings" class="page-content hidden" data-role="engineer">
+      <div class="page-header">
+        <h2><svg class="h2-icon" viewBox="0 0 24 24" fill="var(--gold)"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.37-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.37 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg> 设置</h2>
+        <p class="page-desc">自定义实验提示效果</p>
+      </div>
+
+      <div class="section">
+        <div class="section-hd">
+          <h2>已完成实验呼吸脉冲颜色</h2>
+        </div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:14px">选择今日应取列表中已完成实验的呼吸脉冲主题色</p>
+        <div class="theme-picker" id="pulseThemePicker"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== 新增实验登记弹窗 ===== -->
+<div id="registerModal" class="modal-bg hidden">
+  <div class="modal-box" style="width:540px">
+    <button class="modal-close" onclick="closeRegisterModal()">✕</button>
+    <h2>📦 新增实验登记</h2>
+    <p class="sub">填写实验信息，带 * 为必填项</p>
+    <div class="form-grid">
+      <div class="fg">
+        <label>实验位置 <span class="required">*</span></label>
+        <select id="regLocation" class="form-select">
+          <option value="">请选择</option>
+          <option value="1F">1F</option>
+          <option value="3F">3F</option>
+          <option value="5F">5F</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>机台编号</label>
+        <select id="regMachineNo" class="form-select"><option value="">请先选择楼层</option></select>
+      </div>
+      <div class="fg" style="position:relative">
+        <label>机种信息</label>
+        <input type="text" id="regMachineType" class="form-input" placeholder="输入或选择机种" autocomplete="off" oninput="searchMachineType(this.value)">
+        <div id="machineTypeDropdown" class="type-dropdown"></div>
+      </div>
+      <div class="fg">
+        <label>开始时间 <span class="required">*</span></label>
+        <input type="datetime-local" id="regStartTime" class="form-input">
+      </div>
+      <div class="fg row-merge">
+        <div class="row-merge-inner">
+          <div class="merge-col">
+            <label>试验时长</label>
+            <input type="number" id="regDuration" class="form-input" placeholder="输入小时" min="0.5" step="0.5">
+          </div>
+          <div class="merge-col">
+            <label>预计结束时间 <span class="required">*</span></label>
+            <input type="datetime-local" id="regEndTime" class="form-input" readonly style="background:#f5f5f5;cursor:default">
+          </div>
+        </div>
+      </div>
+      <div class="fg row-merge">
+        <div class="row-merge-inner">
+          <div class="merge-col" style="flex:0 0 200px">
+            <label>实验类型 <span class="required">*</span></label>
+            <select id="regExpType" class="form-select" onchange="toggleExpTypeInput()">
+              <option value="">请选择</option>
+              <option value="高温存储">高温存储</option>
+              <option value="低温存储">低温存储</option>
+              <option value="盐雾">盐雾</option>
+              <option value="__custom__">手动输入</option>
+            </select>
+          </div>
+          <div class="merge-col" id="expTypeCustomCol" style="display:none">
+            <label>&nbsp;</label>
+            <input type="text" id="regExpTypeCustom" class="form-input" placeholder="请输入实验类型">
+          </div>
+        </div>
+      </div>
+      <div class="fg" style="grid-column:1/-1">
+        <label>备注</label>
+        <textarea id="regNotes" class="form-input" rows="2" maxlength="100" placeholder="选填，最多100字" style="resize:none;font-family:inherit"></textarea>
+      </div>
+    </div>
+    <div class="reg-error hidden" id="regError"></div>
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn btn-cancel" onclick="closeRegisterModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitRegistration()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 工程师登录弹窗 ===== -->
+<div id="loginModal" class="modal-bg hidden">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeLoginModal()">✕</button>
+    <h2>工程师登录</h2>
+    <p class="sub">使用考勤系统工号和密码</p>
+    <div class="fg">
+      <label>工号</label>
+      <input type="text" id="loginUser" placeholder="请输入工号" autocomplete="username">
+    </div>
+    <div class="fg">
+      <label>密码</label>
+      <input type="password" id="loginPass" placeholder="请输入密码" autocomplete="current-password">
+    </div>
+    <div class="remember-options">
+      <label class="remember-row">
+        <input type="checkbox" id="remUser"> <span>记住工号</span>
+      </label>
+      <label class="remember-row">
+        <input type="checkbox" id="remBoth"> <span>记住工号和密码</span>
+      </label>
+    </div>
+    <div class="error" id="loginError"></div>
+    <div class="login-loading hidden" id="loginLoading">
+      <div class="login-spinner"></div>
+      <span>正在验证身份...</span>
+    </div>
+    <div class="btn-row" id="loginBtnRow">
+      <button class="btn btn-cancel" onclick="closeLoginModal()">取消</button>
+      <button class="btn btn-primary" onclick="doOverseasLogin()">登 录</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 统计详情弹窗 ===== -->
+<div id="statDetailModal" class="modal-bg hidden">
+  <div class="modal-box" style="width:620px">
+    <button class="modal-close" onclick="closeStatDetail()">✕</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+      <h2 id="statDetailTitle" style="margin:0">统计详情</h2>
+      <span id="statDetailCount" class="stat-count-badge">0</span>
+    </div>
+    <div id="statDetailContent" style="max-height:420px;overflow-y:auto;margin-top:4px"></div>
+  </div>
+</div>
+
+<!-- ===== 机台新增/编辑弹窗 ===== -->
+<div id="machineModal" class="modal-bg hidden">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeMachineModal()">✕</button>
+    <h2 id="machineModalTitle">新增机台</h2>
+    <p class="sub">填写机台信息</p>
+    <div class="fg">
+      <label>楼层 <span class="required">*</span></label>
+      <select id="macFloor" class="form-select">
+        <option value="">请选择</option>
+        <option value="1F">1F</option>
+        <option value="3F">3F</option>
+        <option value="5F">5F</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>机台编号 <span class="required">*</span></label>
+      <input type="text" id="macNo" class="form-input" placeholder="例如 A-01">
+    </div>
+    <div class="fg">
+      <label>机台名称 <span class="required">*</span></label>
+      <input type="text" id="macName" class="form-input" placeholder="例如 高温试验箱">
+    </div>
+    <div class="error hidden" id="macError"></div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeMachineModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveMachine()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 状态切换下拉框 ===== -->
+<div class="status-dropdown" id="statusDropdown"></div>
+
+<script src="script.js"></script>
+</body>
+</html>

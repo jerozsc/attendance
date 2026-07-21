@@ -33,6 +33,25 @@
 
 <button class="theme-btn" id="themeBtn" title="切换主题">🌙</button>
 
+<!-- ========== 门户导航页 ========== -->
+<div id="portalView" class="portal-wrap">
+  <div class="portal-inner">
+    <div class="portal-title">欢迎使用</div>
+    <div class="portal-cards">
+      <div class="portal-card portal-card-overseas" onclick="goToOverseas()">
+        <div class="portal-card-icon">🌍</div>
+        <div class="portal-card-name">海外小组</div>
+        <div class="portal-card-desc">海外团队管理</div>
+      </div>
+      <div class="portal-card portal-card-attendance" onclick="goToAttendance()">
+        <div class="portal-card-icon">📊</div>
+        <div class="portal-card-name">考勤编排</div>
+        <div class="portal-card-desc">考勤统计系统</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- LOGIN -->
 <div id="loginView" class="login-wrap hidden">
   <div class="login-card">
@@ -44,7 +63,10 @@
       <div class="fg"><label>工号</label><input type="text" id="lUser" autocomplete="username" placeholder="请输入账号"></div>
       <div class="fg"><label>密码</label><input type="password" id="lPass" autocomplete="current-password" placeholder="请输入密码"></div>
       <div class="remember-row"><input type="checkbox" id="lRemember"><label for="lRemember">记住账号密码，下次自动登录</label></div>
-      <button class="btn" id="btnLogin">登 录</button>
+      <div class="btn-row">
+        <button class="btn btn-half" id="btnLogin">登 录</button>
+        <button class="btn btn-half btn-cancel" id="btnLoginCancel">取 消</button>
+      </div>
     </div>
     <p class="sw">没有账号？<a id="toReg">注册新账号</a></p>
   </div>
@@ -2182,6 +2204,11 @@ async function cloudDeleteUser(userId){
     doLogin();
   });
 
+  document.getElementById('btnLoginCancel').addEventListener('click', function(e){
+    e.preventDefault();
+    showV('portal');
+  });
+
   document.getElementById('lPass').addEventListener('keydown', function(e){
     if(e.key === 'Enter'){
       e.preventDefault();
@@ -2425,7 +2452,7 @@ document.getElementById('forceSync').addEventListener('click', async function(){
                   localStorage.removeItem('att_login_state');
                   localStorage.removeItem(SKEY_R);
                   hideLoading();
-                  showV('login');
+                  showV('portal');
                   return;
                 }
                 console.log('Supabase session 已恢复');
@@ -2433,14 +2460,14 @@ document.getElementById('forceSync').addEventListener('click', async function(){
                 console.warn('自动恢复session异常:', signInErr);
                 localStorage.removeItem('att_login_state');
                 hideLoading();
-                showV('login');
+                showV('portal');
                 return;
               }
             }else{
               console.warn('无保存的密码，无法恢复session');
               localStorage.removeItem('att_login_state');
               hideLoading();
-              showV('login');
+              showV('portal');
               return;
             }
           }else{
@@ -2450,7 +2477,7 @@ document.getElementById('forceSync').addEventListener('click', async function(){
         }catch(sessionErr){
           console.warn('获取session异常:', sessionErr);
           hideLoading();
-          showV('login');
+          showV('portal');
           return;
         }
       }
@@ -2490,12 +2517,12 @@ document.getElementById('forceSync').addEventListener('click', async function(){
       }, 500);
     } else {
       hideLoading();
-      showV('login');
+      showV('portal');
     }
   }catch(e){
     console.warn('读取记住密码失败:', e);
     hideLoading();
-    showV('login');
+    showV('portal');
   }
 
 })();
@@ -2510,14 +2537,23 @@ function checkHint(){
 }
 
 function showV(v){
-  ['loginView','regView','dashView','adminView'].forEach(function(id){document.getElementById(id).classList.add('hidden')});
-  if(v==='login')document.getElementById('loginView').classList.remove('hidden');
+  ['portalView','loginView','regView','dashView','adminView'].forEach(function(id){document.getElementById(id).classList.add('hidden')});
+  if(v==='portal')document.getElementById('portalView').classList.remove('hidden');
+  else if(v==='login')document.getElementById('loginView').classList.remove('hidden');
   else if(v==='reg')document.getElementById('regView').classList.remove('hidden');
   else if(v==='dash')document.getElementById('dashView').classList.remove('hidden');
   else if(v==='admin')document.getElementById('adminView').classList.remove('hidden');
   updateConditionalMenuItems();
   updateDashNameAction();
   if(v==='dash') checkInitRoute();
+}
+
+function goToOverseas(){
+  window.location.href = 'overseas/index.html';
+}
+
+function goToAttendance(){
+  showV('login');
 }
 
 // 新增：自动登录函数
@@ -2528,9 +2564,9 @@ async function doAutoLogin(username, password) {
     var result = await cloudLogin(username, password);
     hideLoading();
     if(result.error){
-      // 自动登录失败，显示登录页面
+      // 自动登录失败，显示门户页
       console.log('自动登录失败:', result.error);
-      showV('login');
+      showV('portal');
       return;
     }
     curUser = result.user;
@@ -2541,7 +2577,7 @@ async function doAutoLogin(username, password) {
       var found = await findLocalUserByCredentials(username, password);
       if(!found){
         hideLoading();
-        showV('login');
+        showV('portal');
         return; // 自动登录失败，显示登录页面
       }
       curUser = toSessionUser(found);
@@ -2915,7 +2951,7 @@ async function logout(){
   if (location.hash) location.hash = '';
 
   hideLoading();
-  showV('login');
+  showV('portal');
 }
 
 
