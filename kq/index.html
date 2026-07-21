@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>个人考勤统计系统</title>
 <link rel="stylesheet" href="../style.css">
+<style>
+.back-portal{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;transition:all .15s;text-decoration:none}
+.back-portal:hover{background:var(--bg2)}
+.back-portal:hover svg{fill:var(--gold)!important}
+.emoji-svg{width:1em;height:1em;display:inline;vertical-align:-.12em;flex-shrink:0}
+</style>
 
 <!-- PWA 配置：添加到桌面时显示自定义图标 -->
 <link rel="manifest" href="../manifest.json">
@@ -31,20 +37,20 @@
 <!-- 通知提示容器 -->
 <div class="toast-container" id="toastContainer"></div>
 
-<button class="theme-btn" id="themeBtn" title="切换主题">🌙</button>
+<button class="theme-btn" id="themeBtn" title="切换主题"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg></button>
 
 <!-- ========== 门户导航页 ========== -->
-<div id="portalView" class="portal-wrap">
+<div id="portalView" class="portal-wrap hidden">
   <div class="portal-inner">
     <div class="portal-title">欢迎使用</div>
     <div class="portal-cards">
       <div class="portal-card portal-card-overseas" onclick="goToOverseas()">
-        <div class="portal-card-icon">🌍</div>
+        <div class="portal-card-icon"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div>
         <div class="portal-card-name">海外小组</div>
         <div class="portal-card-desc">海外团队管理</div>
       </div>
       <div class="portal-card portal-card-attendance" onclick="goToAttendance()">
-        <div class="portal-card-icon">📊</div>
+        <div class="portal-card-icon"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg></div>
         <div class="portal-card-name">考勤编排</div>
         <div class="portal-card-desc">考勤统计系统</div>
       </div>
@@ -55,7 +61,7 @@
 <!-- LOGIN -->
 <div id="loginView" class="login-wrap hidden">
   <div class="login-card">
-    <div style="text-align:center"><span class="cloud-badge">☁️ 云端数据同步</span></div>
+    <div style="text-align:center"><span class="cloud-badge"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h.71C7.37 7.69 9.48 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3s-1.34 3-3 3z"/></svg> 云端数据同步</span></div>
     <h1>考勤统计系统</h1>
     <p class="sub">登录以管理您的考勤记录</p>
     <div id="loginHint" class="hint hidden">当前没有账号，请先 <a id="hintToReg" style="cursor:pointer;text-decoration:underline">注册新账号</a></div>
@@ -75,7 +81,7 @@
 <!-- REGISTER -->
 <div id="regView" class="login-wrap hidden">
   <div class="login-card">
-    <div style="text-align:center"><span class="cloud-badge">☁️ 云端数据同步</span></div>
+    <div style="text-align:center"><span class="cloud-badge"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h.71C7.37 7.69 9.48 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3s-1.34 3-3 3z"/></svg> 云端数据同步</span></div>
     <h1>注册新账号</h1>
     <p class="sub">填写信息创建您的账号</p>
     <div class="fg"><label>工号</label><input type="text" id="rUser" autocomplete="username" placeholder="请输入账号"></div>
@@ -89,14 +95,19 @@
 <!-- DASHBOARD -->
 <div id="dashView" class="dash hidden">
   <header class="dash-hd">
-    <h2 style="cursor:pointer;flex-shrink:0" onclick="openSalaryModal()" title="点击查看加班费">📊 考勤管理系统</h2>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <a href="../index.html" class="back-portal" title="返回门户">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="var(--text3)"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      </a>
+      <h2 style="cursor:pointer;flex-shrink:0" onclick="openSalaryModal()" title="点击查看加班费"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg> 考勤管理系统</h2>
+    </div>
     <div class="overtime-marquee" id="overtimeMarquee">
       <span id="overtimeMarqueeText" class="overtime-marquee-text"></span>
     </div>
     <div class="right">
       <span class="uname" id="dashName"></span>
       <!-- <button class="btn-s" id="btnLogout">退出登录</button>-->
-      <button class="btn-s menu-trigger" id="menuTrigger" onclick="toggleMenu(event)">☰</button>
+      <button class="btn-s menu-trigger" id="menuTrigger" onclick="toggleMenu(event)"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
     </div>
   </header>
   <div class="main">
@@ -129,7 +140,7 @@
     <select id="selMonth" class="nav-select" style="display:none"></select>
   </div>
   <button class="nb" id="nextM">▸</button>
-  <button class="nb" id="forceSync" title="强制同步云端数据">🔄</button>
+  <button class="nb" id="forceSync" title="强制同步云端数据"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></button>
 </div>
 
 <!-- 主日历年份选择弹窗 -->
@@ -203,7 +214,7 @@
 
 
     <div style="text-align:center;margin-top:20px">
-      <button class="btn-s" id="btnExport" style="padding:10px 28px;font-size:13px">📥 导出本月考勤 (Excel)</button>
+      <button class="btn-s" id="btnExport" style="padding:10px 28px;font-size:13px"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> 导出本月考勤 (Excel)</button>
     </div>
   </div>
 
@@ -212,7 +223,7 @@
     <div class="wedding-page-header">
       <div class="wedding-header-left">
         <button class="btn-back" onclick="goBackToMain()" title="返回日历">←</button>
-        <h2>💒 婚礼计费</h2>
+        <h2><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7.5l-5 5V19h3v-4h4v4h3v-6.5l-5-5zM12 2L2 12h3v2l7-7 7 7v-2h3L12 2z"/></svg> 婚礼计费</h2>
       </div>
       <div class="wedding-header-right" id="weddingPageDate"></div>
     </div>
@@ -257,8 +268,8 @@
 
           <!-- 操作按钮 -->
           <div class="wedding-actions-row">
-            <button class="btn-ok" onclick="openAddWeddingExpense()">➕ 添加支出</button>
-            <button class="btn-s" onclick="exportWeddingXlsx()">📊 导出Excel</button>
+            <button class="btn-ok" onclick="openAddWeddingExpense()"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> 添加支出</button>
+            <button class="btn-s" onclick="exportWeddingXlsx()"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg> 导出Excel</button>
           </div>
 
           <!-- 分类筛选 -->
@@ -292,7 +303,7 @@
   <div class="sim-page-header">
     <div class="sim-header-left">
       <button class="btn-back" onclick="goBackToMain()" title="返回日历">←</button>
-      <h2>📊 模拟考勤编排</h2>
+      <h2><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg> 模拟考勤编排</h2>
     </div>
     <div class="sim-header-right" id="simulatePageDate"></div>
   </div>
@@ -303,9 +314,9 @@
       <!-- 底部操作栏 -->
       <div class="sim-page-actions">
         <div class="sim-btn-group">
-          <button class="btn-s" onclick="saveSimulateToLocal()">💾 保存至本地数据库</button>
-          <button class="btn-ok" onclick="saveSimulateToCloud()">☁️ 将当前月份的模拟考勤保存至云端</button>
-          <button class="btn-c" onclick="clearCurrentMonthSimData()" style="color: var(--red); border-color: var(--red);">🗑️ 清空当前月份的模拟考勤数据</button>
+          <button class="btn-s" onclick="saveSimulateToLocal()"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg> 保存至本地数据库</button>
+          <button class="btn-ok" onclick="saveSimulateToCloud()"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h.71C7.37 7.69 9.48 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3s-1.34 3-3 3z"/></svg> 将当前月份的模拟考勤保存至云端</button>
+          <button class="btn-c" onclick="clearCurrentMonthSimData()" style="color: var(--red); border-color: var(--red);"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg> 清空当前月份的模拟考勤数据</button>
         </div>
       </div>
     </div>
@@ -345,9 +356,9 @@
 <!-- ADMIN -->
 <div id="adminView" class="adm hidden">
   <header class="adm-hd">
-    <h2>⚙️ 管理员后台</h2>
+    <h2><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.37-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.37 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg> 管理员后台</h2>
     <!--<button class="btn-s" id="btnALogout">退出登录</button>-->
-    <button class="btn-s menu-trigger" id="adminMenuTrigger" onclick="toggleMenu(event)">☰</button>
+    <button class="btn-s menu-trigger" id="adminMenuTrigger" onclick="toggleMenu(event)"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
   </header>
   <div class="adm-main">
     <div class="tabs" id="adminTabs">
@@ -373,7 +384,7 @@
     <select id="aMonth" style="display:none"></select>
     <input type="text" id="searchUser" placeholder="输入姓名查询" style="padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;outline:none;width:150px">
     <button class="btn-s" id="btnAShow">查看</button>
-    <button class="ab ex" id="btnAExport">📥 导出Excel</button>
+    <button class="ab ex" id="btnAExport"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> 导出Excel</button>
   </div>
 
   <!-- 管理员年份选择弹窗 -->
@@ -572,7 +583,7 @@
 <div id="budgetModal" class="mo-bg hidden">
   <div class="mo-ct" style="width: 400px; max-width: 90vw;">
     <div class="mo-hd">
-      <h3>💰 设置婚礼预算</h3>
+      <h3><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg> 设置婚礼预算</h3>
       <button class="mo-x" onclick="closeBudgetModal()">×</button>
     </div>
     <div class="mo-bd">
@@ -688,7 +699,7 @@
 <div id="salaryModal" class="mo-bg hidden">
   <div class="mo-ct" style="width:380px">
     <div class="mo-hd">
-      <h3>💰 本月加班费统计</h3>
+      <h3><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg> 本月加班费统计</h3>
       <button class="mo-x" onclick="closeSalaryModal()">×</button>
     </div>
     <div class="mo-bd" style="padding:24px">
@@ -909,9 +920,9 @@ var attDataCache = {};  // 考勤数据缓存 {userId-year-month: data}
 if(SUPABASE_URL.indexOf('你的') === -1 && typeof supabase !== 'undefined'){
   SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   CLOUD_MODE = true;
-  console.log('☁️ 云端模式已启用');
+  console.log('<svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h.71C7.37 7.69 9.48 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3s-1.34 3-3 3z"/></svg> 云端模式已启用');
 }else{
-  console.log('💾 本地模式（未配置 Supabase，数据存储在浏览器）');
+  console.log('<svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg> 本地模式（未配置 Supabase，数据存储在浏览器）');
 }
 //===================================================
 //菜单控制函数
@@ -1163,7 +1174,7 @@ function showToast(title, message, type, duration) {
   var toast = document.createElement('div');
   toast.className = 'toast ' + type;
   
-  var icon = type === 'success' ? '✓' : (type === 'error' ? '✗' : 'ℹ');
+  var icon = type === 'success' ? '<svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>' : (type === 'error' ? '<svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>' : 'ℹ');
   
   toast.innerHTML = 
     '<span class="toast-icon">' + icon + '</span>' +
@@ -1189,7 +1200,7 @@ function showToast(title, message, type, duration) {
 // ===================== THEME =====================
 var themeBtn=document.getElementById('themeBtn');
 function getTheme(){return localStorage.getItem('att_theme')||'light'}
-function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('att_theme',t);themeBtn.textContent=t==='dark'?'☀️':'🌙'}
+function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('att_theme',t);themeBtn.innerHTML=t==='dark'?'<svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>':'<svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>'}
 setTheme(getTheme());
 themeBtn.addEventListener('click',function(){setTheme(getTheme()==='dark'?'light':'dark')});
 
@@ -1893,7 +1904,7 @@ async function openSalaryDetailModal(){
     document.getElementById('salaryDetailOtherTotal').textContent = otherTotal.toFixed(2);
     document.getElementById('salaryDetailDeductionTotal').textContent = deductionTotal.toFixed(2);
     document.getElementById('salaryDetailGrandTotal').textContent = grandTotal.toFixed(2);
-    document.getElementById('salaryDetailTitle').textContent = '薪资明细 ✅';
+    document.getElementById('salaryDetailTitle').innerHTML = '薪资明细 <svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
   }else{
     document.getElementById('salaryDetailBaseTotal').textContent = '***';
     document.getElementById('salaryDetailOtherTotal').textContent = '***';
@@ -2416,7 +2427,7 @@ document.getElementById('forceSync').addEventListener('click', async function(){
     });
   }else{
     document.querySelectorAll('.cloud-badge').forEach(function(b){
-      b.textContent = '💾 本地模式';
+      b.innerHTML = '<svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg> 本地模式';
     });
   }
 
@@ -2538,7 +2549,7 @@ function checkHint(){
 
 function showV(v){
   ['portalView','loginView','regView','dashView','adminView'].forEach(function(id){document.getElementById(id).classList.add('hidden')});
-  if(v==='portal')document.getElementById('portalView').classList.remove('hidden');
+  if(v==='portal'){ window.location.href = '../index.html'; return; }
   else if(v==='login')document.getElementById('loginView').classList.remove('hidden');
   else if(v==='reg')document.getElementById('regView').classList.remove('hidden');
   else if(v==='dash')document.getElementById('dashView').classList.remove('hidden');
@@ -3230,16 +3241,16 @@ function updateOvertimeMarquee(){
     return;
   }
   if(totalSalary < 1000){
-    text = '本月合计加班费为 ¥' + totalSalary.toFixed(2) + ' 元，😊 要加油哦';
+    text = '本月合计加班费为 ¥' + totalSalary.toFixed(2) + ' 元，<svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg> 要加油哦';
     marqueeText.className = 'overtime-marquee-text normal';
   } else if(totalSalary >= 1500){
-    text = '本月合计加班费为 ¥' + totalSalary.toFixed(2) + ' 元，🎉 你太棒了';
+    text = '本月合计加班费为 ¥' + totalSalary.toFixed(2) + ' 元，<svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> 你太棒了';
     marqueeText.className = 'overtime-marquee-text red';
   } else {
     text = '本月合计加班费为 ¥' + totalSalary.toFixed(2) + ' 元';
     marqueeText.className = 'overtime-marquee-text normal';
   }
-  marqueeText.textContent = text;
+  marqueeText.innerHTML = text;
 }
 
 function renderCal(){
@@ -5094,7 +5105,7 @@ async function saveSimulateToCloud() {
 
     if (overwriteDates.length > 0) {
       overwriteDates.sort(function(a, b) { return a - b; });
-      confirmMsg += '\n⚠️ 检测到以下日期在云端已有数据，保存将覆盖原有记录：\n';
+      confirmMsg += '\n<svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg> 检测到以下日期在云端已有数据，保存将覆盖原有记录：\n';
       confirmMsg += overwriteDates.join('日、') + '日\n';
       confirmMsg += '\n请确定是否保存，若确定将会覆盖掉当天与之不同日期的考勤信息。';
     } else if (Object.keys(cloudIndex).length > 0) {
@@ -5652,9 +5663,9 @@ function showWeddingContextMenu(x, y, id) {
   menu.style.cssText = 'position: fixed; z-index: 10000; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.15); min-width: 120px; padding: 4px 0;';
   
   menu.innerHTML = '<div class="wedding-context-item" data-action="edit" data-id="' + id + '" style="padding: 10px 16px; cursor: pointer; font-size: 14px; color: var(--text); display: flex; align-items: center; gap: 8px;">' +
-    '<span>✏️</span><span>编辑</span></div>' +
+    '<span><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></span><span>编辑</span></div>' +
     '<div class="wedding-context-item" data-action="delete" data-id="' + id + '" style="padding: 10px 16px; cursor: pointer; font-size: 14px; color: var(--red); display: flex; align-items: center; gap: 8px;">' +
-    '<span>🗑️</span><span>删除</span></div>';
+    '<span><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></span><span>删除</span></div>';
   
   // 定位菜单
   var menuWidth = 120;
