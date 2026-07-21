@@ -126,9 +126,11 @@
       </div>
       <div class="toolbar">
         <button class="tb-btn" onclick="openRegisterModal()">+ 新增登记</button>
-        <button class="tb-btn danger" onclick="deleteSelected()">🗑 删除选中</button>
+        <button class="tb-btn danger" onclick="deleteSelected()">
+          <svg class="tb-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg> 删除选中</button>
         <input class="tb-search" id="pickupSearch" type="text" placeholder="搜索机台/类型/位置..." oninput="filterPickupList()" style="margin-left:12px">
-        <button class="tb-btn" onclick="exportExcel()" style="margin-left:auto">📥 导出 Excel</button>
+        <button class="tb-btn" onclick="exportExcel()" style="margin-left:auto">
+          <svg class="tb-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> 导出 Excel</button>
       </div>
       <div id="allExpList" class="exp-list">
         <div class="placeholder"><div class="placeholder-icon">📦</div><div class="placeholder-text">加载中...</div></div>

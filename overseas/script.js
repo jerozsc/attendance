@@ -34,18 +34,35 @@ function navigateTo(page) {
 }
 
 // ===================== 权限控制 =====================
-function applyPermission() {
+function isMobile() { return window.innerWidth <= 640; }
+
+async function applyPermission() {
   var isEngineer = (currentRole === 'engineer');
+
+  // 检测 Supabase session 是否还在
+  if (isEngineer) {
+    var { data: { session } } = await SB.auth.getSession();
+    if (!session) {
+      console.warn('⚠️ Supabase session 丢失，自动退出');
+      currentRole = 'guest';
+      currentUser = null;
+      localStorage.removeItem('overseas_role');
+      localStorage.removeItem('overseas_user');
+      isEngineer = false;
+    }
+  }
+
   document.querySelectorAll('[data-role]').forEach(function(el) {
     el.style.display = isEngineer ? '' : 'none';
   });
   var bar = document.getElementById('roleBar');
+  var mobile = isMobile();
   if (isEngineer && currentUser) {
-    bar.innerHTML = '<span class="role-badge engineer">🔧 工程师</span> ' + currentUser.name +
+    bar.innerHTML = currentUser.name +
       ' <span class="role-link" onclick="logout()">退出</span>';
   } else {
-    bar.innerHTML = '<span class="role-badge guest">👤 访客</span>' +
-      ' <span class="role-link" onclick="openLoginModal()">工程师登录</span>';
+    bar.innerHTML = (mobile ? '' : '<span class="role-badge guest">👤 访客</span>') +
+      ' <span class="role-link" onclick="openLoginModal()">' + (mobile ? '登录' : '工程师登录') + '</span>';
   }
   if (!isEngineer && currentPage !== 'home') navigateTo('home');
 }
@@ -947,8 +964,15 @@ var editingMacId = null;
 function renderMachines() {
   var container = document.getElementById('machineList');
   var floorFilter = document.getElementById('machineFloorFilter').value;
-  SB.from('machines').select('*').order('floor').order('machine_no').then(function(res) {
+  SB.from('machines').select('*').then(function(res) {
+    console.log('📦 机台查询结果:', res);
+    if (res.error) { console.error('❌ 机台查询失败:', res.error); container.innerHTML = '<div class="placeholder"><div class="placeholder-text">查询失败: ' + res.error.message + '</div></div>'; return; }
     var items = res.data || [];
+    // JS 端排序取代链式 order
+    items.sort(function(a, b) {
+      if (a.floor !== b.floor) return a.floor.localeCompare(b.floor);
+      return (a.machine_no || '').localeCompare(b.machine_no || '');
+    });
     if (floorFilter !== 'all') items = items.filter(function(m) { return m.floor === floorFilter; });
 
     if (items.length === 0) {
@@ -1005,11 +1029,13 @@ async function saveMachine() {
 
   try {
     if (editingMacId) {
-      var { error } = await SB.from('machines').update({ floor: floor, machine_no: machineNo, machine_name: machineName }).eq('id', editingMacId);
-      if (error) { errEl.textContent = error.message; errEl.classList.remove('hidden'); return; }
+      var result = await SB.from('machines').update({ floor: floor, machine_no: machineNo, machine_name: machineName }).eq('id', editingMacId);
+      console.log('📤 机台更新结果:', result);
+      if (result.error) { errEl.textContent = result.error.message; errEl.classList.remove('hidden'); return; }
     } else {
-      var { error } = await SB.from('machines').insert({ floor: floor, machine_no: machineNo, machine_name: machineName });
-      if (error) { errEl.textContent = error.message; errEl.classList.remove('hidden'); return; }
+      var result = await SB.from('machines').insert({ floor: floor, machine_no: machineNo, machine_name: machineName }).select();
+      console.log('📤 机台新增结果:', result);
+      if (result.error) { errEl.textContent = result.error.message; errEl.classList.remove('hidden'); return; }
     }
     closeMachineModal();
     renderMachines();
@@ -1052,13 +1078,18 @@ function loadMachinesForFloor(floor) {
   }
 })();
 
-// ===================== 定时刷新 =====================
+// ===================== 定时刷新 & 窗口变化 =====================
 setInterval(refreshAll, 30000);
+window.addEventListener('resize', function() {
+  applyPermission();
+});
 
 // ===================== 初始化 =====================
 loadTheme();
 loadPulseTheme();
-applyPermission();
-navigateTo('home');
-refreshAll();
-requestNotifyPerm();
+(async function() {
+  await applyPermission();  // 等权限校验完成
+  navigateTo('home');
+  refreshAll();
+  requestNotifyPerm();
+})();
