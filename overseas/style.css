@@ -342,6 +342,7 @@ textarea.form-input{resize:none;font-family:inherit}
   .modal-box h2{font-size:15px;padding-right:28px}
   .modal-box .sub{font-size:12px;margin-bottom:10px}
   .modal-box .fg{margin-bottom:8px}
+  .form-grid .fg{margin-bottom:0} /* 表单网格内只靠grid gap，不加倍 */
   .modal-box .fg label{font-size:11px;margin-bottom:2px}
   .modal-box .fg input,.modal-box .fg select{padding:7px 9px;font-size:13px;border-radius:8px}
   .modal-box .btn{padding:8px 12px;font-size:13px;border-radius:8px}
