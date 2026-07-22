@@ -352,7 +352,7 @@ textarea.form-input{resize:none;font-family:inherit}
   .form-grid{gap:6px;grid-template-columns:1fr 1fr}
   .form-grid .fg:has(.row-merge){grid-column:1/-1}
   .row-merge-inner{gap:6px}
-  .row-merge-inner .merge-col{gap:2px}
+  .row-merge-inner .merge-col{gap:2px;flex:0 0 auto!important} /* 覆盖内联 flex:0 0 200px 避免column布局时撑高 */
   .remember-options{gap:8px;margin:6px 0 2px;font-size:12px}
   .reg-error{font-size:11px;padding:5px 8px;margin-top:4px}
 
