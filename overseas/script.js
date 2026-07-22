@@ -100,14 +100,25 @@ function loadSavedLogin() {
 }
 
 function saveLoginCredentials(username, password) {
-  var remUser = document.getElementById('remUser').checked;
   var remBoth = document.getElementById('remBoth').checked;
+  var remUser = document.getElementById('remUser').checked;
   var type = 'none';
   if (remBoth) { type = 'both'; }
   else if (remUser) { type = 'user'; }
   localStorage.setItem('overseas_rem_type', type);
   localStorage.setItem('overseas_rem_user', type !== 'none' ? username : '');
   localStorage.setItem('overseas_rem_pass', type === 'both' ? password : '');
+}
+
+// 记住选项互斥逻辑
+function syncRemember(evt) {
+  var target = evt && evt.target;
+  var userEl = document.getElementById('remUser');
+  var bothEl = document.getElementById('remBoth');
+  // 用户取消了"记住工号" → 连带取消"记住工号和密码"
+  if (target === userEl && !userEl.checked) { bothEl.checked = false; }
+  // 用户勾选了"记住工号和密码" → 自动勾选"记住工号"
+  if (target === bothEl && bothEl.checked) { userEl.checked = true; }
 }
 
 // ===================== 登录弹窗 =====================
@@ -118,8 +129,10 @@ function openLoginModal() {
   document.getElementById('loginBtnRow').classList.remove('hidden');
   document.getElementById('loginUser').value = '';
   document.getElementById('loginPass').value = '';
+  // 默认都不记住
   document.getElementById('remUser').checked = false;
   document.getElementById('remBoth').checked = false;
+  // 从保存的偏好恢复
   loadSavedLogin();
   checkQuickLogin();
 }
@@ -394,18 +407,21 @@ var mtTimer = null;
 function searchMachineType(keyword) {
   clearTimeout(mtTimer);
   var dropdown = document.getElementById('machineTypeDropdown');
-  if (!keyword || keyword.length < 1) { dropdown.classList.remove('show'); return; }
 
   mtTimer = setTimeout(function() {
-    SB.from('machine_types').select('name').ilike('name', '%' + keyword + '%').limit(5).then(function(res) {
+    var query = SB.from('machine_types').select('name').order('name').limit(5);
+    if (keyword && keyword.length > 0) {
+      query = query.ilike('name', '%' + keyword + '%');
+    }
+    query.then(function(res) {
       var items = res.data || [];
-      if (items.length === 0) { dropdown.classList.remove('show'); return; }
+      if (items.length === 0) { dropdown.classList.remove('show'); dropdown.innerHTML = ''; return; }
       dropdown.innerHTML = items.map(function(it) {
         return '<div class="type-dropdown-item" onclick="selectMachineType(\'' + it.name.replace(/'/g,"\\'") + '\')">' + it.name + '</div>';
       }).join('');
       dropdown.classList.add('show');
     });
-  }, 200);
+  }, keyword ? 150 : 0);
 }
 
 function selectMachineType(name) {
@@ -1064,9 +1080,8 @@ function renderWeeklyOverview(items) {
       var ds = formatDate(d);
       var cellItems = items.filter(function(it) {
         if (it.location !== floor) return false;
-        var start = new Date(it.start_time);
         var end = new Date(it.end_time);
-        return ds >= formatDate(start) && ds <= formatDate(end);
+        return ds === formatDate(end);
       });
       var count = cellItems.length;
       var cls = 'cell-num';
@@ -1207,6 +1222,15 @@ function loadMachinesForFloor(floor) {
   }
 })();
 
+// 点击页面空白处关闭机种下拉
+document.addEventListener('click', function(evt) {
+  var dd = document.getElementById('machineTypeDropdown');
+  var input = document.getElementById('regMachineType');
+  if (dd && input && evt.target !== input && !dd.contains(evt.target)) {
+    dd.classList.remove('show');
+  }
+});
+
 // ===================== 定时刷新 & 窗口变化 =====================
 setInterval(refreshAll, 30000);
 window.addEventListener('resize', function() {
@@ -1232,7 +1256,8 @@ loadPulseTheme();
 
   await applyPermission();  // 等权限校验完成
   navigateTo('home');
-  refreshAll();
+  // 等数据加载完成后再隐藏加载动画，用户不会看到空数据
+  await refreshAll();
   requestNotifyPerm();
   // 隐藏全局加载遮罩
   var gl = document.getElementById('globalLoading');

@@ -243,7 +243,7 @@
       </div>
       <div class="fg" style="position:relative">
         <label>机种信息</label>
-        <input type="text" id="regMachineType" class="form-input" placeholder="输入或选择机种" autocomplete="off" oninput="searchMachineType(this.value)">
+        <input type="text" id="regMachineType" class="form-input" placeholder="点击选择机种" autocomplete="off" onfocus="searchMachineType(this.value)" oninput="searchMachineType(this.value)">
         <div id="machineTypeDropdown" class="type-dropdown"></div>
       </div>
       <div class="fg">
@@ -325,10 +325,10 @@
     </div>
     <div class="remember-options">
       <label class="remember-row">
-        <input type="checkbox" id="remUser"> <span>记住工号</span>
+        <input type="checkbox" id="remUser" onchange="syncRemember(event)"> <span>记住工号</span>
       </label>
       <label class="remember-row">
-        <input type="checkbox" id="remBoth"> <span>记住工号和密码</span>
+        <input type="checkbox" id="remBoth" onchange="syncRemember(event)"> <span>记住工号和密码</span>
       </label>
     </div>
     <div class="error" id="loginError"></div>

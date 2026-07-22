@@ -114,7 +114,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .login-spinner{width:20px;height:20px;border:2.5px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
 .remember-options{display:flex;gap:14px;margin:14px 0 6px 0;font-size:13px;color:var(--text2)}
 .remember-row{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
-.remember-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--gold);cursor:pointer}
+.remember-row input[type=checkbox],.remember-row input[type=radio]{width:15px;height:15px;accent-color:var(--gold);cursor:pointer}
 
 /* ===== 快捷登录 ===== */
 .quick-login-section{margin-bottom:16px;animation:fadeInUp .25s ease-out}
@@ -337,4 +337,30 @@ textarea.form-input{resize:none;font-family:inherit}
   
   .modal-box{padding:20px}
   .modal-box h2{font-size:16px}
+
+  /* ===== 手机端额外优化 ===== */
+  .role-bar{padding:8px 12px;flex-wrap:wrap;gap:4px}
+  .role-bar-left{gap:6px}
+  .role-bar-left .back-link{font-size:12px;padding:2px 6px}
+  .page-title{font-size:14px}
+  .title-icon{width:18px;height:18px}
+  .role-bar-right{gap:4px}
+  .role-bar-right .role-link{font-size:11px;padding:3px 8px}
+  .filter-btns{overflow-x:auto;gap:3px;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .filter-btn{flex-shrink:0;font-size:10px;padding:3px 10px}
+  .section-hd{flex-direction:column;align-items:flex-start;gap:6px}
+  .week-table{font-size:10px}
+  .week-table th,.week-table td{padding:4px 2px}
+  .week-table .floor-label{width:36px;font-size:10px;padding-left:4px}
+  .engineer-group-hd{font-size:12px;padding:6px 8px;flex-wrap:wrap}
+  .toggle-all-btn{font-size:11px;padding:6px 14px}
+  #statDetailContent{max-height:60vh}
+  .stat-detail-list .exp-item{padding:8px 10px;flex-wrap:wrap;gap:4px}
+  .stat-detail-list .exp-title{font-size:12px}
+  .stat-detail-list .exp-meta{font-size:11px}
+  .chart-card{padding:14px}
+  .chart-card canvas{max-height:180px}
+  .chart-card.chart-wide{padding:16px}
+  .theme-option{min-width:60px;padding:10px 12px}
+  .theme-swatch{width:22px;height:22px}
 }

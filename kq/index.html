@@ -6,10 +6,12 @@
 <title>个人考勤统计系统</title>
 <link rel="stylesheet" href="../style.css">
 <style>
+/* ===== KQ 考勤系统专属样式 ===== */
 .back-portal{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;transition:all .15s;text-decoration:none}
 .back-portal:hover{background:var(--bg2)}
 .back-portal:hover svg{fill:var(--gold)!important}
 .emoji-svg{width:1em;height:1em;display:inline;vertical-align:-.12em;flex-shrink:0}
+
 /* 快捷登录 */
 .quick-login-section{margin-bottom:16px;animation:fadeInUp .25s ease-out}
 .quick-login-card{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px}
@@ -23,6 +25,83 @@
 .quick-login-btn.kq:hover{background:#2563eb;box-shadow:0 2px 8px rgba(59,130,246,.25)}
 .quick-login-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--text3);font-size:12px}
 .quick-login-divider::before,.quick-login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ===== 登陆/注册页增强 ===== */
+.login-card{border-radius:20px!important;padding:48px 44px!important}
+.login-card h1{font-size:26px!important}
+
+/* ===== 仪表盘头部 ===== */
+.dash-hd{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;transition:all .3s;box-shadow:0 1px 4px rgba(0,0,0,.04);position:sticky;top:0;z-index:50}
+.dash-hd h2{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+.dash-hd .uname{font-size:13px;color:var(--text2);font-weight:500;padding:4px 12px;background:var(--bg2);border-radius:20px}
+.dash-hd .right{display:flex;align-items:center;gap:10px}
+.overtime-marquee{overflow:hidden;flex:1;margin:0 20px;position:relative;height:24px}
+.overtime-marquee-text{display:inline-block;white-space:nowrap;animation:marquee 18s linear infinite;color:var(--text3);font-size:12px;position:absolute;line-height:24px}
+@keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+
+/* ===== 统计卡片 ===== */
+.main{max-width:1400px;margin:0 auto;padding:28px 32px 48px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:32px}
+.st{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px 28px 24px;box-shadow:0 2px 12px rgba(0,0,0,.05);transition:all .3s;position:relative;overflow:hidden}
+.st::before{content:'';position:absolute;inset:0;opacity:.06;border-radius:18px}
+.st.t::before{background:linear-gradient(135deg,var(--gold),var(--accent2))}
+.st.w::before{background:linear-gradient(135deg,var(--orange),#f59e0b)}
+.st.e::before{background:linear-gradient(135deg,var(--green),#22c55e)}
+.st:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.08)}
+.st .lb{font-size:11px;color:var(--text3);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;font-weight:700;position:relative}
+.st .vl{font-size:48px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;display:flex;align-items:baseline;gap:4px;position:relative}
+.st .un{font-size:18px;color:var(--text2);font-weight:500}
+.st .sub-info{font-size:11px;color:var(--text3);margin-top:10px;position:relative}
+.st.t .vl{color:var(--accent)}.st.w .vl{color:var(--orange)}.st.e .vl{color:var(--green)}
+
+/* ===== 日历导航 ===== */
+.cal-nav{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:18px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 18px;box-shadow:0 1px 6px rgba(0,0,0,.04)}
+.nb{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.nb:hover{background:var(--surface);border-color:var(--accent);color:var(--accent)}
+.nb:active{transform:scale(.95)}
+.nb:first-child{background:var(--accent);color:#fff;border-color:var(--accent);font-size:13px;font-weight:600}
+.nb:first-child:hover{opacity:.9}
+.select-group{display:flex;align-items:center;gap:2px;font-size:20px;font-weight:700;color:var(--text)}
+.main-date-btn{background:none;border:none;font-size:20px;font-weight:700;color:var(--text);cursor:pointer;padding:2px 6px;border-radius:6px;transition:background .15s}
+.main-date-btn:hover{background:var(--bg2)}
+.nav-select{padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--surface);color:var(--text);outline:none}
+
+/* ===== 日历表格 ===== */
+.cal{background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.05)}
+
+/* ===== 图例 ===== */
+.legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:18px;font-size:12px;color:var(--text2)}
+.legend-item{display:flex;align-items:center;gap:6px;padding:4px 12px;background:var(--surface2);border-radius:20px;border:1px solid var(--border)}
+.legend-dot{width:10px;height:10px;border-radius:3px}
+
+/* ===== 快速选择按钮 ===== */
+.quick-sel{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 6px rgba(0,0,0,.04)}
+.quick-btn{padding:8px 18px;border:1px solid var(--border);border-radius:20px;background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer;transition:all .2s;font-weight:500}
+.quick-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.quick-btn.danger{color:var(--red);border-color:var(--red-b)}
+.quick-btn.danger:hover{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* ===== 批量操作栏 ===== */
+.batch-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-top:14px;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.batch-bar .info{font-size:13px;color:var(--text2)}
+.batch-bar .info span{color:var(--accent);font-weight:700}
+.batch-bar .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.batch-btn{padding:7px 16px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer;transition:all .2s}
+.batch-btn:hover{border-color:var(--accent);color:var(--accent)}
+.batch-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.batch-btn.primary:hover{opacity:.9}
+.batch-btn.danger:hover{border-color:var(--red);color:var(--red)}
+
+/* ===== 工具按钮 ===== */
+.btn-s{padding:7px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;cursor:pointer;transition:all .2s}
+.btn-s:hover{background:var(--border)}
+.btn-s[disabled]{opacity:.5;cursor:not-allowed}
+.menu-trigger{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:10px}
+
+/* ===== 日历格子竖线优化 ===== */
+.c{border-right-color:transparent!important;position:relative}
+.c::after{content:'';position:absolute;right:0;top:14px;bottom:14px;width:1px;background:var(--border);opacity:.35;pointer-events:none}
+.c:nth-child(7n)::after{display:none}
 </style>
 
 <!-- PWA 配置：添加到桌面时显示自定义图标 -->
@@ -135,7 +214,6 @@
     </div>
     <div class="right">
       <span class="uname" id="dashName"></span>
-      <!-- <button class="btn-s" id="btnLogout">退出登录</button>-->
       <button class="btn-s menu-trigger" id="menuTrigger" onclick="toggleMenu(event)"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
     </div>
   </header>
@@ -157,6 +235,8 @@
         <div class="sub-info" id="sED">周六日全部工时</div>
       </div>
     </div>
+
+<div class="cal-section" style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:22px 24px 24px">
 
 <div class="cal-nav" style="position: relative;">
   <button class="nb" id="btnToday" title="回到今天">今</button>
@@ -240,9 +320,9 @@
     <button class="batch-btn danger" onclick="clearSelection()">取消</button>
   </div>
 </div>
+</div><!-- cal-section 结束 -->
 
-
-    <div style="text-align:center;margin-top:20px">
+    <div style="text-align:center;margin-top:24px">
       <button class="btn-s" id="btnExport" style="padding:10px 28px;font-size:13px"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> 导出本月考勤 (Excel)</button>
     </div>
   </div>
@@ -559,6 +639,8 @@
     <div class="menu-divider"></div>
   </div>
   <div class="menu-item" onclick="manualMigrateData()">迁移旧数据到本地</div>
+  <div class="menu-divider"></div>
+  <div class="menu-item" onclick="goToOverseas()">跳转海外</div>
   <div class="menu-divider"></div>
   <div class="menu-item" onclick="logout()">退出登录</div>
 </div>
@@ -3275,7 +3357,7 @@ function showAdminMonthPicker() {
 
 // ===================== CALENDAR =====================
 async function render(){
-  document.getElementById('dashName').textContent='欢迎，'+curUser.name;
+  document.getElementById('dashName').textContent=curUser.name;
   updateDashNameAction();
   document.getElementById('calBox').innerHTML='<div class="loading">加载考勤数据</div>';
 
