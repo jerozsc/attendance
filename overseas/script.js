@@ -461,8 +461,14 @@ async function fetchAndRenderHome() {
     var now = new Date();
     var todayStr = formatDate(now);
 
-    // 统计（总数不受筛选影响）
-    var todayPickup = items.filter(function(it) {
+    // 工程师登录后统计方框只显示自己创建的实验数量
+    var statItems = items;
+    if (currentRole === 'engineer' && currentUser) {
+      statItems = items.filter(function(it) { return it.created_by === currentUser.name; });
+    }
+
+    // 统计（工程师登录后只算自己的）
+    var todayPickup = statItems.filter(function(it) {
       var end = new Date(it.end_time);
       return formatDate(end) === todayStr && it.status !== 'picked';
     });
