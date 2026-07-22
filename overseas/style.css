@@ -307,12 +307,12 @@ textarea.form-input{resize:none;font-family:inherit}
   
   .exp-list{grid-template-columns:1fr;gap:8px}
   .exp-item{padding:10px 10px;gap:6px;flex-wrap:wrap}
-  .exp-item .exp-title{font-size:12px;flex:1 1 100%;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-bottom:2px}
+  .exp-item .exp-title{font-size:12px;flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:0}
   .exp-item .exp-meta{font-size:11px}
   .exp-item .exp-meta.loc{flex:0 0 auto;padding:1px 6px;font-size:10px}
   .exp-item .exp-meta.time{flex:1 1 auto;font-size:10px}
-  .exp-item .exp-meta.note{flex:1 1 100%;font-size:10px;margin-top:2px}
-  .exp-item > .status-tag{flex:0 0 auto;font-size:10px;padding:2px 8px}
+  .exp-item .exp-meta.note{flex:1 1 100%;font-size:10px;margin-top:2px;order:4}
+  .exp-item > .status-tag{flex:0 0 auto;font-size:10px;padding:2px 8px;order:3}
   .filter-btn{font-size:10px;padding:3px 10px}
   
   .toolbar{flex-wrap:wrap;gap:6px}
@@ -338,8 +338,20 @@ textarea.form-input{resize:none;font-family:inherit}
   .week-table{font-size:11px}
   .week-table th,.week-table td{padding:6px 4px;font-size:10px}
   
-  .modal-box{padding:20px}
-  .modal-box h2{font-size:16px}
+  .modal-box{padding:16px}
+  .modal-box h2{font-size:15px}
+  .modal-box .sub{font-size:12px;margin-bottom:14px}
+  .modal-box .fg{margin-bottom:10px}
+  .modal-box .fg label{font-size:11px;margin-bottom:3px}
+  .modal-box .fg input,.modal-box .fg select{padding:8px 10px;font-size:13px}
+  .modal-box .btn{padding:9px;font-size:13px}
+  .modal-box .btn-row{gap:8px}
+  .modal-box .error{font-size:11px;padding:6px 10px;margin-top:6px}
+  .modal-close{top:10px;right:12px;width:24px;height:24px;font-size:14px}
+  .form-grid{gap:8px}
+  .row-merge-inner{gap:8px}
+  .row-merge-inner .merge-col{gap:3px}
+  .remember-options{gap:10px;margin:8px 0 4px;font-size:12px}
 
   /* ===== 手机端额外优化 ===== */
   .role-bar{padding:8px 12px;flex-wrap:wrap;gap:4px}
