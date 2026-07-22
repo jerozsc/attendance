@@ -102,6 +102,40 @@
 .c{border-right-color:transparent!important;position:relative}
 .c::after{content:'';position:absolute;right:0;top:14px;bottom:14px;width:1px;background:var(--border);opacity:.35;pointer-events:none}
 .c:nth-child(7n)::after{display:none}
+
+/* ===== 手机端覆盖（内联样式优先级高于全局媒体查询） ===== */
+@media(max-width:900px){
+  .dash-hd{height:52px;padding:0 16px}
+  .dash-hd h2{font-size:14px}
+  .main{padding:16px}
+  .stats{gap:10px}
+  .st{padding:18px 14px 20px;border-radius:14px}
+  .st .vl{font-size:32px}
+  .cal-section{padding:14px 12px 16px;border-radius:16px}
+  .quick-sel{padding:10px 12px;border-radius:12px;gap:6px}
+  .quick-btn{padding:6px 14px;font-size:11px}
+  .batch-bar{padding:10px 14px;border-radius:12px}
+  .login-card{padding:32px 24px!important;border-radius:16px!important}
+  .login-card h1{font-size:22px!important}
+}
+@media(max-width:400px){
+  .dash-hd{height:48px;padding:0 10px}
+  .dash-hd h2{font-size:13px}
+  .overtime-marquee{display:none}
+  .main{padding:10px}
+  .stats{gap:6px}
+  .st{padding:12px 8px 16px;border-radius:12px}
+  .st .vl{font-size:24px}
+  .st .sub-info{font-size:9px}
+  .cal-section{padding:10px 8px 12px;border-radius:14px}
+  .quick-sel{padding:8px 8px;border-radius:10px;gap:4px}
+  .quick-btn{padding:5px 10px;font-size:10px}
+  .batch-bar{padding:8px 10px;border-radius:10px;flex-direction:column;align-items:stretch}
+  .batch-bar .actions{justify-content:center}
+  .login-card{padding:24px 16px!important}
+  .login-card h1{font-size:20px!important}
+  .login-card .sub{font-size:12px!important}
+}
 </style>
 
 <!-- PWA 配置：添加到桌面时显示自定义图标 -->

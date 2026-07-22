@@ -306,10 +306,13 @@ textarea.form-input{resize:none;font-family:inherit}
   .stat-card .label{font-size:11px}
   
   .exp-list{grid-template-columns:1fr;gap:8px}
-  .exp-item{padding:10px 10px;gap:6px}
-  .exp-item .exp-title{font-size:12px}
+  .exp-item{padding:10px 10px;gap:6px;flex-wrap:wrap}
+  .exp-item .exp-title{font-size:12px;flex:1 1 100%;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-bottom:2px}
   .exp-item .exp-meta{font-size:11px}
-  .exp-item > .status-tag{font-size:10px;padding:2px 8px}
+  .exp-item .exp-meta.loc{flex:0 0 auto;padding:1px 6px;font-size:10px}
+  .exp-item .exp-meta.time{flex:1 1 auto;font-size:10px}
+  .exp-item .exp-meta.note{flex:1 1 100%;font-size:10px;margin-top:2px}
+  .exp-item > .status-tag{flex:0 0 auto;font-size:10px;padding:2px 8px}
   .filter-btn{font-size:10px;padding:3px 10px}
   
   .toolbar{flex-wrap:wrap;gap:6px}

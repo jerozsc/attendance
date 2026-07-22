@@ -852,9 +852,9 @@ function renderExpItemSimple(it) {
     || (it.status === 'running' && new Date(it.end_time) < new Date());
 
   return '<div class="exp-item' + (isOverdue ? ' overdue' : '') + '" style="cursor:default">' +
-    '<span class="exp-title" style="flex:4 1 0">' + (it.exp_type || '未分类') + ' | ' + (it.machine_no || '未填机台') + (it.machine_type ? ' | ' + it.machine_type : '') + '</span>' +
-    '<span class="exp-meta" style="flex:1 1 0;color:var(--text2);text-align:center">' + it.location + '</span>' +
-    '<span class="exp-meta" style="flex:4 1 0;color:var(--gray2);text-align:right">' + timeStr + '</span>' +
+    '<span class="exp-title">' + (it.exp_type || '未分类') + ' | ' + (it.machine_no || '未填机台') + (it.machine_type ? ' | ' + it.machine_type : '') + '</span>' +
+    '<span class="exp-meta loc">' + it.location + '</span>' +
+    '<span class="exp-meta time">' + timeStr + '</span>' +
   '</div>';
 }
 
