@@ -683,6 +683,19 @@ function showStatusDropdown(event, id, currentStatus) {
   el.style.left = (event.clientX - 10) + 'px';
   el.style.top = (event.clientY + 10) + 'px';
 
+  // 手机端防溢出：超出边界时自动调整位置
+  requestAnimationFrame(function() {
+    var rect = el.getBoundingClientRect();
+    var left = parseInt(el.style.left);
+    var top = parseInt(el.style.top);
+    if (rect.right > window.innerWidth) { left = Math.max(4, window.innerWidth - rect.width - 4); }
+    if (rect.left < 0) { left = 4; }
+    if (rect.bottom > window.innerHeight) { top = Math.max(4, event.clientY - rect.height - 10); }
+    if (rect.top < 0) { top = 4; }
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
+  });
+
   setTimeout(function() {
     document.addEventListener('click', hideStatusDropdown);
   }, 0);
