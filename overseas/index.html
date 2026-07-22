@@ -13,6 +13,12 @@
 
 <div id="toastContainer"></div>
 
+<!-- 全局加载遮罩 -->
+<div id="globalLoading" class="global-loading">
+  <div class="global-loading-spinner"></div>
+  <div class="global-loading-text">加载中...</div>
+</div>
+
 <!-- 顶部角色状态栏 -->
 <div class="role-bar">
   <div class="role-bar-left">
@@ -81,11 +87,6 @@
         </div>
       </div>
 
-      <!-- 新增登记按钮（仅工程师） -->
-      <div data-role="engineer" style="margin-bottom:16px">
-        <button class="tb-btn" onclick="openRegisterModal()">+ 新增实验登记</button>
-      </div>
-
       <!-- 今日应取详细信息 -->
       <div class="section">
         <div class="section-hd">
@@ -121,7 +122,7 @@
     <!-- ===== 页面：取放实验登记（仅工程师） ===== -->
     <div id="page-pickup" class="page-content hidden" data-role="engineer">
       <div class="page-header">
-        <h2>📦 取放实验登记</h2>
+        <h2><svg class="h2-icon" viewBox="0 0 24 24" fill="var(--gold)"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm6 5h8v2h-8v-2zm0-3h8v2h-8V8zm0 6h5v2h-5v-2z"/></svg> 取放实验登记</h2>
         <p class="page-desc">查看和管理所有实验设备的取放记录</p>
       </div>
       <div class="toolbar">
@@ -133,7 +134,7 @@
           <svg class="tb-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> 导出 Excel</button>
       </div>
       <div id="allExpList" class="exp-list">
-        <div class="placeholder"><div class="placeholder-icon">📦</div><div class="placeholder-text">加载中...</div></div>
+        <div class="placeholder"><svg class="placeholder-icon" viewBox="0 0 24 24" width="28" height="28" fill="var(--text3)"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm6 5h8v2h-8v-2zm0-3h8v2h-8V8zm0 6h5v2h-5v-2z"/></svg><div class="placeholder-text">加载中...</div></div>
       </div>
     </div>
 
@@ -224,7 +225,7 @@
 <div id="registerModal" class="modal-bg hidden">
   <div class="modal-box" style="width:540px">
     <button class="modal-close" onclick="closeRegisterModal()">✕</button>
-    <h2>📦 新增实验登记</h2>
+    <h2><svg class="h2-icon" viewBox="0 0 24 24" fill="var(--gold)"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm6 5h8v2h-8v-2zm0-3h8v2h-8V8zm0 6h5v2h-5v-2z"/></svg> 新增实验登记</h2>
     <p class="sub">填写实验信息，带 * 为必填项</p>
     <div class="form-grid">
       <div class="fg">
@@ -298,6 +299,22 @@
     <button class="modal-close" onclick="closeLoginModal()">✕</button>
     <h2>工程师登录</h2>
     <p class="sub">使用考勤系统工号和密码</p>
+
+    <!-- 快捷登录区域 -->
+    <div id="quickLoginSection" class="quick-login-section hidden">
+      <div class="quick-login-card">
+        <div class="quick-login-avatar">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </div>
+        <div class="quick-login-info">
+          <div class="quick-login-label">已检测到考勤系统登录</div>
+          <div class="quick-login-name" id="quickLoginName"></div>
+        </div>
+        <button class="btn btn-primary quick-login-btn" onclick="doQuickLogin()">快捷登录</button>
+      </div>
+      <div class="quick-login-divider"><span>或使用其他账号</span></div>
+    </div>
+
     <div class="fg">
       <label>工号</label>
       <input type="text" id="loginUser" placeholder="请输入工号" autocomplete="username">

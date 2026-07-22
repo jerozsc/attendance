@@ -4,8 +4,17 @@ var SUPABASE_ANON_KEY = 'sb_publishable_wcQOhFspiXXs6ZJRLcyV2A_JbSdFA0-';
 var SB = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===================== 角色状态 =====================
+// 同步从 localStorage 读取，立即生效，不等异步验证
 var currentRole = localStorage.getItem('overseas_role') || 'guest';
 var currentUser = JSON.parse(localStorage.getItem('overseas_user') || 'null');
+
+// 同步应用角色状态（零延迟，无闪烁）
+(function () {
+  var isEngineer = (currentRole === 'engineer');
+  document.querySelectorAll('[data-role]').forEach(function(el) {
+    el.style.display = isEngineer ? '' : 'none';
+  });
+})();
 
 // ===================== 楼层筛选 =====================
 var floorFilter = 'all';
@@ -37,23 +46,32 @@ function navigateTo(page) {
 function isMobile() { return window.innerWidth <= 640; }
 
 async function applyPermission() {
-  var isEngineer = (currentRole === 'engineer');
+  // 异步验证 Supabase session
+  var { data: { session } } = await SB.auth.getSession();
 
-  // 检测 Supabase session 是否还在
-  if (isEngineer) {
-    var { data: { session } } = await SB.auth.getSession();
-    if (!session) {
-      console.warn('⚠️ Supabase session 丢失，自动退出');
-      currentRole = 'guest';
-      currentUser = null;
-      localStorage.removeItem('overseas_role');
-      localStorage.removeItem('overseas_user');
-      isEngineer = false;
-    }
+  if (!session && localStorage.getItem('overseas_role')) {
+    // Supabase session 丢失 → 平滑降级
+    console.warn('⚠️ Supabase session 丢失，自动退出');
+    localStorage.removeItem('overseas_role');
+    localStorage.removeItem('overseas_user');
+    currentRole = 'guest';
+    currentUser = null;
+
+    // 用渐隐动画隐藏侧边栏，避免生硬闪烁
+    var sb = document.getElementById('sidebar');
+    if (sb) { sb.style.transition = 'opacity .25s ease-out'; sb.style.opacity = '0'; }
+    setTimeout(function() {
+      document.querySelectorAll('[data-role]').forEach(function(el) {
+        el.style.display = 'none';
+      });
+    }, 250);
   }
 
+  var isEngineer = (currentRole === 'engineer');
+  // 更新侧边栏和工程师页面显示状态
   document.querySelectorAll('[data-role]').forEach(function(el) {
     el.style.display = isEngineer ? '' : 'none';
+    if (el.id !== 'sidebar') { el.style.opacity = ''; } // 非侧边栏元素重置透明度
   });
   var bar = document.getElementById('roleBar');
   var mobile = isMobile();
@@ -103,6 +121,7 @@ function openLoginModal() {
   document.getElementById('remUser').checked = false;
   document.getElementById('remBoth').checked = false;
   loadSavedLogin();
+  checkQuickLogin();
 }
 function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
 function setLoadingState(loading) {
@@ -116,6 +135,41 @@ function setLoadingState(loading) {
     loadingEl.classList.add('hidden'); btnRow.classList.remove('hidden');
     inputs.forEach(function(el) { el.disabled = false; });
   }
+}
+
+// ===================== 快捷登录检测（考勤→海外） =====================
+async function checkQuickLogin() {
+  var section = document.getElementById('quickLoginSection');
+  // 如果已经登录了海外系统，不显示快捷登录
+  if (currentRole === 'engineer') { section.classList.add('hidden'); return; }
+  try {
+    var { data: { session } } = await SB.auth.getSession();
+    if (!session) { section.classList.add('hidden'); return; }
+    var { data: profile, error } = await SB.from('profiles').select('*').eq('id', session.user.id).single();
+    if (error || !profile) { section.classList.add('hidden'); return; }
+    if (profile.overseas_role !== 'engineer') { section.classList.add('hidden'); return; }
+    document.getElementById('quickLoginName').textContent = profile.display_name || profile.username;
+    section.classList.remove('hidden');
+  } catch(e) { section.classList.add('hidden'); }
+}
+
+async function doQuickLogin() {
+  var errorEl = document.getElementById('loginError');
+  errorEl.style.display = 'none';
+  setLoadingState(true);
+  try {
+    var { data: { session } } = await SB.auth.getSession();
+    if (!session) { setLoadingState(false); errorEl.textContent = '会话已过期，请手动登录'; errorEl.style.display = 'block'; document.getElementById('quickLoginSection').classList.add('hidden'); return; }
+    var { data: profile, error } = await SB.from('profiles').select('*').eq('id', session.user.id).single();
+    if (error || !profile) { setLoadingState(false); errorEl.textContent = '获取用户信息失败'; errorEl.style.display = 'block'; document.getElementById('quickLoginSection').classList.add('hidden'); return; }
+    if (profile.overseas_role !== 'engineer') { setLoadingState(false); errorEl.textContent = '该账号没有工程师权限'; errorEl.style.display = 'block'; document.getElementById('quickLoginSection').classList.add('hidden'); return; }
+    currentRole = 'engineer';
+    currentUser = { id: profile.id, username: profile.username, name: profile.display_name || profile.username };
+    localStorage.setItem('overseas_role', 'engineer');
+    localStorage.setItem('overseas_user', JSON.stringify(currentUser));
+    setLoadingState(false); closeLoginModal(); applyPermission(); navigateTo('home');
+    refreshAll(); showToast('快捷登录成功', 'success');
+  } catch (e) { setLoadingState(false); errorEl.textContent = '快捷登录异常: ' + e.message; errorEl.style.display = 'block'; }
 }
 
 async function doOverseasLogin() {
@@ -143,9 +197,10 @@ async function doOverseasLogin() {
   } catch (e) { setLoadingState(false); errorEl.textContent = '登录异常: ' + e.message; errorEl.style.display = 'block'; }
 }
 
-function logout() {
+async function logout() {
   currentRole = 'guest'; currentUser = null;
   localStorage.removeItem('overseas_role'); localStorage.removeItem('overseas_user');
+  try { await SB.auth.signOut(); } catch(e) { /* 静默 */ }
   applyPermission(); navigateTo('home'); refreshAll(); showToast('已退出登录', 'info');
 }
 
@@ -172,12 +227,15 @@ var modalTitle = document.getElementById('registerModal') ? document.getElementB
 var modalSubmitBtn = document.getElementById('registerModal') ? document.getElementById('registerModal').querySelector('.btn-primary') : null;
 
 function openRegisterModal(item) {
+  console.log('📋 openRegisterModal 被调用, item:', item);
   var now = new Date();
   var isEdit = item && item.id;
   editingId = isEdit ? item.id : null;
 
-  if (modalTitle) modalTitle.textContent = isEdit ? '✏️ 编辑实验登记' : '📦 新增实验登记';
+  if (modalTitle) modalTitle.textContent = isEdit ? '编辑实验登记' : '新增实验登记';
   if (modalSubmitBtn) modalSubmitBtn.textContent = isEdit ? '更 新' : '保 存';
+
+  console.log('🔍 弹窗模式:', isEdit ? '编辑模式 id=' + item.id : '新增模式', 'modalSubmitBtn:', modalSubmitBtn);
 
   document.getElementById('regStartTime').value = isEdit ? formatDateTime(new Date(item.start_time)) : formatDateTime(now);
   document.getElementById('regEndTime').value = isEdit ? formatDateTime(new Date(item.end_time)) : '';
@@ -240,6 +298,7 @@ async function openEditModal(id) {
 
 // ===================== 提交登记 =====================
 async function submitRegistration() {
+  console.log('📋 submitRegistration 被调用');
   var location = document.getElementById('regLocation').value;
   var machineNo = document.getElementById('regMachineNo').value.trim();
   var machineType = document.getElementById('regMachineType').value.trim();
@@ -250,11 +309,14 @@ async function submitRegistration() {
   var errorEl = document.getElementById('regError');
   errorEl.classList.add('hidden');
 
-  if (!location) { errorEl.textContent = '请选择实验位置'; errorEl.classList.remove('hidden'); return; }
-  if (!expType) { errorEl.textContent = '请选择实验类型'; errorEl.classList.remove('hidden'); return; }
-  if (!startTime) { errorEl.textContent = '请选择开始时间'; errorEl.classList.remove('hidden'); return; }
-  if (!endTime) { errorEl.textContent = '请输入试验时长或选择结束时间'; errorEl.classList.remove('hidden'); return; }
+  console.log('🔍 表单值:', { location, machineNo, machineType, expType, notes, startTime, endTime, editingId });
 
+  if (!location) { console.warn('❌ 验证失败: 实验位置为空'); errorEl.textContent = '请选择实验位置'; errorEl.classList.remove('hidden'); return; }
+  if (!expType) { console.warn('❌ 验证失败: 实验类型为空'); errorEl.textContent = '请选择实验类型'; errorEl.classList.remove('hidden'); return; }
+  if (!startTime) { console.warn('❌ 验证失败: 开始时间为空'); errorEl.textContent = '请选择开始时间'; errorEl.classList.remove('hidden'); return; }
+  if (!endTime) { console.warn('❌ 验证失败: 结束时间为空'); errorEl.textContent = '请输入试验时长或选择结束时间'; errorEl.classList.remove('hidden'); return; }
+
+  console.log('✅ 表单验证通过，开始保存...');
   try {
     var sb = SB.from('overseas_experiments');
     var op, successMsg;
@@ -279,6 +341,7 @@ async function submitRegistration() {
         machine_type: machineType,
         exp_type: expType,
         notes: notes,
+        created_by: currentUser ? currentUser.name : '',
         start_time: new Date(startTime).toISOString(),
         end_time: new Date(endTime).toISOString(),
         status: 'running'
@@ -288,8 +351,9 @@ async function submitRegistration() {
 
     var { error } = await op;
 
-    if (error) { errorEl.textContent = '保存失败: ' + error.message; errorEl.classList.remove('hidden'); return; }
+    if (error) { console.error('❌ Supabase 保存失败:', error.message); errorEl.textContent = '保存失败: ' + error.message; errorEl.classList.remove('hidden'); return; }
 
+    console.log('✅ 保存成功:', successMsg);
     closeRegisterModal();
     editingId = null;
     refreshAll();
@@ -303,7 +367,7 @@ async function submitRegistration() {
 async function autoCompleteExpired() {
   try {
     var now = new Date().toISOString();
-    var { data } = await SB.from('overseas_experiments').update({ status: 'completed' })
+    var { data } = await SB.from('overseas_experiments').update({ status: 'completed', completed_at: now })
       .eq('status', 'running').lt('end_time', now).select();
     if (data && data.length > 0) {
       // 推送浏览器通知
@@ -402,9 +466,15 @@ async function fetchAndRenderHome() {
 
     document.getElementById('statRunning').textContent = runningCount;
 
-    // 已逾期统计
+    // 已逾期统计：已完成后超过30分钟仍未取
+    var THIRTY_MIN = 30 * 60 * 1000;
     var overdueCount = items.filter(function(it) {
-      return it.status === 'running' && new Date(it.end_time) < now;
+      if (it.status === 'completed' && it.completed_at) {
+        return new Date() - new Date(it.completed_at) > THIRTY_MIN;
+      }
+      // 仍为试验中但已过结束时间也算逾期
+      if (it.status === 'running' && new Date(it.end_time) < now) return true;
+      return false;
     }).length;
     document.getElementById('statOverdue').textContent = overdueCount;
 
@@ -419,7 +489,7 @@ async function fetchAndRenderHome() {
     });
     var filteredDone = floorFilter === 'all' ? allTodayItems : allTodayItems.filter(function(it) { return it.location === floorFilter; });
 
-    // 今日应取列表
+    // 今日应取列表（按角色展示）
     renderTodayList(filteredPickup);
     // 今日已完成
     renderCompleteStats(filteredDone, todayStr);
@@ -430,11 +500,60 @@ async function fetchAndRenderHome() {
 
 function renderTodayList(items) {
   var container = document.getElementById('todayList');
+  var isEngineer = (currentRole === 'engineer');
+  var showAll = localStorage.getItem('overseas_show_all') === 'true';
+
+  // 工程师模式：默认只看自己，除非展开全部
+  if (isEngineer && currentUser) {
+    if (!showAll) {
+      items = items.filter(function(it) { return it.created_by === currentUser.name; });
+    }
+  }
+
   if (items.length === 0) {
     container.innerHTML = '<div class="placeholder"><svg class="placeholder-icon" viewBox="0 0 24 24" width="28" height="28" fill="var(--text3)"><path d="M19 3h-2.25a1 1 0 0 0-.75-.3h-8a1 1 0 0 0-.75.3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm4 6H8c-.55 0-1-.45-1-1s.45-1 1-1h8c.55 0 1 .45 1 1s-.45 1-1 1zm0-4H8c-.55 0-1-.45-1-1s.45-1 1-1h8c.55 0 1 .45 1 1s-.45 1-1 1zm-2 8H8c-.55 0-1-.45-1-1s.45-1 1-1h6c.55 0 1 .45 1 1s-.45 1-1 1z"/></svg><div class="placeholder-text">暂无今日待取实验</div></div>';
     return;
   }
-  container.innerHTML = items.map(function(it) { return renderExpItem(it); }).join('');
+
+  // 访客模式：按工程师分组展示
+  if (!isEngineer) {
+    var groups = {};
+    items.forEach(function(it) {
+      var creator = it.created_by || '未知工程师';
+      if (!groups[creator]) groups[creator] = [];
+      groups[creator].push(it);
+    });
+    var html = '';
+    Object.keys(groups).forEach(function(name) {
+      html += '<div class="engineer-group"><div class="engineer-group-hd"><svg class="grp-icon" viewBox="0 0 24 24" fill="var(--text2)"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> ' + name + '<span class="grp-count">' + groups[name].length + '</span></div>';
+      html += groups[name].map(function(it) { return renderExpItem(it); }).join('');
+      html += '</div>';
+    });
+    container.innerHTML = html;
+    return;
+  }
+
+  // 工程师模式：标准列表 + 展开全部按钮
+  var displayAll = items;
+  if (isEngineer && currentUser && !showAll) {
+    displayAll = items.filter(function(it) { return it.created_by === currentUser.name; });
+  }
+  var allCount = items.length;
+  var myCount = isEngineer && currentUser ? items.filter(function(it) { return it.created_by === currentUser.name; }).length : items.length;
+
+  var btnHtml = '<div class="toggle-all-wrap">' +
+    '<button class="tb-btn toggle-all-btn" onclick="toggleShowAll()">' +
+    (showAll ? '收起他人的实验' : '展开全部 (' + (allCount - myCount) + ' 条他人实验)') +
+    '</button></div>';
+
+  container.innerHTML = displayAll.map(function(it) { return renderExpItem(it); }).join('') + (allCount > myCount ? btnHtml : '');
+}
+
+// 全局变量/方法：展开全部
+function toggleShowAll() {
+  var showAll = localStorage.getItem('overseas_show_all') === 'true';
+  localStorage.setItem('overseas_show_all', showAll ? 'false' : 'true');
+  fetchAndRenderHome();
 }
 
 function renderCompleteStats(allItems, todayStr) {
@@ -467,7 +586,7 @@ async function fetchAndRenderAllList() {
 function renderAllList(items) {
   var container = document.getElementById('allExpList');
   if (items.length === 0) {
-    container.innerHTML = '<div class="placeholder"><div class="placeholder-icon">📦</div><div class="placeholder-text">暂无登记记录</div></div>';
+    container.innerHTML = '<div class="placeholder"><svg class="placeholder-icon" viewBox="0 0 24 24" width="28" height="28" fill="var(--text3)"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm6 5h8v2h-8v-2zm0-3h8v2h-8V8zm0 6h5v2h-5v-2z"/></svg><div class="placeholder-text">暂无登记记录</div></div>';
     return;
   }
   container.innerHTML = items.map(function(it) { return renderExpItem(it, true); }).join('');
@@ -499,7 +618,9 @@ function renderExpItem(it, showChk) {
     ? '<span class="exp-meta note" title="' + it.notes.replace(/"/g,'&quot;') + '">💬 ' + it.notes + '</span>'
     : '<span class="exp-meta note"></span>';
   var chkHtml = showChk ? '<input type="checkbox" class="exp-chk" value="' + it.id + '">' : '';
-  var isOverdue = (it.status === 'running' && new Date(it.end_time) < new Date());
+  var THIRTY = 30 * 60 * 1000;
+  var isOverdue = (it.status === 'completed' && it.completed_at && new Date() - new Date(it.completed_at) > THIRTY)
+    || (it.status === 'running' && new Date(it.end_time) < new Date());
   var editAttr = currentRole === 'engineer'
     ? ' onclick="event.stopPropagation();if(!event.target.closest(\'.status-tag,.exp-chk\'))openEditModal(\'' + it.id + '\')"'
     : '';
@@ -554,7 +675,9 @@ function hideStatusDropdown() {
 async function doStatusChange(id, newStatus) {
   hideStatusDropdown();
   try {
-    var { error } = await SB.from('overseas_experiments').update({ status: newStatus }).eq('id', id);
+    var update = { status: newStatus };
+    if (newStatus === 'completed') update.completed_at = new Date().toISOString();
+    var { error } = await SB.from('overseas_experiments').update(update).eq('id', id);
     if (error) { showToast('更新失败: ' + error.message, 'info'); return; }
     refreshAll();
     var label = { completed: '已完成', picked: '试验已取' }[newStatus] || newStatus;
@@ -683,7 +806,11 @@ function showStatDetail(type) {
   });
   else if (type === 'running') filtered = items.filter(function(it) { return it.status === 'running'; });
   else if (type === 'overdue') filtered = items.filter(function(it) {
-    return it.status === 'running' && new Date(it.end_time) < now;
+    if (it.status === 'completed' && it.completed_at) {
+      return new Date() - new Date(it.completed_at) > 30 * 60 * 1000;
+    }
+    if (it.status === 'running' && new Date(it.end_time) < now) return true;
+    return false;
   });
 
   if (!filtered || filtered.length === 0) {
@@ -704,7 +831,9 @@ function renderExpItemSimple(it) {
   var start = new Date(it.start_time);
   var end = new Date(it.end_time);
   var timeStr = formatShortDate(start) + ' ' + formatTime(start) + ' → ' + formatShortDate(end) + ' ' + formatTime(end);
-  var isOverdue = (it.status === 'running' && new Date(it.end_time) < new Date());
+  var THIRTY = 30 * 60 * 1000;
+  var isOverdue = (it.status === 'completed' && it.completed_at && new Date() - new Date(it.completed_at) > THIRTY)
+    || (it.status === 'running' && new Date(it.end_time) < new Date());
 
   return '<div class="exp-item' + (isOverdue ? ' overdue' : '') + '" style="cursor:default">' +
     '<span class="exp-title" style="flex:4 1 0">' + (it.exp_type || '未分类') + ' | ' + (it.machine_no || '未填机台') + (it.machine_type ? ' | ' + it.machine_type : '') + '</span>' +
@@ -1088,8 +1217,24 @@ window.addEventListener('resize', function() {
 loadTheme();
 loadPulseTheme();
 (async function() {
+  // 🔍 检查 Supabase 连接
+  console.log('🔍 Supabase 客户端已创建，检查连接...');
+  try {
+    var { data, error } = await SB.from('overseas_experiments').select('id').limit(1);
+    if (error) {
+      console.error('❌ Supabase 查询失败:', error.message);
+    } else {
+      console.log('✅ Supabase 连接正常，可查询 oversease_experiments 表');
+    }
+  } catch(e) {
+    console.error('❌ Supabase 连接异常:', e.message);
+  }
+
   await applyPermission();  // 等权限校验完成
   navigateTo('home');
   refreshAll();
   requestNotifyPerm();
+  // 隐藏全局加载遮罩
+  var gl = document.getElementById('globalLoading');
+  if (gl) { gl.classList.add('hidden'); setTimeout(function() { gl.style.display = 'none'; }, 400); }
 })();

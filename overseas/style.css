@@ -13,6 +13,12 @@
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
 
+/* ===== 全局加载遮罩 ===== */
+.global-loading{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .35s ease-out}
+.global-loading.hidden{opacity:0;pointer-events:none}
+.global-loading-spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:14px}
+.global-loading-text{font-size:14px;color:var(--text3);letter-spacing:.5px}
+
 /* ===== 暗色模式 ===== */
 [data-theme="dark"]{
   --gold:#d4a853;--gold2:#e0b85c;--gold-light:rgba(212,168,83,.12);
@@ -33,6 +39,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 @keyframes toastOut{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-8px) scale(.95)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ===== 通用隐藏 ===== */
+.hidden{display:none!important}
 /* ===== Toast ===== */
 #toastContainer{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:300;display:flex;flex-direction:column;align-items:center;pointer-events:none}
 .toast-el{padding:14px 32px;border-radius:12px;font-size:14px;font-weight:500;margin-bottom:10px;animation:toastIn .3s ease-out;box-shadow:0 8px 32px rgba(0,0,0,.15);color:#fff;text-align:center;min-width:160px}
@@ -107,6 +115,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .remember-options{display:flex;gap:14px;margin:14px 0 6px 0;font-size:13px;color:var(--text2)}
 .remember-row{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
 .remember-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--gold);cursor:pointer}
+
+/* ===== 快捷登录 ===== */
+.quick-login-section{margin-bottom:16px;animation:fadeInUp .25s ease-out}
+.quick-login-card{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px}
+.quick-login-avatar{width:40px;height:40px;border-radius:50%;background:var(--gold-light);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.quick-login-avatar svg{width:24px;height:24px;fill:var(--gold)}
+.quick-login-info{flex:1;min-width:0}
+.quick-login-label{font-size:11px;color:var(--text3);margin-bottom:2px}
+.quick-login-name{font-size:14px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.quick-login-btn{flex-shrink:0;padding:8px 18px;font-size:13px;border-radius:8px}
+.quick-login-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--text3);font-size:12px}
+.quick-login-divider::before,.quick-login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
 
 /* ===== 概览统计卡片 ===== */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px}
@@ -223,6 +243,15 @@ textarea.form-input{resize:none;font-family:inherit}
 [data-theme="dark"] #todayList .exp-item:has(.status-tag.completed) {
   background: linear-gradient(135deg, #1c1f2e 0%, #14532d 100%);
 }
+
+/* ===== 工程师分组展示 ===== */
+.engineer-group{margin-bottom:12px}
+.engineer-group-hd{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text2);padding:8px 10px;background:var(--bg2);border-radius:8px;margin-bottom:4px}
+.grp-icon{width:18px;height:18px;flex-shrink:0}
+.grp-count{font-size:11px;font-weight:500;color:var(--text3);background:var(--surface);padding:1px 8px;border-radius:10px;margin-left:auto}
+.toggle-all-wrap{text-align:center;margin-top:12px}
+.toggle-all-btn{font-size:12px;padding:8px 18px;border-radius:20px;background:var(--bg2);color:var(--text2);border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.toggle-all-btn:hover{background:var(--gold-light);color:var(--gold);border-color:var(--gold)}
 
 /* ===== 呼吸脉冲主题选择器 ===== */
 .theme-picker{display:flex;gap:14px;flex-wrap:wrap}

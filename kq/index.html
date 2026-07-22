@@ -10,6 +10,19 @@
 .back-portal:hover{background:var(--bg2)}
 .back-portal:hover svg{fill:var(--gold)!important}
 .emoji-svg{width:1em;height:1em;display:inline;vertical-align:-.12em;flex-shrink:0}
+/* 快捷登录 */
+.quick-login-section{margin-bottom:16px;animation:fadeInUp .25s ease-out}
+.quick-login-card{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px}
+.quick-login-avatar{width:40px;height:40px;border-radius:50%;background:var(--gold-light);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.quick-login-avatar svg{width:24px;height:24px;fill:var(--gold)}
+.quick-login-info{flex:1;min-width:0}
+.quick-login-label{font-size:11px;color:var(--text3);margin-bottom:2px}
+.quick-login-name{font-size:14px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.quick-login-btn{flex-shrink:0;padding:8px 18px;font-size:13px;border-radius:8px;cursor:pointer;border:none}
+.quick-login-btn.kq{background:var(--blue);color:#fff}
+.quick-login-btn.kq:hover{background:#2563eb;box-shadow:0 2px 8px rgba(59,130,246,.25)}
+.quick-login-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--text3);font-size:12px}
+.quick-login-divider::before,.quick-login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
 </style>
 
 <!-- PWA 配置：添加到桌面时显示自定义图标 -->
@@ -64,6 +77,22 @@
     <div style="text-align:center"><span class="cloud-badge"><svg class="emoji-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h.71C7.37 7.69 9.48 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3s-1.34 3-3 3z"/></svg> 云端数据同步</span></div>
     <h1>考勤统计系统</h1>
     <p class="sub">登录以管理您的考勤记录</p>
+
+    <!-- 快捷登录区域 -->
+    <div id="kqQuickLogin" class="quick-login-section hidden">
+      <div class="quick-login-card">
+        <div class="quick-login-avatar">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </div>
+        <div class="quick-login-info">
+          <div class="quick-login-label">已检测到海外实验室系统登录</div>
+          <div class="quick-login-name" id="kqQuickName"></div>
+        </div>
+        <button class="quick-login-btn kq" onclick="kqQuickLogin()">快捷登录</button>
+      </div>
+      <div class="quick-login-divider"><span>或使用其他账号</span></div>
+    </div>
+
     <div id="loginHint" class="hint hidden">当前没有账号，请先 <a id="hintToReg" style="cursor:pointer;text-decoration:underline">注册新账号</a></div>
     <div style="margin-top:16px">
       <div class="fg"><label>工号</label><input type="text" id="lUser" autocomplete="username" placeholder="请输入账号"></div>
@@ -1985,6 +2014,58 @@ async function cloudLogout(){
   if(CLOUD_MODE) await SB.auth.signOut();
 }
 
+// ===================== 快捷登录检测（海外→考勤） =====================
+async function checkKqQuickLogin() {
+  var section = document.getElementById('kqQuickLogin');
+  // 如果已经登录了考勤系统，不显示快捷登录
+  if (curUser) { section.classList.add('hidden'); return; }
+  try {
+    var { data: { session } } = await SB.auth.getSession();
+    if (!session) { section.classList.add('hidden'); return; }
+    var { data: profile, error } = await SB.from('profiles').select('*').eq('id', session.user.id).single();
+    if (error || !profile) { section.classList.add('hidden'); return; }
+    if (profile.overseas_role !== 'engineer') { section.classList.add('hidden'); return; }
+    document.getElementById('kqQuickName').textContent = profile.display_name || profile.username;
+    section.classList.remove('hidden');
+  } catch(e) { section.classList.add('hidden'); }
+}
+
+async function kqQuickLogin() {
+  var section = document.getElementById('kqQuickLogin');
+  showLoading('快捷登录中...');
+  try {
+    var { data: { session } } = await SB.auth.getSession();
+    if (!session) { hideLoading(); showToast('会话已过期，请手动登录', 'info', 'info'); section.classList.add('hidden'); return; }
+    var { data: profile, error } = await SB.from('profiles').select('*').eq('id', session.user.id).single();
+    if (error || !profile) { hideLoading(); showToast('获取用户信息失败', 'info', 'info'); section.classList.add('hidden'); return; }
+    var isAdminUser = profile.role === 'admin';
+    curUser = {
+      id: session.user.id,
+      username: profile.username,
+      name: profile.display_name || profile.username,
+      role: isAdminUser ? 'admin' : (profile.role || 'user'),
+      canUseSalaryFeature: resolveSalaryAccess(profile),
+      canUseWeddingFeature: resolveWeddingAccess(profile)
+    };
+    localStorage.setItem('att_login_state', JSON.stringify(curUser));
+    hideLoading();
+    isAdmin = (curUser.role === 'admin');
+    if(isAdmin){ showV('admin'); renderAdmin(); }
+    else {
+      vYear = new Date().getFullYear();
+      vMonth = new Date().getMonth() + 1;
+      document.getElementById('selYear').value = vYear;
+      document.getElementById('selMonth').value = vMonth;
+      showV('dash');
+      render();
+    }
+    showToast('快捷登录成功', 'success', 'success');
+  } catch(e) {
+    hideLoading();
+    showToast('快捷登录异常: ' + e.message, 'info', 'info');
+  }
+}
+
 async function cloudLoadAtt(userId, year, month){
     if(!CLOUD_MODE) return null;
 
@@ -2463,7 +2544,7 @@ document.getElementById('forceSync').addEventListener('click', async function(){
                   localStorage.removeItem('att_login_state');
                   localStorage.removeItem(SKEY_R);
                   hideLoading();
-                  showV('portal');
+                  showV('login');
                   return;
                 }
                 console.log('Supabase session 已恢复');
@@ -2471,14 +2552,14 @@ document.getElementById('forceSync').addEventListener('click', async function(){
                 console.warn('自动恢复session异常:', signInErr);
                 localStorage.removeItem('att_login_state');
                 hideLoading();
-                showV('portal');
+                showV('login');
                 return;
               }
             }else{
               console.warn('无保存的密码，无法恢复session');
               localStorage.removeItem('att_login_state');
               hideLoading();
-              showV('portal');
+              showV('login');
               return;
             }
           }else{
@@ -2488,7 +2569,7 @@ document.getElementById('forceSync').addEventListener('click', async function(){
         }catch(sessionErr){
           console.warn('获取session异常:', sessionErr);
           hideLoading();
-          showV('portal');
+          showV('login');
           return;
         }
       }
@@ -2528,12 +2609,12 @@ document.getElementById('forceSync').addEventListener('click', async function(){
       }, 500);
     } else {
       hideLoading();
-      showV('portal');
+      showV('login');
     }
   }catch(e){
     console.warn('读取记住密码失败:', e);
     hideLoading();
-    showV('portal');
+    showV('login');
   }
 
 })();
@@ -2550,7 +2631,10 @@ function checkHint(){
 function showV(v){
   ['portalView','loginView','regView','dashView','adminView'].forEach(function(id){document.getElementById(id).classList.add('hidden')});
   if(v==='portal'){ window.location.href = '../index.html'; return; }
-  else if(v==='login')document.getElementById('loginView').classList.remove('hidden');
+  else if(v==='login'){
+    document.getElementById('loginView').classList.remove('hidden');
+    checkKqQuickLogin();
+  }
   else if(v==='reg')document.getElementById('regView').classList.remove('hidden');
   else if(v==='dash')document.getElementById('dashView').classList.remove('hidden');
   else if(v==='admin')document.getElementById('adminView').classList.remove('hidden');
@@ -2575,9 +2659,9 @@ async function doAutoLogin(username, password) {
     var result = await cloudLogin(username, password);
     hideLoading();
     if(result.error){
-      // 自动登录失败，显示门户页
+      // 自动登录失败，显示登录页
       console.log('自动登录失败:', result.error);
-      showV('portal');
+      showV('login');
       return;
     }
     curUser = result.user;
@@ -2588,7 +2672,7 @@ async function doAutoLogin(username, password) {
       var found = await findLocalUserByCredentials(username, password);
       if(!found){
         hideLoading();
-        showV('portal');
+        showV('login');
         return; // 自动登录失败，显示登录页面
       }
       curUser = toSessionUser(found);
@@ -2957,8 +3041,9 @@ async function logout(){
   await cloudLogout();
   curUser=null;isAdmin=false;
 
-  // 清除登录状态和路由hash
+  // 清除登录状态和记住的密码
   localStorage.removeItem('att_login_state');
+  localStorage.removeItem(SKEY_R);
   if (location.hash) location.hash = '';
 
   hideLoading();
