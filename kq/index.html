@@ -36,7 +36,7 @@
 .dash-hd .uname{font-size:13px;color:var(--text2);font-weight:500;padding:4px 12px;background:var(--bg2);border-radius:20px}
 .dash-hd .right{display:flex;align-items:center;gap:10px}
 .overtime-marquee{overflow:hidden;flex:1;margin:0 20px;position:relative;height:24px}
-.overtime-marquee-text{display:inline-block;white-space:nowrap;animation:marquee 18s linear infinite;color:var(--text3);font-size:12px;position:absolute;line-height:24px}
+.overtime-marquee-text{display:inline-block;white-space:nowrap;animation:marquee 26s linear infinite;color:var(--text2);font-size:14px;position:absolute;line-height:24px}
 @keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
 
 /* ===== 统计卡片 ===== */
@@ -5828,7 +5828,7 @@ function renderWeddingList() {
 
 // 绑定支出项的右键和长按事件
 function bindExpenseItemEvents() {
-  var items = document.querySelectorAll('.wedding-expense-item');
+  var items = document.querySelectorAll('.wedding-item');
   var longPressTimer = null;
   var isLongPress = false;
   
