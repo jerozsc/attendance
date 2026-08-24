@@ -1781,7 +1781,7 @@ td{color:var(--text)}
 
 /* 婚礼计费列表 */
 .wedding-list {
-  max-height: 400px;
+  max-height: 720px;
   overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
