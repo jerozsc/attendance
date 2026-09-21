@@ -54,7 +54,7 @@ body{
 .theme-toggle:hover{background:var(--bg2);color:var(--gold);transform:scale(1.08)}
 
 /* ===== 主体 ===== */
-.entry-wrap{width:100%;max-width:560px;display:flex;flex-direction:column;align-items:center;gap:36px}
+.entry-wrap{width:100%;max-width:800px;display:flex;flex-direction:column;align-items:center;gap:36px}
 
 .entry-header{text-align:center}
 .entry-badge{
@@ -118,6 +118,9 @@ body{
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .entry-header{animation:fadeUp .5s ease-out}
 .entry-cards{animation:fadeUp .5s ease-out .1s both}
+
+/* ===== 礼金登记入口图标 ===== */
+.entry-icon.gift{background:linear-gradient(135deg,#d64545 0%,#e8788a 100%);color:#fff}
 </style>
 </head>
 <body>
@@ -153,6 +156,17 @@ body{
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
       </span>
     </div>
+
+    <div class="entry-card" onclick="goTo('gift/index.html')">
+      <div class="entry-icon gift">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-2 .89-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/></svg>
+      </div>
+      <div class="entry-name">礼金登记</div>
+      <div class="entry-desc">婚礼礼金签到登记<br>人数与金额自动统计</div>
+      <span class="entry-arrow">进入登记
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+      </span>
+    </div>
   </div>
 </div>
 
@@ -174,6 +188,7 @@ function toggleTheme() {
 })();
 
 function goTo(url) { window.location.href = url; }
+
 </script>
 
 </body>

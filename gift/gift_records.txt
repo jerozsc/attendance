@@ -1,0 +1,37 @@
+-- ============================================================
+-- 礼金登记表 gift_records（金额整数版）
+-- 项目 URL：https://ymuctuibvvsarwtqmxcw.supabase.co
+-- ============================================================
+
+-- ★★★ 方式一：表已存在（金额原为 numeric(12,2)），执行这条改成整数 ★★★
+alter table public.gift_records
+  alter column amount type integer
+  using round(amount)::integer;
+
+-- 如果之前建表时带过约束名不同的 check，报错时可在 Table Editor 中
+-- 查看约束名后执行： alter table public.gift_records drop constraint 约束名;
+-- 原 check (amount >= 0) 对整数依然有效，一般无需改动。
+
+
+-- ------------------------------------------------------------
+-- 方式二：全新建表（金额直接用整数），首次搭建用这段
+-- ------------------------------------------------------------
+-- create extension if not exists "pgcrypto";
+--
+-- create table if not exists public.gift_records (
+--   id          uuid primary key default gen_random_uuid(),
+--   guest_name  text          not null,               -- 姓名
+--   amount      integer       not null check (amount >= 0), -- 金额（元，整数）
+--   remark      text,                                 -- 备注（可空）
+--   created_at  timestamptz   not null default now()  -- 登记时间（自动）
+-- );
+--
+-- alter table public.gift_records enable row level security;
+--
+-- create policy "gift_select_all" on public.gift_records for select using (true);
+-- create policy "gift_insert_all" on public.gift_records for insert with check (true);
+-- create policy "gift_update_all" on public.gift_records for update using (true) with check (true);
+-- create policy "gift_delete_all" on public.gift_records for delete using (true);
+--
+-- create index if not exists idx_gift_records_created_at
+--   on public.gift_records (created_at desc);

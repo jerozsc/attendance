@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>礼金登记</title>
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#c49030">
+<link rel="apple-touch-icon" href="../logo.jpg">
+<link rel="icon" type="image/jpeg" href="../logo.jpg">
+<style>
+/* ===== 主题变量（与门户一致） ===== */
+:root{
+  --gold:#c49030;--gold2:#d4a853;--gold-light:rgba(196,144,48,.1);
+  --blue:#3b82f6;
+  --text:#1e293b;--text2:#64748b;--text3:#94a3b8;
+  --bg:#f8fafc;--bg2:#f1f5f9;--surface:#fff;--surface2:#f8fafc;
+  --border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.05);
+}
+[data-theme="dark"]{
+  --gold:#d4a853;--gold-light:rgba(212,168,83,.12);
+  --blue:#60a5fa;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --bg:#0f1117;--bg2:#1a1d2e;--surface:#1c1f2e;--surface2:#252840;
+  --border:#2d3048;--shadow:0 1px 3px rgba(0,0,0,.2);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 100%);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  padding:48px 20px 40px;
+  transition:background .3s,color .3s;
+}
+
+/* ===== 主题切换按钮 ===== */
+.theme-toggle{
+  position:fixed;top:20px;right:20px;width:40px;height:40px;
+  border-radius:50%;border:1px solid var(--border);
+  background:var(--surface);color:var(--text2);font-size:18px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;z-index:10;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
+}
+.theme-toggle:hover{background:var(--bg2);color:var(--gold);transform:scale(1.08)}
+
+/* ===== 页面容器 ===== */
+.gift-page{width:100%;max-width:1000px;animation:fadeUp .4s ease-out}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.gift-header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.gift-back{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:18px;cursor:pointer;flex-shrink:0;transition:all .2s}
+.gift-back:hover{color:var(--gold);border-color:var(--gold)}
+.gift-header h2{font-size:20px;font-weight:700;color:var(--text)}
+
+/* ===== 统计方框 ===== */
+.gift-stats{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.gift-stat{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
+.gift-stat .lb{font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
+.gift-stat .vl{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.gift-stat.people .vl{color:var(--blue)}
+.gift-stat.money .vl{color:var(--gold)}
+
+/* ===== 登记表单 ===== */
+.gift-form{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:var(--shadow);margin-bottom:22px}
+.gift-form-row{display:flex;gap:12px;flex-wrap:wrap}
+.gift-field{flex:1;min-width:130px}
+.gift-field label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
+.gift-field input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;background:var(--surface2);color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s}
+.gift-field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-light)}
+.gift-time-tip{font-size:12px;color:var(--text3);margin-top:10px}
+.gift-btn{padding:10px 24px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s;white-space:nowrap}
+.gift-btn:hover{opacity:.9}
+.gift-btn-c{padding:10px 20px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text2);font-size:14px;cursor:pointer}
+.gift-btn-c:hover{border-color:var(--text3)}
+
+/* ===== 明细列表 ===== */
+.gift-list-head{font-size:13px;color:var(--text2);margin-bottom:10px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.gift-btn-s{padding:5px 12px;font-size:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap}
+.gift-btn-s:hover{border-color:var(--gold);color:var(--gold)}
+.gift-btn-s.active{background:var(--gold);color:#fff;border-color:var(--gold)}
+.gift-list{display:flex;flex-direction:column;gap:10px;max-height:560px;overflow-y:auto;padding-bottom:8px}
+.gift-list.cols-2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.gift-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);transition:border-color .2s}
+.gift-item:hover{border-color:var(--gold)}
+.gift-item-info{flex:1;min-width:0}
+.gift-item-name{font-size:15px;font-weight:600;color:var(--text)}
+.gift-item-remark{font-size:12px;color:var(--text2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gift-item-time{font-size:11px;color:var(--text3);margin-top:3px}
+.gift-item-amt{font-size:18px;font-weight:700;color:var(--gold);flex-shrink:0;font-variant-numeric:tabular-nums}
+.gift-empty{text-align:center;color:var(--text3);padding:40px 0;font-size:14px}
+
+/* ===== 编辑弹窗 ===== */
+.gift-modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.gift-modal.show{display:flex}
+.gift-modal-ct{background:var(--surface);border-radius:18px;padding:24px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:fadeUp .25s ease-out}
+.gift-modal-ct h3{font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px}
+
+/* ===== 右键菜单 ===== */
+.gift-context{position:fixed;z-index:1001;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);min-width:110px;padding:4px 0}
+.gift-context-item{padding:9px 16px;font-size:13px;cursor:pointer;color:var(--text)}
+.gift-context-item:hover{background:var(--gold-light);color:var(--gold)}
+.gift-context-item.danger{color:#ef4444}
+.gift-context-item.danger:hover{background:rgba(239,68,68,.08);color:#ef4444}
+
+@media(max-width:540px){
+  body{padding:20px 14px 30px}
+  .gift-stats{gap:10px}
+  .gift-stat .vl{font-size:22px}
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换主题">🌙</button>
+
+<div class="gift-page">
+  <div class="gift-header">
+    <button class="gift-back" onclick="goBackPortal()" title="返回门户">←</button>
+    <h2>礼金登记</h2>
+    <button class="gift-btn-s" style="margin-left:auto" onclick="giftLogout()" title="退出登录，下次访问需重新验证">退出登录</button>
+  </div>
+
+  <!-- 统计方框 -->
+  <div class="gift-stats">
+    <div class="gift-stat people">
+      <div class="lb">登记人数</div>
+      <div class="vl" id="giftPeople">0</div>
+    </div>
+    <div class="gift-stat money">
+      <div class="lb">总金额</div>
+      <div class="vl" id="giftTotal">¥0</div>
+    </div>
+  </div>
+
+  <!-- 登记表单 -->
+  <div class="gift-form">
+    <div class="gift-form-row">
+      <div class="gift-field">
+        <label>姓名 <span style="color:#ef4444">*</span></label>
+        <input id="giftName" maxlength="20" placeholder="请输入姓名" onkeydown="if(event.key==='Enter')saveGiftRecord()">
+      </div>
+      <div class="gift-field">
+        <label>金额（元，整数）<span style="color:#ef4444">*</span></label>
+        <input id="giftAmount" type="number" min="0" step="1" placeholder="请输入整数金额" onkeydown="if(event.key==='Enter')saveGiftRecord()">
+      </div>
+      <div class="gift-field" style="flex:1.4;min-width:160px">
+        <label>备注（可选）</label>
+        <input id="giftRemark" maxlength="50" placeholder="如：同事 / 亲戚 / 朋友" onkeydown="if(event.key==='Enter')saveGiftRecord()">
+      </div>
+      <div class="gift-field" style="flex:0 0 auto;display:flex;align-items:flex-end">
+        <button class="gift-btn" onclick="saveGiftRecord()">登记</button>
+      </div>
+    </div>
+    <div class="gift-time-tip">登记时间自动记录，无需填写：<span id="giftTimePreview"></span></div>
+  </div>
+
+  <!-- 明细列表 -->
+  <div class="gift-list-head">
+    <span>礼金明细（右键点击条目可修改）</span>
+    <button class="gift-btn-s" id="giftColsBtn" onclick="toggleGiftListColumns()">按2列显示</button>
+  </div>
+  <div id="giftList" class="gift-list"><div class="gift-empty">加载中...</div></div>
+</div>
+
+<!-- 访问验证弹窗 -->
+<div id="giftLogin" class="gift-modal">
+  <div class="gift-modal-ct">
+    <h3>礼金登记 · 访问验证</h3>
+    <div class="gift-form-row" style="flex-direction:column;flex-wrap:nowrap">
+      <div class="gift-field">
+        <label>账号</label>
+        <input id="giftLoginUser" autocomplete="username" onkeydown="if(event.key==='Enter')giftLogin()">
+      </div>
+      <div class="gift-field">
+        <label>密码</label>
+        <input id="giftLoginPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')giftLogin()">
+      </div>
+    </div>
+    <div id="giftLoginErr" style="color:#ef4444;font-size:12px;margin-top:10px;display:none">账号或密码错误，请重新输入</div>
+    <div style="display:flex;justify-content:flex-end;margin-top:18px">
+      <button class="gift-btn" onclick="giftLogin()">登 录</button>
+    </div>
+  </div>
+</div>
+
+<!-- 礼金编辑弹窗 -->
+<div id="giftEditModal" class="gift-modal">
+  <div class="gift-modal-ct">
+    <h3>修改礼金记录</h3>
+    <div class="gift-form-row" style="flex-direction:column;flex-wrap:nowrap">
+      <div class="gift-field">
+        <label>姓名 <span style="color:#ef4444">*</span></label>
+        <input id="giftEditName" maxlength="20">
+      </div>
+      <div class="gift-field">
+        <label>金额（元，整数）<span style="color:#ef4444">*</span></label>
+        <input id="giftEditAmount" type="number" min="0" step="1">
+      </div>
+      <div class="gift-field">
+        <label>备注（可选）</label>
+        <input id="giftEditRemark" maxlength="50">
+      </div>
+    </div>
+    <div class="gift-time-tip" style="margin-top:12px">登记时间：<span id="giftEditTime"></span>（不可修改）</div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px">
+      <button class="gift-btn-c" onclick="closeGiftEditModal()">取消</button>
+      <button class="gift-btn" onclick="saveGiftEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ===== 主题切换（与门户共用 portal_theme） =====
+function toggleTheme() {
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+  localStorage.setItem('portal_theme', isDark ? '' : 'dark');
+  document.getElementById('themeToggle').textContent = isDark ? '🌙' : '☀️';
+}
+(function() {
+  if (localStorage.getItem('portal_theme') === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.getElementById('themeToggle').textContent = '☀️';
+  }
+})();
+
+function goBackPortal() { window.location.href = '../index.html'; }
+
+/* ==================== 礼金登记 ==================== */
+// 与 kq 考勤系统使用同一 Supabase 项目，表名 gift_records
+var GIFT_SUPABASE_URL = 'https://ymuctuibvvsarwtqmxcw.supabase.co';
+var GIFT_SUPABASE_ANON_KEY = 'sb_publishable_wcQOhFspiXXs6ZJRLcyV2A_JbSdFA0-';
+
+var giftSB = null;
+var giftCloudMode = false;
+if (typeof supabase !== 'undefined') {
+  try {
+    giftSB = supabase.createClient(GIFT_SUPABASE_URL, GIFT_SUPABASE_ANON_KEY);
+    giftCloudMode = true;
+  } catch (e) { console.error('Supabase 初始化失败，使用本地模式:', e); }
+}
+
+var giftRecords = [];      // 全部礼金记录
+var giftEditingId = null;  // 当前编辑的记录 id
+
+function giftLocalKey() { return 'portal_gift_records'; }
+function escapeGiftHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// 时间格式化：2026年9月21日 14时05分
+function formatGiftTime(iso) {
+  var d = iso ? new Date(iso) : new Date();
+  if (isNaN(d.getTime())) return '';
+  return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 '
+    + String(d.getHours()).padStart(2, '0') + '时' + String(d.getMinutes()).padStart(2, '0') + '分';
+}
+
+function refreshGiftTimePreview() {
+  document.getElementById('giftTimePreview').textContent = formatGiftTime();
+}
+
+// 加载记录（云端优先，失败或未配置时本地）
+async function loadGiftRecords() {
+  var listEl = document.getElementById('giftList');
+  if (giftCloudMode) {
+    try {
+      var { data, error } = await giftSB.from('gift_records')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      giftRecords = data || [];
+    } catch (e) {
+      console.error('云端加载礼金记录失败:', e);
+      loadGiftRecordsLocal();
+      renderGiftList('云端加载失败，已显示本地数据（' + e.message + '）');
+      updateGiftStats();
+      return;
+    }
+  } else {
+    loadGiftRecordsLocal();
+  }
+  renderGiftList();
+  updateGiftStats();
+}
+
+function loadGiftRecordsLocal() {
+  try {
+    giftRecords = JSON.parse(localStorage.getItem(giftLocalKey()) || '[]');
+    if (!Array.isArray(giftRecords)) giftRecords = [];
+  } catch (e) { giftRecords = []; }
+}
+
+function saveGiftRecordsLocal() {
+  try { localStorage.setItem(giftLocalKey(), JSON.stringify(giftRecords)); }
+  catch (e) { console.error('本地保存礼金记录失败:', e); }
+}
+
+// 金额显示：整数 + 千分位
+function formatGiftAmount(v) {
+  var n = Math.round(parseFloat(v) || 0);
+  return n.toLocaleString('zh-CN');
+}
+
+// 更新统计方框：登记人数 + 总金额
+function updateGiftStats() {
+  var total = 0;
+  giftRecords.forEach(function(r) { total += Math.round(parseFloat(r.amount) || 0); });
+  document.getElementById('giftPeople').textContent = giftRecords.length;
+  document.getElementById('giftTotal').textContent = '¥' + formatGiftAmount(total);
+}
+
+// 渲染明细列表
+function renderGiftList(tip) {
+  var listEl = document.getElementById('giftList');
+  if (!giftRecords.length) {
+    listEl.innerHTML = '<div class="gift-empty">' + (tip || '暂无礼金登记，请在上方填写并点击「登记」') + '</div>';
+    return;
+  }
+  var html = '';
+  giftRecords.forEach(function(r) {
+    html += '<div class="gift-item" data-id="' + escapeGiftHtml(r.id) + '">'
+      + '<div class="gift-item-info">'
+      + '<div class="gift-item-name">' + escapeGiftHtml(r.guest_name) + '</div>'
+      + (r.remark ? '<div class="gift-item-remark">' + escapeGiftHtml(r.remark) + '</div>' : '')
+      + '<div class="gift-item-time">' + formatGiftTime(r.created_at) + '</div>'
+      + '</div>'
+      + '<div class="gift-item-amt">¥' + formatGiftAmount(r.amount) + '</div>'
+      + '</div>';
+  });
+  listEl.innerHTML = tip ? '<div class="gift-empty">' + escapeGiftHtml(tip) + '</div>' + html : html;
+  bindGiftItemEvents();
+}
+
+// 新增登记（时间自动读取，不需要用户输入）
+async function saveGiftRecord() {
+  var name = document.getElementById('giftName').value.trim();
+  var amount = parseFloat(document.getElementById('giftAmount').value);
+  var remark = document.getElementById('giftRemark').value.trim();
+
+  if (!name) { alert('请输入姓名'); return; }
+  if (isNaN(amount) || amount < 0 || Math.floor(amount) !== amount) { alert('请输入有效的整数金额'); return; }
+
+  var record = {
+    guest_name: name,
+    amount: Math.round(amount),
+    remark: remark,
+    created_at: new Date().toISOString()
+  };
+
+  if (giftCloudMode) {
+    try {
+      var { error } = await giftSB.from('gift_records').insert(record);
+      if (error) throw error;
+    } catch (e) {
+      console.error('云端登记失败:', e);
+      alert('云端登记失败：' + e.message + '（请确认已在 Supabase 中执行 gift_records.sql 建表）');
+      return;
+    }
+  } else {
+    record.id = 'local_' + Date.now();
+    giftRecords.unshift(record);
+    saveGiftRecordsLocal();
+  }
+
+  document.getElementById('giftName').value = '';
+  document.getElementById('giftAmount').value = '';
+  document.getElementById('giftRemark').value = '';
+  document.getElementById('giftName').focus();
+  refreshGiftTimePreview();
+  loadGiftRecords();
+}
+
+// 绑定明细右键（PC）与长按（移动端）
+function bindGiftItemEvents() {
+  var items = document.querySelectorAll('#giftList .gift-item');
+  var longPressTimer = null;
+  var isLongPress = false;
+  items.forEach(function(item) {
+    item.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      showGiftContextMenu(e.clientX, e.clientY, this.getAttribute('data-id'));
+    });
+    item.addEventListener('touchstart', function(e) {
+      isLongPress = false;
+      var id = this.getAttribute('data-id');
+      longPressTimer = setTimeout(function() {
+        isLongPress = true;
+        var t = e.touches[0];
+        showGiftContextMenu(t.clientX, t.clientY, id);
+      }, 500);
+    });
+    item.addEventListener('touchmove', function() { clearTimeout(longPressTimer); });
+    item.addEventListener('touchend', function(e) {
+      clearTimeout(longPressTimer);
+      if (isLongPress) e.preventDefault();
+    });
+  });
+}
+
+// 右键菜单：修改 / 删除
+function showGiftContextMenu(x, y, id) {
+  var old = document.getElementById('giftContextMenu');
+  if (old) old.remove();
+
+  var menu = document.createElement('div');
+  menu.id = 'giftContextMenu';
+  menu.className = 'gift-context';
+  menu.innerHTML = '<div class="gift-context-item" data-action="edit">✏️ 修改</div>'
+    + '<div class="gift-context-item danger" data-action="delete">🗑 删除</div>';
+
+  var mw = 110, mh = 84;
+  var fx = x, fy = y;
+  if (x + mw > window.innerWidth) fx = x - mw;
+  if (y + mh > window.innerHeight) fy = y - mh;
+  menu.style.left = Math.max(0, fx) + 'px';
+  menu.style.top = Math.max(0, fy) + 'px';
+  document.body.appendChild(menu);
+
+  menu.querySelectorAll('.gift-context-item').forEach(function(mi) {
+    mi.addEventListener('click', function() {
+      var action = this.getAttribute('data-action');
+      menu.remove();
+      if (action === 'edit') openGiftEditModal(id);
+      else if (action === 'delete') deleteGiftRecord(id);
+    });
+  });
+
+  setTimeout(function() {
+    document.addEventListener('click', function closeMenu(e) {
+      if (!menu.contains(e.target)) {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+      }
+    });
+  }, 10);
+}
+
+// 打开编辑弹窗
+function openGiftEditModal(id) {
+  var record = giftRecords.find(function(r) { return String(r.id) === String(id); });
+  if (!record) return;
+  giftEditingId = record.id;
+  document.getElementById('giftEditName').value = record.guest_name;
+  document.getElementById('giftEditAmount').value = record.amount;
+  document.getElementById('giftEditRemark').value = record.remark || '';
+  document.getElementById('giftEditTime').textContent = formatGiftTime(record.created_at);
+  document.getElementById('giftEditModal').classList.add('show');
+}
+
+function closeGiftEditModal() {
+  document.getElementById('giftEditModal').classList.remove('show');
+  giftEditingId = null;
+}
+
+// 保存修改（登记时间保持不变）
+async function saveGiftEdit() {
+  if (giftEditingId == null) return;
+  var name = document.getElementById('giftEditName').value.trim();
+  var amount = parseFloat(document.getElementById('giftEditAmount').value);
+  var remark = document.getElementById('giftEditRemark').value.trim();
+
+  if (!name) { alert('请输入姓名'); return; }
+  if (isNaN(amount) || amount < 0 || Math.floor(amount) !== amount) { alert('请输入有效的整数金额'); return; }
+
+  var patch = { guest_name: name, amount: Math.round(amount), remark: remark };
+
+  if (giftCloudMode) {
+    try {
+      var { error } = await giftSB.from('gift_records').update(patch).eq('id', giftEditingId);
+      if (error) throw error;
+    } catch (e) {
+      console.error('云端修改失败:', e);
+      alert('云端修改失败：' + e.message);
+      return;
+    }
+  } else {
+    var idx = giftRecords.findIndex(function(r) { return String(r.id) === String(giftEditingId); });
+    if (idx !== -1) giftRecords[idx] = Object.assign({}, giftRecords[idx], patch);
+    saveGiftRecordsLocal();
+  }
+
+  closeGiftEditModal();
+  loadGiftRecords();
+}
+
+// 删除记录
+async function deleteGiftRecord(id) {
+  if (!confirm('确定要删除这条礼金记录吗？')) return;
+
+  if (giftCloudMode) {
+    try {
+      var { error } = await giftSB.from('gift_records').delete().eq('id', id);
+      if (error) throw error;
+    } catch (e) {
+      console.error('云端删除失败:', e);
+      alert('云端删除失败：' + e.message);
+      return;
+    }
+  } else {
+    giftRecords = giftRecords.filter(function(r) { return String(r.id) !== String(id); });
+    saveGiftRecordsLocal();
+  }
+  loadGiftRecords();
+}
+
+/* ==================== 访问验证（admin/admin） ==================== */
+// 凭证以 Base64 存放，避免源码明文；注意这是前端门槛级防护，详见页面说明
+var GIFT_AUTH_KEY = 'gift_auth_ok';
+var GIFT_USER_B64 = 'YWRtaW4='; // admin
+var GIFT_PASS_B64 = 'YWRtaW4='; // admin
+
+function isGiftAuthed() {
+  try { return localStorage.getItem(GIFT_AUTH_KEY) === '1'; } catch (e) { return false; }
+}
+
+function giftLogin() {
+  var u = document.getElementById('giftLoginUser').value.trim();
+  var p = document.getElementById('giftLoginPass').value;
+  var errEl = document.getElementById('giftLoginErr');
+  var ok = false;
+  try { ok = (btoa(u) === GIFT_USER_B64 && btoa(p) === GIFT_PASS_B64); } catch (e) {}
+  if (ok) {
+    localStorage.setItem(GIFT_AUTH_KEY, '1');
+    document.getElementById('giftLogin').classList.remove('show');
+    errEl.style.display = 'none';
+    loadGiftRecords();
+  } else {
+    errEl.style.display = 'block';
+  }
+}
+
+function giftLogout() {
+  if (!confirm('确定退出登录吗？退出后下次访问需要重新输入账号密码。')) return;
+  localStorage.removeItem(GIFT_AUTH_KEY);
+  document.getElementById('giftLogin').classList.add('show');
+}
+
+/* ==================== 明细列表列数切换（默认1列） ==================== */
+function toggleGiftListColumns() {
+  var list = document.getElementById('giftList');
+  var btn = document.getElementById('giftColsBtn');
+  if (!list || !btn) return;
+  var to2 = !list.classList.contains('cols-2');
+  list.classList.toggle('cols-2', to2);
+  btn.classList.toggle('active', to2);
+  btn.textContent = to2 ? '按1列显示' : '按2列显示';
+}
+
+// 页面加载即初始化：先验证身份，通过后才加载数据
+refreshGiftTimePreview();
+if (isGiftAuthed()) {
+  loadGiftRecords();
+} else {
+  document.getElementById('giftLogin').classList.add('show');
+  document.getElementById('giftList').innerHTML = '<div class="gift-empty">请先登录后查看礼金明细</div>';
+}
+</script>
+
+</body>
+</html>
