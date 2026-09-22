@@ -176,7 +176,10 @@
 .wedding-stat.split-card .half:first-child .value{font-size:24px}
 .wedding-stat.split-card .divider{width:1px;background:var(--border);flex:none;margin:4px 0}
 @media(max-width:900px){
-  .wedding-stat.split-card .half .value{font-size:17px}
+  /* 窄屏：左半格按内容自适应（仅容下"记录条数"标签），把剩余宽度让给右半格的"当前费用"金额 */
+  .wedding-stat.split-card .half{padding:4px 8px}
+  .wedding-stat.split-card .half:first-child{flex:0 0 auto}
+  .wedding-stat.split-card .half .value{font-size:17px;white-space:nowrap}
   .wedding-stat.split-card .half:first-child .value{font-size:17px}
 }
 @media(min-width:901px){

@@ -520,15 +520,16 @@ input,textarea{user-select:text;-webkit-user-select:text}
 .legend-item{display:flex;align-items:center;gap:6px}
 .legend-dot{width:12px;height:12px;border-radius:4px}
 .mo-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px)}
-.mo-ct{background:var(--surface);border:1px solid var(--border);border-radius:18px;width:480px;max-width:94vw;overflow:hidden;animation:fadeIn .2s;box-shadow:0 8px 40px rgba(0,0,0,.15)}
+/* 弹窗容器：限高 + 纵向弹性布局。标题(mo-hd)与底部按钮(mo-ft)固定可见，内容区(mo-bd)内部滚动 */
+.mo-ct{background:var(--surface);border:1px solid var(--border);border-radius:18px;width:480px;max-width:94vw;overflow:hidden;animation:fadeIn .2s;box-shadow:0 8px 40px rgba(0,0,0,.15);display:flex;flex-direction:column;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
-.mo-hd{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.mo-hd{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex:0 0 auto}
 .mo-hd h3{font-size:17px;white-space:nowrap}
 .mo-hd .dt{font-size:13px;color:var(--text2);flex:1}
 .mo-x{background:none;border:none;color:var(--text2);font-size:26px;cursor:pointer;padding:0 4px;line-height:1}
 .mo-x:hover{color:var(--text)}
-.mo-bd{padding:24px}
-.mo-ft{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+.mo-bd{padding:24px;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.mo-ft{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex:0 0 auto;flex-wrap:wrap}
 .btn-c{padding:9px 22px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;cursor:pointer}
 .btn-c:hover{background:var(--border)}
 .btn-ok{padding:9px 26px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer}
@@ -1716,7 +1717,7 @@ td{color:var(--text)}
 }
 
 .wedding-stat.budget {
-  background: #ebeef5;
+  background: #eeecf3;
   border-color: var(--purple-b);
   cursor: pointer;
   transition: all 0.2s;
