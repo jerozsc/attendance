@@ -1715,19 +1715,23 @@ td{color:var(--text)}
   color: var(--blue);
 }
 
-.wedding-stat:nth-child(4) {
-  background: var(--purple-bg);
+.wedding-stat.budget {
+  background: #ebeef5;
   border-color: var(--purple-b);
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.wedding-stat:nth-child(4):hover {
+[data-theme="dark"] .wedding-stat.budget {
+  background: var(--purple-bg);
+}
+
+.wedding-stat.budget:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(126,82,192,0.2);
 }
 
-.wedding-stat:nth-child(4) .value {
+.wedding-stat.budget .value {
   color: var(--purple);
 }
 
