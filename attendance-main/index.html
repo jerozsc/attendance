@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>欢迎使用</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c49030">
+<link rel="apple-touch-icon" href="logo.jpg">
+<link rel="icon" type="image/jpeg" href="logo.jpg">
+<style>
+/* ===== 主题变量 ===== */
+:root{
+  --gold:#c49030;--gold2:#d4a853;--gold-light:rgba(196,144,48,.1);
+  --blue:#3b82f6;--blue-light:#eff6ff;--blue-border:#bfdbfe;
+  --green:#22c55e;--green-light:#f0fdf4;
+  --text:#1e293b;--text2:#64748b;--text3:#94a3b8;
+  --bg:#f8fafc;--bg2:#f1f5f9;--surface:#fff;--surface2:#f8fafc;
+  --border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.05);
+}
+[data-theme="dark"]{
+  --gold:#d4a853;--gold-light:rgba(212,168,83,.12);
+  --blue:#60a5fa;--blue-light:#1e3a5f;--blue-border:#3b5b8a;
+  --green:#4ade80;--green-light:#14532d;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --bg:#0f1117;--bg2:#1a1d2e;--surface:#1c1f2e;--surface2:#252840;
+  --border:#2d3048;--shadow:0 1px 3px rgba(0,0,0,.2);
+}
+
+/* ===== 重置 ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:linear-gradient(135deg,var(--bg) 0%,var(--bg2) 100%);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  transition:background .3s,color .3s;
+}
+
+/* ===== 主题切换按钮 ===== */
+.theme-toggle{
+  position:fixed;top:20px;right:20px;width:40px;height:40px;
+  border-radius:50%;border:1px solid var(--border);
+  background:var(--surface);color:var(--text2);font-size:18px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;z-index:10;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
+}
+.theme-toggle:hover{background:var(--bg2);color:var(--gold);transform:scale(1.08)}
+
+/* ===== 主体 ===== */
+.entry-wrap{width:100%;max-width:800px;display:flex;flex-direction:column;align-items:center;gap:36px}
+
+.entry-header{text-align:center}
+.entry-badge{
+  display:inline-block;padding:5px 14px;border-radius:20px;
+  background:var(--gold-light);color:var(--gold);
+  font-size:12px;font-weight:600;letter-spacing:2px;
+  margin-bottom:14px;
+}
+.entry-title{font-size:28px;font-weight:700;color:var(--text);letter-spacing:1px;line-height:1.2}
+.entry-subtitle{font-size:14px;color:var(--text2);margin-top:8px}
+
+/* ===== 卡片 ===== */
+.entry-cards{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;width:100%}
+.entry-card{
+  width:240px;padding:32px 24px;border-radius:20px;cursor:pointer;
+  transition:transform .25s,box-shadow .25s,border-color .25s;
+  background:var(--surface);border:2px solid var(--border);
+  box-shadow:var(--shadow);
+  display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;
+  position:relative;overflow:hidden;
+}
+.entry-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--gold),var(--gold2));
+  opacity:0;transition:opacity .25s;
+}
+.entry-card:hover{transform:translateY(-6px);box-shadow:0 12px 32px rgba(0,0,0,.08);border-color:var(--gold)}
+.entry-card:hover::before{opacity:1}
+
+.entry-icon{
+  width:64px;height:64px;border-radius:18px;display:flex;
+  align-items:center;justify-content:center;margin-bottom:6px;
+  transition:transform .25s;
+}
+.entry-icon svg{width:36px;height:36px}
+.entry-card:hover .entry-icon{transform:scale(1.08) rotate(-3deg)}
+.entry-icon.overseas{background:linear-gradient(135deg,#3b82f6 0%,#60a5fa 100%);color:#fff}
+.entry-icon.attendance{background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 100%);color:#fff}
+
+.entry-name{font-size:17px;font-weight:600;color:var(--text);margin-top:4px}
+.entry-desc{font-size:13px;color:var(--text2);line-height:1.5}
+
+.entry-arrow{
+  display:inline-flex;align-items:center;gap:4px;
+  margin-top:8px;font-size:12px;color:var(--gold);font-weight:500;
+  opacity:0;transform:translateX(-4px);transition:all .25s;
+}
+.entry-card:hover .entry-arrow{opacity:1;transform:translateX(0)}
+.entry-arrow svg{width:14px;height:14px}
+
+/* ===== 响应式 ===== */
+@media(max-width:540px){
+  .entry-title{font-size:22px}
+  .entry-card{width:100%;max-width:300px;padding:24px 18px}
+  .entry-icon{width:56px;height:56px}
+  .entry-icon svg{width:30px;height:30px}
+  .entry-name{font-size:15px}
+}
+
+/* ===== 淡入动画 ===== */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.entry-header{animation:fadeUp .5s ease-out}
+.entry-cards{animation:fadeUp .5s ease-out .1s both}
+
+/* ===== 礼金登记入口图标 ===== */
+.entry-icon.gift{background:linear-gradient(135deg,#d64545 0%,#e8788a 100%);color:#fff}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换主题">🌙</button>
+
+<div class="entry-wrap">
+  <div class="entry-header">
+    <span class="entry-badge">SYSTEM</span>
+    <h1 class="entry-title">欢迎使用</h1>
+    <p class="entry-subtitle">请选择您要进入的系统</p>
+  </div>
+
+  <div class="entry-cards">
+    <div class="entry-card" onclick="goTo('overseas/index.html')">
+      <div class="entry-icon overseas">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      </div>
+      <div class="entry-name">海外小组</div>
+      <div class="entry-desc">海外团队设备取放管理<br>实验进度跟踪与统计</div>
+      <span class="entry-arrow">进入系统
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+      </span>
+    </div>
+
+    <div class="entry-card" onclick="goTo('kq/index.html')">
+      <div class="entry-icon attendance">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+      </div>
+      <div class="entry-name">考勤编排</div>
+      <div class="entry-desc">个人考勤统计分析<br>云端数据同步与导出</div>
+      <span class="entry-arrow">进入系统
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+      </span>
+    </div>
+
+    <div class="entry-card" onclick="goTo('gift/index.html')">
+      <div class="entry-icon gift">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-2 .89-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/></svg>
+      </div>
+      <div class="entry-name">礼金登记</div>
+      <div class="entry-desc">婚礼礼金签到登记<br>人数与金额自动统计</div>
+      <span class="entry-arrow">进入登记
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+      </span>
+    </div>
+  </div>
+</div>
+
+<script>
+// 主题切换（独立 localStorage key）
+function toggleTheme() {
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+  localStorage.setItem('portal_theme', isDark ? '' : 'dark');
+  document.getElementById('themeToggle').textContent = isDark ? '🌙' : '☀️';
+}
+
+(function() {
+  var saved = localStorage.getItem('portal_theme');
+  if (saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.getElementById('themeToggle').textContent = '☀️';
+  }
+})();
+
+function goTo(url) { window.location.href = url; }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+-- ============================================================
+-- 婚礼计费：支出类别云端同步表
+-- 用途：让「右键添加支出 → 管理支出类别」的新增/重命名/删除
+--       在所有设备（PC / 手机 / 线上 / 本地预览）保持一致
+-- 执行位置：Supabase Dashboard → SQL Editor → 粘贴 → Run
+-- 说明：与 wedding_expenses 同属一个 Supabase 项目；
+--       若表已存在，本脚本可安全重复执行（不会丢数据）
+-- ============================================================
+
+create extension if not exists "pgcrypto";
+
+create table if not exists public.wedding_categories (
+  id          uuid        primary key default gen_random_uuid(),
+  user_id     uuid        not null,                 -- 与 wedding_expenses.user_id 对应
+  name        text        not null,                 -- 类别名称
+  sort_order  integer     not null default 0,       -- 显示顺序（筛选条从左到右）
+  created_at  timestamptz not null default now(),
+  constraint wedding_categories_user_name_key unique (user_id, name)
+);
+
+-- 加速按用户 + 顺序查询
+create index if not exists idx_wedding_categories_user
+  on public.wedding_categories (user_id, sort_order);
+
+-- 行级安全（与 wedding_expenses / gift_records 保持同一放行口径）
+alter table public.wedding_categories enable row level security;
+
+-- 重复执行前先清理同名策略，避免报「policy already exists」
+drop policy if exists "wedding_categories_select_all" on public.wedding_categories;
+drop policy if exists "wedding_categories_insert_all" on public.wedding_categories;
+drop policy if exists "wedding_categories_update_all" on public.wedding_categories;
+drop policy if exists "wedding_categories_delete_all" on public.wedding_categories;
+
+create policy "wedding_categories_select_all" on public.wedding_categories
+  for select using (true);
+
+create policy "wedding_categories_insert_all" on public.wedding_categories
+  for insert with check (true);
+
+create policy "wedding_categories_update_all" on public.wedding_categories
+  for update using (true) with check (true);
+
+create policy "wedding_categories_delete_all" on public.wedding_categories
+  for delete using (true);
