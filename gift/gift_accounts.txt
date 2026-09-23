@@ -1,0 +1,71 @@
+-- ============================================================
+-- 礼金登记：限时授权账号表 gift_accounts（重置安装版）
+-- 用途：管理员长按（手机）/ 右键（PC）「礼金登记」标题
+--       → 账号权限管理 → 创建 / 删除 / 延长账号有效期
+-- 执行位置：Supabase Dashboard → SQL Editor → 粘贴 → Run
+--
+-- 【重要】本版为「先删后建」的重置安装。
+--   该表此前从未使用过，删除不会丢失任何已有数据
+--   （你的礼金记录在 gift_records 表里，本操作完全不碰它）。
+--
+-- 【安全边界，请务必知悉】
+--   本项目 anon key 是公开的，gift_accounts 的 RLS 是全放行策略，
+--   所以这道门只能拦住"随手打开页面就想进"的人，拦不住懂技术的人：
+--   对方可以直接调 REST 接口读取或改写全部账号。
+--   密码经 SHA-256 存哈希，只是让明文不至于肉眼可见，弱密码仍可被爆破。
+--   请勿把本页地址公开传播。真正的数据安全要靠 Supabase 的 RLS + 真实鉴权。
+-- ============================================================
+
+drop table if exists public.gift_accounts;
+
+create extension if not exists "pgcrypto";
+
+create table public.gift_accounts (
+  id            uuid        primary key default gen_random_uuid(),
+  username      text        not null,                 -- 登录账号（前端统一按小写存）
+  password_hash text        not null,                 -- sha256('gift-password:v1::' + 密码) 的 64 位小写 hex
+  role          text        not null default 'user',  -- admin / user
+  expires_at    timestamptz,                          -- 到期时间；null = 永不过期
+  created_by    text,                                 -- 创建者账号（便于追溯谁建的）
+  created_at    timestamptz not null default now(),
+  constraint gift_accounts_username_key unique (username),
+  constraint gift_accounts_role_chk check (role in ('admin', 'user'))
+);
+
+-- 加速按账号查询 / 到期扫描
+create index idx_gift_accounts_username on public.gift_accounts (username);
+create index idx_gift_accounts_expires  on public.gift_accounts (expires_at);
+
+-- 行级安全（与 gift_records / wedding_categories 保持同一放行口径）
+alter table public.gift_accounts enable row level security;
+
+create policy "gift_accounts_select_all" on public.gift_accounts
+  for select using (true);
+
+create policy "gift_accounts_insert_all" on public.gift_accounts
+  for insert with check (true);
+
+create policy "gift_accounts_update_all" on public.gift_accounts
+  for update using (true) with check (true);
+
+create policy "gift_accounts_delete_all" on public.gift_accounts
+  for delete using (true);
+
+-- ------------------------------------------------------------
+-- 内置管理员在云端的对应记录（role=admin、永不过期）
+-- 仅用于账号列表展示与追溯，实际登录走页面内置的 admin/admin 本地校验。
+-- 哈希由 pgcrypto 直接算出，与前端 digestText('gift-password:v1::admin')
+-- 的结果逐字符一致（小写 hex）。
+-- ------------------------------------------------------------
+insert into public.gift_accounts (username, role, expires_at, password_hash, created_by)
+values ('admin', 'admin', null,
+        encode(digest('gift-password:v1::admin', 'sha256'), 'hex'), 'system')
+on conflict (username) do nothing;
+
+-- ------------------------------------------------------------
+-- 自检（可单独运行，确认表与哈希都已就绪）
+-- 期望：admin 的 password_hash =
+--      2d99f8b212ed1faade278990dba32d93821f9457dbaa7399f4c83dadc5056d05
+-- ------------------------------------------------------------
+-- select username, role, expires_at, created_by, created_at, password_hash
+--   from public.gift_accounts order by created_at;

@@ -129,6 +129,46 @@ body{
 .gift-context-item.region:hover{background:rgba(229,72,77,.08);color:#e5484d}
 .gift-context-item.region.on{color:#e5484d;font-weight:600;background:rgba(229,72,77,.08)}
 
+/* ===== 标题：长按（手机）/ 右键（PC）打开账号权限管理，禁止长按选中 ===== */
+#giftTitle{-webkit-touch-callout:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;cursor:default}
+
+/* ===== 账号权限管理弹窗（仅管理员 admin 可打开） ===== */
+/* .gift-modal-ct 自身没有高度限制，弹窗靠 .gift-acc 的 flex 列布局 + .gift-acc-bd 自滚兜住超屏 */
+.gift-modal-ct.gift-acc{max-width:540px;padding:0;display:flex;flex-direction:column;max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px)}
+.gift-acc-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 24px 12px;flex:0 0 auto}
+.gift-acc-hd h3{margin-bottom:0}
+.gift-acc-x{width:30px;height:30px;flex-shrink:0;border:none;border-radius:8px;background:transparent;color:var(--text2);font-size:22px;line-height:1;cursor:pointer}
+.gift-acc-x:hover{background:var(--bg2);color:var(--text)}
+.gift-acc-bd{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 24px 20px}
+.gift-acc-src{font-size:12px;color:var(--text3);padding:8px 10px;margin-bottom:2px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;line-height:1.5}
+.gift-acc-src.warn{color:#b45309;border-color:#fcd34d;background:rgba(251,191,36,.1)}
+.gift-acc-sec{border-bottom:1px solid var(--border);padding:16px 0}
+.gift-acc-sec:last-of-type{border-bottom:none;padding-bottom:4px}
+.gift-acc-sec-t{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px}
+.gift-acc-sec-t span{font-weight:400;color:var(--text3)}
+.gift-presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.gift-presets .gift-btn-s.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+.gift-acc-actions{display:flex;justify-content:flex-end;margin-top:14px}
+.gift-acc-list{display:flex;flex-direction:column;gap:8px}
+.gift-acc-item{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--surface2)}
+.gift-acc-item.expired{opacity:.62}
+.gift-acc-item .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.gift-acc-name{font-size:14px;font-weight:600;color:var(--text);word-break:break-all}
+.gift-acc-role{font-size:11px;padding:1px 6px;border-radius:6px;background:var(--gold-light);color:var(--gold);font-weight:600;flex-shrink:0}
+.gift-acc-role.user{background:var(--bg2);color:var(--text3);font-weight:400}
+.gift-acc-left{font-size:12px;color:var(--text3);margin-top:4px;line-height:1.5}
+.gift-acc-left.warn{color:#e5484d;font-weight:600}
+.gift-acc-item .ops{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center}
+.gift-acc-min-input{width:78px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);outline:none}
+.gift-acc-min-input:focus{border-color:var(--gold)}
+.gift-acc-ops-tip{font-size:12px;color:var(--text3)}
+.gift-acc-note{font-size:11px;color:var(--text3);line-height:1.7;margin-top:12px;padding-top:10px;border-top:1px dashed var(--border)}
+.gift-acc-empty{font-size:12px;color:var(--text3);text-align:center;padding:14px 0}
+
+/* ===== 轻提示 toast ===== */
+.gift-toast{position:fixed;left:50%;bottom:48px;transform:translateX(-50%);z-index:1200;background:rgba(15,23,42,.92);color:#fff;font-size:13px;line-height:1.5;padding:9px 16px;border-radius:10px;max-width:86vw;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none}
+.gift-toast.show{opacity:1}
+
 /* ===== 端型分界：PC >700px，手机 ≤700px ===== */
 @media(min-width:701px){
   .gift-region-bar.pc.show{display:flex}
@@ -150,6 +190,11 @@ body{
   .gift-stat.money{padding:14px 0}
   .gift-stat.money.split .gift-stat-pane{padding:0 6px}
   .gift-stat.money.split .gift-stat-pane .vl{font-size:17px}
+  /* 账号权限管理弹窗：手机端占满可用宽度，内边距收紧 */
+  .gift-modal-ct.gift-acc{max-width:100%;max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px)}
+  .gift-acc-hd{padding:16px 16px 10px}
+  .gift-acc-bd{padding:0 16px 16px}
+  .gift-toast{bottom:24px;max-width:92vw}
 }
 </style>
 </head>
@@ -160,7 +205,7 @@ body{
 <div class="gift-page">
   <div class="gift-header">
     <button class="gift-back" onclick="goBackPortal()" title="返回门户">←</button>
-    <h2>礼金登记</h2>
+    <h2 id="giftTitle" title="长按（手机）或右键（PC）可进行账号权限管理">礼金登记</h2>
     <button class="gift-btn-s" style="margin-left:auto" onclick="giftLogout()" title="退出登录，下次访问需重新验证">退出登录</button>
   </div>
 
@@ -261,6 +306,62 @@ body{
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px">
       <button class="gift-btn-c" onclick="closeGiftEditModal()">取消</button>
       <button class="gift-btn" onclick="saveGiftEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 账号权限管理弹窗（仅管理员：长按 / 右键「礼金登记」标题打开） -->
+<div id="giftAccModal" class="gift-modal">
+  <div class="gift-modal-ct gift-acc">
+    <div class="gift-acc-hd">
+      <h3>账号权限管理</h3>
+      <button class="gift-acc-x" onclick="closeGiftAccountModal()" title="关闭">×</button>
+    </div>
+    <div class="gift-acc-bd">
+      <div class="gift-acc-src" id="giftAccSrc">数据源：检测中…</div>
+
+      <!-- 新建账号 -->
+      <div class="gift-acc-sec">
+        <div class="gift-acc-sec-t">新建账号</div>
+        <div class="gift-form-row">
+          <div class="gift-field">
+            <label>账号</label>
+            <input id="giftAccNewUser" maxlength="24" autocomplete="off" placeholder="如 shouli">
+          </div>
+          <div class="gift-field">
+            <label>密码</label>
+            <input id="giftAccNewPass" type="text" maxlength="32" autocomplete="off" placeholder="建议 6 位以上">
+          </div>
+        </div>
+        <div class="gift-field" style="margin-top:12px">
+          <label>有效时间（分钟，1 ~ 720）</label>
+          <input id="giftAccNewMin" type="number" min="1" max="720" step="1" value="60" inputmode="numeric">
+        </div>
+        <div class="gift-presets" id="giftAccPresets">
+          <button class="gift-btn-s" data-min="1">1分钟</button>
+          <button class="gift-btn-s" data-min="5">5分钟</button>
+          <button class="gift-btn-s" data-min="30">30分钟</button>
+          <button class="gift-btn-s" data-min="60">1小时</button>
+          <button class="gift-btn-s" data-min="180">3小时</button>
+          <button class="gift-btn-s" data-min="360">6小时</button>
+          <button class="gift-btn-s" data-min="720">12小时</button>
+        </div>
+        <div class="gift-acc-actions">
+          <button class="gift-btn" onclick="giftCreateAccount()">创建账号</button>
+        </div>
+      </div>
+
+      <!-- 账号列表 -->
+      <div class="gift-acc-sec">
+        <div class="gift-acc-sec-t">账号列表 <span id="giftAccCount"></span></div>
+        <div class="gift-acc-list" id="giftAccList"><div class="gift-acc-empty">加载中…</div></div>
+      </div>
+
+      <div class="gift-acc-note">
+        有效时间到点后该账号会自动刷新并退出，必须重新登录才能继续使用。<br>
+        本功能为前端门槛级防护：页面的 anon key 是公开的，懂技术的人仍可绕过，请勿把本页地址外传。<br>
+        内置管理员 admin 永久有效且不可删除，作为应急兜底入口。
+      </div>
     </div>
   </div>
 </div>
@@ -692,36 +793,621 @@ async function deleteGiftRecord(id) {
   loadGiftRecords();
 }
 
-/* ==================== 访问验证（admin/admin） ==================== */
-// 凭证以 Base64 存放，避免源码明文；注意这是前端门槛级防护，详见页面说明
-var GIFT_AUTH_KEY = 'gift_auth_ok';
+/* ==================== 访问验证 + 限时授权账号 ==================== */
+// 前端门槛级防护：anon key 公开、RLS 全放行，防得住顺手点开页面的人，防不住懂技术的人。
+// 密码一律存 SHA-256 哈希（前缀 gift-password:v1::），表里不出现明文。
+// 哈希写法与 kq/index.html 的 hashPassword() 同构，便于两处统一理解。
+var GIFT_AUTH_KEY           = 'gift_auth_ok';        // 旧 key，仅用于一次性迁移
+var GIFT_SESSION_KEY        = 'gift_auth_session';
+var GIFT_ACCOUNTS_LOCAL_KEY = 'portal_gift_accounts';
+var GIFT_ACCOUNT_TABLE      = 'gift_accounts';
+var GIFT_PASS_PREFIX        = 'gift-password:v1::';
+var GIFT_MIN_MINUTES        = 1;
+var GIFT_MAX_MINUTES        = 720;                   // 12 小时
+var GIFT_EXPIRED_NOTICE_KEY = 'gift_expired_notice';
+var GIFT_RECHECK_GAP        = 30000;                 // 回到前台的复核节流：30 秒
+
+// 内置管理员（应急兜底）：本地校验、不依赖网络、永不过期
 var GIFT_USER_B64 = 'YWRtaW4='; // admin
 var GIFT_PASS_B64 = 'YWRtaW4='; // admin
 
-function isGiftAuthed() {
-  try { return localStorage.getItem(GIFT_AUTH_KEY) === '1'; } catch (e) { return false; }
+var giftExpireTimer = null;    // 精确到期闹钟
+var giftWatchTimer  = null;    // 保底巡检（防手机端定时器被节流/冻结）
+var giftAccTimer    = null;    // 弹窗打开时刷新账号剩余时间的计时器
+var giftExpiring    = false;   // 防重入，避免 reload 死循环
+var giftAccounts    = [];      // 账号列表缓存
+var giftAccExtendId = null;    // 正在「延长」的账号 id
+var giftLastRecheck = 0;       // 上次前台复核的时间戳
+var giftToastTimer  = null;
+
+/* ---------- 会话读写 ---------- */
+// 读会话；顺带把旧的 gift_auth_ok 迁移成管理员会话，老用户不会被踢下线
+function giftGetSession() {
+  try {
+    var raw = localStorage.getItem(GIFT_SESSION_KEY);
+    if (raw) {
+      var s = JSON.parse(raw);
+      if (s && s.username) return s;
+      localStorage.removeItem(GIFT_SESSION_KEY);
+    }
+    if (localStorage.getItem(GIFT_AUTH_KEY) === '1') {
+      var migrated = { username: 'admin', role: 'admin', expiresAt: null, builtin: true, cloud: false };
+      localStorage.setItem(GIFT_SESSION_KEY, JSON.stringify(migrated));
+      localStorage.removeItem(GIFT_AUTH_KEY);
+      return migrated;
+    }
+  } catch (e) {}
+  return null;
 }
 
-function giftLogin() {
-  var u = document.getElementById('giftLoginUser').value.trim();
-  var p = document.getElementById('giftLoginPass').value;
-  var errEl = document.getElementById('giftLoginErr');
-  var ok = false;
-  try { ok = (btoa(u) === GIFT_USER_B64 && btoa(p) === GIFT_PASS_B64); } catch (e) {}
-  if (ok) {
-    localStorage.setItem(GIFT_AUTH_KEY, '1');
-    document.getElementById('giftLogin').classList.remove('show');
-    errEl.style.display = 'none';
-    loadGiftRecords();
-  } else {
-    errEl.style.display = 'block';
+function giftSetSession(session) {
+  try { localStorage.setItem(GIFT_SESSION_KEY, JSON.stringify(session)); } catch (e) {}
+}
+
+function giftClearSession() {
+  try {
+    localStorage.removeItem(GIFT_SESSION_KEY);
+    localStorage.removeItem(GIFT_AUTH_KEY);
+  } catch (e) {}
+}
+
+// 有会话，且（永不过期 或 尚未到期）
+function isGiftAuthed() {
+  var s = giftGetSession();
+  if (!s) return false;
+  if (s.expiresAt == null) return true;
+  return s.expiresAt - Date.now() > 0;
+}
+
+// 是否管理员（内置 admin 或云端 role=admin）——账号管理弹窗的唯一入口条件
+function giftIsAdmin() {
+  var s = giftGetSession();
+  return !!(s && s.role === 'admin');
+}
+
+/* ---------- 轻提示 ---------- */
+function giftToast(msg, duration) {
+  var el = document.getElementById('giftToast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'giftToast';
+    el.className = 'gift-toast';
+    document.body.appendChild(el);
   }
+  el.textContent = msg;
+  void el.offsetWidth;            // 强制回流，保证连续调用时动画能重放
+  el.classList.add('show');
+  if (giftToastTimer) clearTimeout(giftToastTimer);
+  giftToastTimer = setTimeout(function() { el.classList.remove('show'); }, duration || 2400);
+}
+
+/* ---------- 密码哈希 ---------- */
+function giftHasSubtleCrypto() {
+  return !!(window.crypto && window.crypto.subtle && window.TextEncoder);
+}
+
+async function giftDigest(text) {
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+}
+
+function giftHashPassword(pw) {
+  return giftDigest(GIFT_PASS_PREFIX + String(pw == null ? '' : pw));
+}
+
+/* ---------- 账号读写（云端优先，失败降级 localStorage） ---------- */
+function giftAccountsLocalGet() {
+  try {
+    var list = JSON.parse(localStorage.getItem(GIFT_ACCOUNTS_LOCAL_KEY) || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch (e) { return []; }
+}
+
+function giftAccountsLocalSet(list) {
+  try { localStorage.setItem(GIFT_ACCOUNTS_LOCAL_KEY, JSON.stringify(list || [])); } catch (e) {}
+}
+
+// 按账号名查一条记录；查不到返回 null，查询出错向上抛
+async function giftFindAccount(username) {
+  if (giftCloudMode) {
+    var res = await giftSB.from(GIFT_ACCOUNT_TABLE).select('*').eq('username', username).limit(1);
+    if (res.error) throw res.error;
+    return (res.data && res.data[0]) ? res.data[0] : null;
+  }
+  var found = giftAccountsLocalGet().filter(function(a) { return a.username === username; })[0];
+  return found || null;
+}
+
+// 校验账号密码与有效期 → {username,role,expiresAt,cloud} / {expired:true} / null
+async function giftAuthenticate(username, password) {
+  var account = await giftFindAccount(username);
+  if (!account) return null;
+  var hash = await giftHashPassword(password);
+  if (hash !== account.password_hash) return null;
+  if (account.expires_at && Date.parse(account.expires_at) - Date.now() <= 0) return { expired: true };
+  return {
+    username: account.username,
+    role: account.role || 'user',
+    expiresAt: account.expires_at ? Date.parse(account.expires_at) : null,
+    builtin: false,
+    cloud: !!giftCloudMode
+  };
+}
+
+/* ---------- 登录 / 登出 ---------- */
+function giftShowLoginErr(msg) {
+  var el = document.getElementById('giftLoginErr');
+  if (!el) return;
+  if (!msg) { el.style.display = 'none'; return; }
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// 登录成功的统一收尾
+function giftFinishLogin(session) {
+  giftSetSession(session);
+  giftShowLoginErr(null);
+  var passEl = document.getElementById('giftLoginPass');
+  if (passEl) passEl.value = '';
+  document.getElementById('giftLogin').classList.remove('show');
+  giftStartWatch();
+  loadGiftRecords();
+}
+
+async function giftLogin() {
+  var u = document.getElementById('giftLoginUser').value.trim().toLowerCase();
+  var p = document.getElementById('giftLoginPass').value;
+  if (!u || !p) { giftShowLoginErr('请输入账号和密码'); return; }
+
+  // ① 内置管理员：本地校验优先，断网也能进（应急兜底）
+  var builtinOk = false;
+  try { builtinOk = (btoa(u) === GIFT_USER_B64 && btoa(p) === GIFT_PASS_B64); } catch (e) {}
+  if (builtinOk) {
+    giftFinishLogin({ username: 'admin', role: 'admin', expiresAt: null, builtin: true, cloud: false });
+    return;
+  }
+
+  // ② 云端 / 本地账号表
+  if (!giftHasSubtleCrypto()) {
+    giftShowLoginErr('当前环境不支持加密计算，请用 https 或 localhost 打开本页');
+    return;
+  }
+  var session = null;
+  try {
+    session = await giftAuthenticate(u, p);
+  } catch (e) {
+    console.error('账号校验失败:', e);
+    giftShowLoginErr('账号校验失败：' + (e.message || e) + '（请确认已执行 gift_accounts.txt 建表 SQL）');
+    return;
+  }
+  if (session && session.expired) { giftShowLoginErr('该账号已过期，请联系管理员重新授权'); return; }
+  if (!session) { giftShowLoginErr('账号或密码错误，请重新输入'); return; }
+  giftFinishLogin(session);
 }
 
 function giftLogout() {
   if (!confirm('确定退出登录吗？退出后下次访问需要重新输入账号密码。')) return;
-  localStorage.removeItem(GIFT_AUTH_KEY);
+  giftStopWatch();
+  giftClearSession();
+  giftAccExtendId = null;
+  closeGiftAccountModal();
+  giftRecords = [];
+  giftRegionFilter = null;
+  renderGiftList();
+  updateGiftStats();
   document.getElementById('giftLogin').classList.add('show');
+}
+
+/* ---------- 到期检测与强制退出 ---------- */
+function giftStopWatch() {
+  if (giftExpireTimer) { clearTimeout(giftExpireTimer); giftExpireTimer = null; }
+  if (giftWatchTimer) { clearInterval(giftWatchTimer); giftWatchTimer = null; }
+}
+
+function giftStartWatch() {
+  giftStopWatch();
+  var s = giftGetSession();
+  if (!s || s.expiresAt == null) return;   // 永久账号不做到期检测
+  var left = s.expiresAt - Date.now();
+  if (left <= 0) { giftHandleExpired(); return; }
+  giftExpireTimer = setTimeout(giftCheckSession, left);    // 精确到点
+  giftWatchTimer = setInterval(giftCheckSession, 30000);   // 保底巡检
+}
+
+function giftCheckSession() {
+  var s = giftGetSession();
+  if (!s || s.expiresAt == null) return;
+  if (s.expiresAt - Date.now() <= 0) giftHandleExpired();
+}
+
+// 强制退出：必须先清会话再刷新，顺序颠倒会反复刷新
+function giftHandleExpired() {
+  if (giftExpiring) return;
+  giftExpiring = true;
+  giftStopWatch();
+  try { sessionStorage.setItem(GIFT_EXPIRED_NOTICE_KEY, '1'); } catch (e) {}
+  giftClearSession();
+  location.reload();
+}
+
+// 回到前台复核：账号被管理员删除 / 被改短 → 立即失效
+// 关键：网络异常绝不误踢，只有「明确查到账号不存在」或「明确已过期」才退出
+async function giftRecheckSession() {
+  if (giftExpiring) return;
+  var s = giftGetSession();
+  if (!s || s.builtin || s.expiresAt == null) return;
+  if (s.expiresAt - Date.now() <= 0) { giftHandleExpired(); return; }
+
+  var now = Date.now();
+  if (now - giftLastRecheck < GIFT_RECHECK_GAP) return;
+  giftLastRecheck = now;
+  if (!giftCloudMode || s.cloud === false) return;   // 本地模式账号没有跨设备删号一说
+
+  var account = null;
+  try {
+    account = await giftFindAccount(s.username);
+  } catch (e) {
+    return;   // 网络或表异常：什么都不做
+  }
+  if (!account) { giftHandleExpired(); return; }
+  if (account.expires_at && Date.parse(account.expires_at) - Date.now() <= 0) giftHandleExpired();
+}
+
+/* ---------- 账号权限管理弹窗（仅管理员） ---------- */
+function giftTryOpenAccountModal() {
+  if (!giftIsAdmin()) { giftToast('仅管理员可进行账号管理'); return; }
+  openGiftAccountModal();
+}
+
+function openGiftAccountModal() {
+  giftAccExtendId = null;
+  document.getElementById('giftAccModal').classList.add('show');
+  giftRefreshAccountList();
+  if (giftAccTimer) clearInterval(giftAccTimer);
+  // 打开期间每 30 秒刷新剩余时间（正在延长时跳过，避免输入框被重建清空）
+  giftAccTimer = setInterval(function() {
+    if (!giftAccExtendId) giftRefreshAccountList();
+  }, 30000);
+}
+
+function closeGiftAccountModal() {
+  var el = document.getElementById('giftAccModal');
+  if (el) el.classList.remove('show');
+  giftAccExtendId = null;
+  if (giftAccTimer) { clearInterval(giftAccTimer); giftAccTimer = null; }
+}
+
+async function giftRefreshAccountList() {
+  var srcEl = document.getElementById('giftAccSrc');
+  var listEl = document.getElementById('giftAccList');
+  if (!listEl) return;
+  listEl.innerHTML = '<div class="gift-acc-empty">加载中…</div>';
+
+  if (giftCloudMode) {
+    try {
+      var res = await giftSB.from(GIFT_ACCOUNT_TABLE).select('*').order('created_at', { ascending: true });
+      if (res.error) throw res.error;
+      giftAccounts = res.data || [];
+      if (srcEl) {
+        srcEl.className = 'gift-acc-src';
+        srcEl.textContent = '数据源：云端（Supabase · gift_accounts），所有设备共用';
+      }
+      renderGiftAccountList();
+      return;
+    } catch (e) {
+      console.error('云端加载账号失败:', e);
+      if (srcEl) {
+        srcEl.className = 'gift-acc-src warn';
+        srcEl.textContent = '数据源：本地（云端加载失败：' + (e.message || e) + '）'
+          + '。请在 Supabase 执行 gift_accounts.txt 建表 SQL，否则账号只在本机有效。';
+      }
+    }
+  } else if (srcEl) {
+    srcEl.className = 'gift-acc-src warn';
+    srcEl.textContent = '数据源：本地（未连接云端，账号只在本机有效）';
+  }
+
+  giftAccounts = giftAccountsLocalGet();
+  renderGiftAccountList();
+}
+
+// 剩余时间文案
+function giftFormatRemaining(expiresAtIso) {
+  if (!expiresAtIso) return { text: '永不过期', cls: '' };
+  var left = Date.parse(expiresAtIso) - Date.now();
+  if (isNaN(left)) return { text: '到期时间异常', cls: '' };
+  if (left <= 0) return { text: '已过期', cls: 'warn' };
+  var sec = Math.floor(left / 1000);
+  var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  var text = '剩余 ' + (h > 0 ? h + '小时' + m + '分' : (m > 0 ? m + '分' + s + '秒' : s + '秒'));
+  return { text: text, cls: left <= 60000 ? 'warn' : '' };
+}
+
+function renderGiftAccountList() {
+  var listEl = document.getElementById('giftAccList');
+  var cntEl  = document.getElementById('giftAccCount');
+  if (!listEl) return;
+
+  var list = giftAccounts.slice().sort(function(a, b) {
+    var aAdmin = a.role === 'admin', bAdmin = b.role === 'admin';
+    if (aAdmin !== bAdmin) return aAdmin ? -1 : 1;      // 管理员置顶
+    return (Date.parse(a.created_at) || 0) - (Date.parse(b.created_at) || 0);
+  });
+
+  if (cntEl) cntEl.textContent = '（共 ' + list.length + ' 个）';
+  if (!list.length) {
+    listEl.innerHTML = '<div class="gift-acc-empty">暂无账号</div>';
+    return;
+  }
+
+  listEl.innerHTML = list.map(function(a) {
+    var isAdminRow = (a.username === 'admin');
+    var rem = giftFormatRemaining(a.expires_at);
+    var expiredCls = (a.expires_at && Date.parse(a.expires_at) - Date.now() <= 0) ? ' expired' : '';
+    var ops;
+
+    if (isAdminRow) {
+      ops = '<div class="ops"><span class="gift-acc-ops-tip">内置管理员：永久有效、不可修改</span></div>';
+    } else if (giftAccExtendId === a.id) {
+      ops = '<div class="ops">'
+        + '<input class="gift-acc-min-input" id="giftAccExtMin" type="number" min="1" max="720" step="1" value="60" inputmode="numeric">'
+        + '<span class="gift-acc-ops-tip">分钟后到期</span>'
+        + '<button class="gift-btn-s" data-extset="60">1小时</button>'
+        + '<button class="gift-btn-s" data-extset="720">12小时</button>'
+        + '<button class="gift-btn-s active" data-extok="1">确定</button>'
+        + '<button class="gift-btn-s" data-extcancel="1">取消</button>'
+        + '</div>';
+    } else {
+      ops = '<div class="ops">'
+        + '<button class="gift-btn-s" data-ext="' + escapeGiftHtml(a.id) + '">延长</button>'
+        + '<button class="gift-btn-s" data-del="' + escapeGiftHtml(a.id) + '" data-name="' + escapeGiftHtml(a.username) + '">删除</button>'
+        + '</div>';
+    }
+
+    return '<div class="gift-acc-item' + expiredCls + '">'
+      + '<div class="top">'
+      +   '<span class="gift-acc-name">' + escapeGiftHtml(a.username) + '</span>'
+      +   '<span class="gift-acc-role' + (isAdminRow ? '' : ' user') + '">' + (isAdminRow ? '管理员' : '普通') + '</span>'
+      + '</div>'
+      + '<div class="gift-acc-left ' + rem.cls + '">' + rem.text
+      +   (a.expires_at ? '（' + formatGiftTime(a.expires_at) + ' 到期）' : '')
+      +   (a.created_by ? ' · 由 ' + escapeGiftHtml(a.created_by) + ' 创建' : '')
+      + '</div>'
+      + ops
+      + '</div>';
+  }).join('');
+}
+
+function giftSyncPresetButtons() {
+  var inp = document.getElementById('giftAccNewMin');
+  var cur = inp ? inp.value : '';
+  document.querySelectorAll('#giftAccPresets button[data-min]').forEach(function(b) {
+    b.classList.toggle('on', b.getAttribute('data-min') === String(cur));
+  });
+}
+
+/* ---------- 新建 / 延长 / 删除 ---------- */
+async function giftCreateAccount() {
+  if (!giftIsAdmin()) { giftToast('仅管理员可操作'); return; }
+
+  var userEl = document.getElementById('giftAccNewUser');
+  var passEl = document.getElementById('giftAccNewPass');
+  var minEl  = document.getElementById('giftAccNewMin');
+  var username = (userEl.value || '').trim().toLowerCase();
+  var password = passEl.value || '';
+  var minutes  = parseInt(minEl.value, 10);
+
+  if (!/^[a-z0-9_-]{2,24}$/.test(username)) {
+    giftToast('账号只能用 2~24 位小写字母、数字、下划线或短横线');
+    userEl.focus();
+    return;
+  }
+  if (username === 'admin') { giftToast('admin 是内置管理员账号，请换一个名字'); userEl.focus(); return; }
+  if (password.length < 4) { giftToast('密码至少 4 位'); passEl.focus(); return; }
+  if (isNaN(minutes) || minutes < GIFT_MIN_MINUTES || minutes > GIFT_MAX_MINUTES) {
+    giftToast('有效时间需在 ' + GIFT_MIN_MINUTES + ' ~ ' + GIFT_MAX_MINUTES + ' 分钟之间（最长 12 小时）');
+    minEl.focus();
+    return;
+  }
+  if (!giftHasSubtleCrypto()) { giftToast('当前环境不支持加密计算，无法创建账号'); return; }
+
+  var record = {
+    username: username,
+    password_hash: await giftHashPassword(password),
+    role: 'user',
+    expires_at: new Date(Date.now() + minutes * 60000).toISOString(),
+    created_by: (giftGetSession() || {}).username || 'admin'
+  };
+
+  var savedCloud = false;
+  if (giftCloudMode) {
+    try {
+      var res = await giftSB.from(GIFT_ACCOUNT_TABLE).insert(record).select();
+      if (res.error) throw res.error;
+      savedCloud = true;
+    } catch (e) {
+      console.error('云端创建账号失败:', e);
+      if (/duplicate|unique/i.test(e.message || '')) {
+        giftToast('账号「' + username + '」已存在');
+        return;
+      }
+      giftToast('云端创建失败，已存到本机（' + (e.message || e) + '）');
+    }
+  }
+
+  if (!savedCloud) {
+    var local = giftAccountsLocalGet();
+    if (local.some(function(a) { return a.username === username; })) {
+      giftToast('账号「' + username + '」已存在');
+      return;
+    }
+    record.id = 'local-' + Date.now();
+    record.created_at = new Date().toISOString();
+    local.push(record);
+    giftAccountsLocalSet(local);
+  }
+
+  userEl.value = '';
+  passEl.value = '';
+  giftToast('账号「' + username + '」已创建，' + minutes + ' 分钟后失效', 3200);
+  giftRefreshAccountList();
+}
+
+async function giftExtendAccount(id, minutes) {
+  if (!giftIsAdmin()) { giftToast('仅管理员可操作'); return; }
+  if (!id) return;
+  if (isNaN(minutes) || minutes < GIFT_MIN_MINUTES || minutes > GIFT_MAX_MINUTES) {
+    giftToast('有效时间需在 ' + GIFT_MIN_MINUTES + ' ~ ' + GIFT_MAX_MINUTES + ' 分钟之间（最长 12 小时）');
+    return;
+  }
+  var target = giftAccounts.filter(function(a) { return String(a.id) === String(id); })[0];
+  if (target && target.username === 'admin') { giftToast('内置管理员永久有效，无需延长'); return; }
+
+  var expiresAtIso = new Date(Date.now() + minutes * 60000).toISOString();
+  var doneCloud = false;
+  if (giftCloudMode) {
+    try {
+      var res = await giftSB.from(GIFT_ACCOUNT_TABLE).update({ expires_at: expiresAtIso }).eq('id', id).select();
+      if (res.error) throw res.error;
+      doneCloud = true;
+    } catch (e) {
+      console.error('云端延长失败:', e);
+      giftToast('云端更新失败，已改到本机（' + (e.message || e) + '）');
+    }
+  }
+  if (!doneCloud) {
+    var local = giftAccountsLocalGet();
+    local.forEach(function(a) { if (String(a.id) === String(id)) a.expires_at = expiresAtIso; });
+    giftAccountsLocalSet(local);
+  }
+
+  giftAccExtendId = null;
+  giftToast('已延长：' + minutes + ' 分钟后失效', 3200);
+  giftRefreshAccountList();
+}
+
+async function giftDeleteAccount(id, username) {
+  if (!giftIsAdmin()) { giftToast('仅管理员可操作'); return; }
+  if (username === 'admin') { giftToast('内置管理员不可删除'); return; }
+  if (!confirm('确定删除账号「' + username + '」吗？\n该账号会立即失效，正在使用的人下次回到页面时会被退出。')) return;
+
+  var doneCloud = false;
+  if (giftCloudMode) {
+    try {
+      var res = await giftSB.from(GIFT_ACCOUNT_TABLE).delete().eq('id', id);
+      if (res.error) throw res.error;
+      doneCloud = true;
+    } catch (e) {
+      console.error('云端删除失败:', e);
+      giftToast('云端删除失败，已从本机移除（' + (e.message || e) + '）');
+    }
+  }
+  if (!doneCloud) {
+    var local = giftAccountsLocalGet().filter(function(a) { return String(a.id) !== String(id); });
+    giftAccountsLocalSet(local);
+  }
+
+  giftAccExtendId = null;
+  giftToast('已删除账号「' + username + '」');
+  giftRefreshAccountList();
+}
+
+/* ---------- 弹窗事件绑定（一次性） ---------- */
+function bindGiftAccountEvents() {
+  var presetsEl = document.getElementById('giftAccPresets');
+  if (presetsEl) {
+    presetsEl.addEventListener('click', function(e) {
+      var b = e.target.closest('button[data-min]');
+      if (!b) return;
+      var inp = document.getElementById('giftAccNewMin');
+      if (inp) inp.value = b.getAttribute('data-min');
+      giftSyncPresetButtons();
+    });
+  }
+
+  var minInp = document.getElementById('giftAccNewMin');
+  if (minInp) minInp.addEventListener('input', giftSyncPresetButtons);
+
+  var listEl = document.getElementById('giftAccList');
+  if (listEl) {
+    listEl.addEventListener('click', function(e) {
+      var t = e.target.closest('button');
+      if (!t) return;
+      if (t.hasAttribute('data-ext')) {
+        giftAccExtendId = t.getAttribute('data-ext');
+        renderGiftAccountList();
+        return;
+      }
+      if (t.hasAttribute('data-extcancel')) {
+        giftAccExtendId = null;
+        renderGiftAccountList();
+        return;
+      }
+      if (t.hasAttribute('data-extset')) {
+        var setInp = document.getElementById('giftAccExtMin');
+        if (setInp) setInp.value = t.getAttribute('data-extset');
+        return;
+      }
+      if (t.hasAttribute('data-extok')) {
+        var inp = document.getElementById('giftAccExtMin');
+        giftExtendAccount(giftAccExtendId, inp ? parseInt(inp.value, 10) : NaN);
+        return;
+      }
+      if (t.hasAttribute('data-del')) {
+        giftDeleteAccount(t.getAttribute('data-del'), t.getAttribute('data-name'));
+      }
+    });
+  }
+
+  // 点击遮罩空白处关闭
+  var modal = document.getElementById('giftAccModal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) closeGiftAccountModal();
+    });
+  }
+}
+
+/* ---------- 标题长按（手机）/ 右键（PC）打开账号管理 ---------- */
+function bindGiftTitleLongPress() {
+  var el = document.getElementById('giftTitle');
+  if (!el) return;
+  var timer = null;
+  var fired = false;
+
+  function clearSel() {
+    try {
+      var sel = window.getSelection && window.getSelection();
+      if (sel && sel.removeAllRanges) sel.removeAllRanges();
+    } catch (e) {}
+  }
+  function cancel() {
+    if (timer) { clearTimeout(timer); timer = null; }
+  }
+
+  el.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    clearSel();
+    giftTryOpenAccountModal();
+  });
+
+  el.addEventListener('touchstart', function() {
+    fired = false;
+    cancel();
+    timer = setTimeout(function() {
+      timer = null;
+      fired = true;
+      clearSel();
+      giftTryOpenAccountModal();
+    }, 600);
+  }, { passive: true });
+
+  el.addEventListener('touchmove', cancel, { passive: true });
+  el.addEventListener('touchcancel', cancel, { passive: true });
+  el.addEventListener('touchend', function(e) {
+    cancel();
+    if (fired) { e.preventDefault(); clearSel(); }
+  });
 }
 
 /* ==================== 明细列表列数切换（默认1列） ==================== */
@@ -735,14 +1421,40 @@ function toggleGiftListColumns() {
   btn.textContent = to2 ? '按1列显示' : '按2列显示';
 }
 
-// 页面加载即初始化：先验证身份，通过后才加载数据
+/* ==================== 页面初始化 ==================== */
+// 先验证身份，通过后才加载数据
 refreshGiftTimePreview();
+bindGiftTitleLongPress();
+bindGiftAccountEvents();
+
+// 上一次会话是被「到期」踢出的，或关页面期间已经到期 → 给一次提示
+var giftExpiredNotice = '';
+try {
+  giftExpiredNotice = sessionStorage.getItem(GIFT_EXPIRED_NOTICE_KEY) || '';
+  if (giftExpiredNotice) sessionStorage.removeItem(GIFT_EXPIRED_NOTICE_KEY);
+} catch (e) {}
+var giftBootSession = giftGetSession();
+if (giftExpiredNotice) {
+  giftToast('登录已过期，请重新登录', 3200);
+} else if (giftBootSession && giftBootSession.expiresAt != null && !isGiftAuthed()) {
+  giftClearSession();
+  giftToast('登录已过期，请重新登录', 3200);
+}
+
 if (isGiftAuthed()) {
+  giftStartWatch();
   loadGiftRecords();
 } else {
   document.getElementById('giftLogin').classList.add('show');
   document.getElementById('giftList').innerHTML = '<div class="gift-empty">请先登录后查看礼金明细</div>';
 }
+
+// 回到前台 / 窗口重新聚焦 / bfcache 恢复时复核会话（账号被删或已过期 → 立即退出）
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) giftRecheckSession();
+});
+window.addEventListener('focus', giftRecheckSession);
+window.addEventListener('pageshow', giftRecheckSession);
 </script>
 
 </body>
