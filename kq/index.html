@@ -176,10 +176,7 @@
 .wedding-stat.split-card .half:first-child .value{font-size:24px}
 .wedding-stat.split-card .divider{width:1px;background:var(--border);flex:none;margin:4px 0}
 @media(max-width:900px){
-  /* 窄屏：左半格按内容自适应（仅容下"记录条数"标签），把剩余宽度让给右半格的"当前费用"金额 */
-  .wedding-stat.split-card .half{padding:4px 8px}
-  .wedding-stat.split-card .half:first-child{flex:0 0 auto}
-  .wedding-stat.split-card .half .value{font-size:17px;white-space:nowrap}
+  .wedding-stat.split-card .half .value{font-size:17px}
   .wedding-stat.split-card .half:first-child .value{font-size:17px}
 }
 @media(min-width:901px){
@@ -805,11 +802,8 @@
       <div style="font-size: 12px; color: var(--text3); margin-top: 6px;">
         重命名类别会同步更新已有支出的归类；删除类别不影响已存在的支出记录。
       </div>
-      <div id="weddingCatSyncStatus" style="font-size: 12px; color: var(--text3); margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); line-height: 1.6;">云端同步：检测中…</div>
     </div>
     <div class="mo-ft">
-      <button class="btn-s" onclick="pullWeddingCategoriesCloud()" title="用云端列表覆盖本机列表">从云端拉取</button>
-      <button class="btn-s" onclick="forcePushWeddingCategoriesCloud()" title="用当前列表覆盖云端，供其他设备同步">同步到云端</button>
       <button class="btn-ok" onclick="closeWeddingCategoryManager()">完成</button>
     </div>
   </div>
@@ -1094,7 +1088,7 @@
 <div id="salaryDetailModal" class="mo-bg hidden">
   <div class="mo-ct salary-detail-modal">
     <div class="mo-hd">
-      <h3 id="salaryDetailTitle" style="cursor: pointer; user-select: none;">薪资明细</h3>
+      <h3 id="salaryDetailTitle" title="点击解锁/锁定薪资数据" style="cursor: pointer; user-select: none;">薪资明细</h3>
       <div class="dt" id="salaryDetailPeriod">当前月份预估</div>
     </div>
     <div class="mo-bd salary-detail-body">
@@ -1937,11 +1931,7 @@ async function openSalarySettingsModal(){
   
   // 密码验证
   if(!salarySettingsUnlocked){
-    var pwd = prompt('请输入登录密码以访问薪资设置：');
-    if(pwd === null) return; // 用户取消
-    if(!pwd){alert('密码不能为空');return;}
-    var verified = await verifyCurrentUserPassword(pwd);
-    if(!verified){alert('密码错误');return;}
+    if(!await askPasswordAndVerify('请输入登录密码以访问薪资设置：')) return;
     salarySettingsUnlocked = true;
   }
   
@@ -2173,6 +2163,20 @@ async function verifyCurrentUserPassword(inputPassword){
     }
     return false;
   }
+}
+// 原生 prompt 到异步校验完成之间，重复事件（安卓长按 contextmenu / 对话框关闭后补发的 click）会再弹一次，用同步标志挡掉
+var pwdPromptBusy=false;
+async function askPasswordAndVerify(message){
+  if(pwdPromptBusy) return false;
+  pwdPromptBusy=true;
+  try{
+    var pwd=prompt(message);
+    if(pwd===null) return false;
+    if(!pwd){alert('密码不能为空');return false;}
+    if(await verifyCurrentUserPassword(pwd)) return true;
+    alert('密码错误');
+    return false;
+  }finally{ pwdPromptBusy=false; }
 }
 
 // ===================== CLOUD FUNCTIONS =====================
@@ -2559,23 +2563,8 @@ async function cloudDeleteUser(userId){
   document.getElementById('pwdCancel').addEventListener('click', closePwdModal);
   document.getElementById('pwdSave').addEventListener('click', savePwd);
   
-  // ========== 薪资明细标题密码验证事件 ==========
-  (function(){
-    var titleEl = document.getElementById('salaryDetailTitle');
-    if(!titleEl) return;
-    var pressTimer = null;
-    // 右键(PC)
-    titleEl.addEventListener('contextmenu', function(e){
-      e.preventDefault();
-      promptSalaryDetailPassword();
-    });
-    // 长按(手机)
-    titleEl.addEventListener('touchstart', function(e){
-      pressTimer = setTimeout(function(){ promptSalaryDetailPassword(); }, 600);
-    });
-    titleEl.addEventListener('touchend', function(){ clearTimeout(pressTimer); });
-    titleEl.addEventListener('touchmove', function(){ clearTimeout(pressTimer); });
-  })();
+  // ========== 薪资明细标题密码验证事件（单击一次即可，长按会同时触发 contextmenu 与定时器导致弹两次框） ==========
+  document.getElementById('salaryDetailTitle').addEventListener('click', promptSalaryDetailPassword);
   
   async function promptSalaryDetailPassword(){
     if(salaryDetailUnlocked){
@@ -2585,11 +2574,7 @@ async function cloudDeleteUser(userId){
       showToast('已锁定', '薪资敏感数据已隐藏', 'info');
       return;
     }
-    var pwd = prompt('请输入登录密码以查看薪资明细：');
-    if(pwd === null) return;
-    if(!pwd){alert('密码不能为空');return;}
-    var verified = await verifyCurrentUserPassword(pwd);
-    if(!verified){alert('密码错误');return;}
+    if(!await askPasswordAndVerify('请输入登录密码以查看薪资明细：')) return;
     salaryDetailUnlocked = true;
     await openSalaryDetailModal();
     showToast('已解锁', '薪资敏感数据已显示', 'success');
@@ -6209,50 +6194,31 @@ function saveWeddingCategoriesLocal() {
 // 表不存在或断网时静默回退本地模式，不影响页面使用
 var WEDDING_CAT_CLOUD_READY = false;   // 表可用（查询未报错）
 var WEDDING_CAT_CLOUD_SEEDED = false;  // 云端已存有该用户的完整类别列表
-var WEDDING_CAT_SYNC_MSG = '检测中…';   // 同步状态文案（显示在类别管理弹窗底部，便于排查不同步问题）
-
-function setWeddingCatSyncMsg(msg) {
-  WEDDING_CAT_SYNC_MSG = msg;
-  var el = document.getElementById('weddingCatSyncStatus');
-  if (el) el.textContent = '云端同步：' + msg;
-}
 
 // 从云端加载类别；云端为空则把当前列表播种上去（首次迁移）
 async function loadWeddingCategoriesCloud() {
-  if (!CLOUD_MODE || !curUser || !curUser.id) {
-    setWeddingCatSyncMsg('未登录云端模式，类别仅保存在本机');
-    return false;
-  }
+  if (!CLOUD_MODE || !curUser || !curUser.id) return false;
   try {
     var res = await SB.from('wedding_categories')
       .select('name,sort_order')
       .eq('user_id', curUser.id)
       .order('sort_order', { ascending: true });
-    if (res.error) {
-      setWeddingCatSyncMsg('表不可用 → ' + res.error.message + '（请确认已在 Supabase 建 wedding_categories 表）');
-      console.warn('云端类别表不可用，回退本地缓存:', res.error.message);
-      return false;
-    }
+    if (res.error) { console.warn('云端类别表不可用，回退本地缓存:', res.error.message); return false; }
     WEDDING_CAT_CLOUD_READY = true;
     var rows = res.data || [];
     if (rows.length) {
       weddingState.categories = rows.map(function(r) { return r.name; });
       WEDDING_CAT_CLOUD_SEEDED = true;
       saveWeddingCategoriesLocal();
-      setWeddingCatSyncMsg('正常，云端已有 ' + rows.length + ' 个类别');
       return true;
     }
     // 云端为空：仅当本机列表已自定义（≠默认列表）时才播种，
     // 防止未自定义的干净设备抢先写入默认列表、覆盖其他设备已改好的类别
     if (!isWeddingCategoriesDefault()) {
-      setWeddingCatSyncMsg('云端为空，正在把本机 ' + weddingState.categories.length + ' 个类别写入云端…');
       await seedWeddingCategoriesCloud();
-    } else {
-      setWeddingCatSyncMsg('云端为空，本机为默认类别（未写入）；可点「同步到云端」手动上传');
     }
     return true;
   } catch (e) {
-    setWeddingCatSyncMsg('拉取异常 → ' + (e && e.message ? e.message : e));
     console.warn('云端类别加载失败，回退本地缓存:', e);
     return false;
   }
@@ -6276,17 +6242,9 @@ async function seedWeddingCategoriesCloud() {
       return { user_id: curUser.id, name: name, sort_order: i };
     });
     var res = await SB.from('wedding_categories').insert(rows);
-    if (res.error) {
-      setWeddingCatSyncMsg('写入失败 → ' + res.error.message + '（多为 RLS 策略未生效，请重跑建表 SQL）');
-      console.warn('类别首次同步失败:', res.error.message);
-      return;
-    }
+    if (res.error) { console.warn('类别首次同步失败:', res.error.message); return; }
     WEDDING_CAT_CLOUD_SEEDED = true;
-    setWeddingCatSyncMsg('已把本机 ' + rows.length + ' 个类别写入云端，其他设备刷新即可看到');
-  } catch (e) {
-    setWeddingCatSyncMsg('写入异常 → ' + (e && e.message ? e.message : e));
-    console.warn('类别首次同步失败:', e);
-  }
+  } catch (e) { console.warn('类别首次同步失败:', e); }
 }
 
 // 类别改动推送到云端：云端尚无记录→整体写入（当前列表已含本次改动）；已有记录→按操作增量执行
@@ -6311,62 +6269,8 @@ async function pushWeddingCategoriesCloud(op, payload) {
     }
     if (!q) return;
     var res = await q;
-    if (res.error) {
-      setWeddingCatSyncMsg('同步失败(' + op + ') → ' + res.error.message);
-      console.warn('类别云端同步失败(' + op + '):', res.error.message);
-    }
-  } catch (e) {
-    setWeddingCatSyncMsg('同步异常(' + op + ') → ' + (e && e.message ? e.message : e));
-    console.warn('类别云端同步失败(' + op + '):', e);
-  }
-}
-
-// 手动：把当前类别列表整体覆盖到云端（用于首次迁移或修复不一致）
-async function forcePushWeddingCategoriesCloud() {
-  if (!CLOUD_MODE || !curUser || !curUser.id) { alert('当前不是云端登录模式，请先登录后再同步'); return; }
-  if (!weddingState.categories.length) { alert('本机没有类别可同步'); return; }
-  setWeddingCatSyncMsg('正在写入云端…');
-  try {
-    var del = await SB.from('wedding_categories').delete().eq('user_id', curUser.id);
-    if (del.error) {
-      setWeddingCatSyncMsg('清理旧记录失败 → ' + del.error.message);
-      alert('同步失败：' + del.error.message);
-      return;
-    }
-    var rows = weddingState.categories.map(function(name, i) {
-      return { user_id: curUser.id, name: name, sort_order: i };
-    });
-    var ins = await SB.from('wedding_categories').insert(rows);
-    if (ins.error) {
-      setWeddingCatSyncMsg('写入失败 → ' + ins.error.message + '（多为 RLS 策略未生效，请重跑建表 SQL）');
-      alert('同步失败：' + ins.error.message);
-      return;
-    }
-    WEDDING_CAT_CLOUD_READY = true;
-    WEDDING_CAT_CLOUD_SEEDED = true;
-    setWeddingCatSyncMsg('已同步 ' + rows.length + ' 个类别到云端');
-    alert('已同步 ' + rows.length + ' 个类别到云端，其他设备刷新后即可看到。');
-  } catch (e) {
-    setWeddingCatSyncMsg('同步异常 → ' + (e && e.message ? e.message : e));
-    alert('同步异常：' + (e && e.message ? e.message : e));
-  }
-}
-
-// 手动：从云端拉取并覆盖本机列表
-async function pullWeddingCategoriesCloud() {
-  setWeddingCatSyncMsg('正在从云端拉取…');
-  var ok = await loadWeddingCategoriesCloud();
-  if (!ok) {
-    renderWeddingCategoryManagerList();
-    return;
-  }
-  if (weddingState.currentFilter !== 'all' && weddingState.categories.indexOf(weddingState.currentFilter) === -1) {
-    weddingState.currentFilter = 'all';
-  }
-  renderWeddingFilterBar();
-  renderWeddingCategoryOptions();
-  renderWeddingCategoryManagerList();
-  renderWeddingList();
+    if (res.error) console.warn('类别云端同步失败(' + op + '):', res.error.message);
+  } catch (e) { console.warn('类别云端同步失败(' + op + '):', e); }
 }
 
 // 渲染分类筛选条
@@ -6398,14 +6302,6 @@ function openWeddingCategoryManager(e) {
   if (e) e.preventDefault();
   renderWeddingCategoryManagerList();
   document.getElementById('weddingCategoryModal').classList.remove('hidden');
-  // 打开时后台拉取云端最新类别，便于发现多设备不一致
-  loadWeddingCategoriesCloud().then(function(ok) {
-    if (!ok) return;
-    renderWeddingFilterBar();
-    renderWeddingCategoryOptions();
-    renderWeddingCategoryManagerList();
-    renderWeddingList();
-  });
 }
 
 // 关闭类别管理弹窗
@@ -6425,7 +6321,6 @@ function renderWeddingCategoryManagerList() {
       + '</div>';
   });
   list.innerHTML = html || '<div style="color:var(--text3);font-size:13px;text-align:center;padding:10px;">暂无类别，请先新增</div>';
-  setWeddingCatSyncMsg(WEDDING_CAT_SYNC_MSG);
 }
 
 // 新增类别
