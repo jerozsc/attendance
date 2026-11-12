@@ -69,6 +69,13 @@ body{
 .nav-item svg{width:18px;height:18px;flex-shrink:0}
 .nav-item:hover{background:var(--bg2);color:var(--text)}
 .nav-item.active{background:var(--gold-light);color:var(--gold);font-weight:600}
+/* cam49：机台运行菜单的预约提醒徽标（「预 N」）——margin-left:auto 贴右，随 .nav-item 的 flex 生效 */
+.nav-badge{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;height:18px;padding:0 6px;border-radius:9px;
+  background:var(--red);color:#fff;font-size:10.5px;font-weight:800;line-height:1;letter-spacing:0;flex-shrink:0;
+  font-variant-numeric:tabular-nums;animation:navBadgeIn .24s ease-out}
+.nav-badge.hidden{display:none}
+@keyframes navBadgeIn{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.nav-badge{animation:none}}
 /* cam41：连通性指示——网络/云端两行状态（侧栏底部、分割线上方；点击立即重测）。
    margin-top:auto 移到本块（原来在 .sidebar-foot），保证指示条与分割线紧贴在侧栏最底 */
 .conn-status{margin-top:auto;padding-bottom:8px;font-size:11px;color:var(--text3);cursor:pointer;user-select:none}
@@ -144,12 +151,19 @@ body{
 }
 .cs-trigger:hover,.cs-trigger:focus{outline:none;border-color:var(--gold)}
 .cs-trigger::after{content:'';width:0;height:0;border:5px solid transparent;border-top-color:var(--text3);margin-top:5px;flex-shrink:0}
+/* cam50.4：自定义下拉触发器与原生输入框等高（用户截图：相机型号比备注矮/高不一致）——
+   两者 padding 9/12、border 1px、字号 14px 全都一样，但 <button> 的匿名行盒比 <input> 高 4px（实测 40 vs 36），
+   故显式给高度、纵向 padding 归零靠 flex 居中。四处分 .cus-sel（实验信息/预约/静置/编辑实验）一并生效 */
+.cs-trigger{height:36px;padding-top:0;padding-bottom:0}
 .cs-panel{
   position:absolute;z-index:80;top:calc(100% + 4px);left:0;right:0;min-width:250px;
   background:var(--surface);border:1px solid var(--border);border-radius:10px;
   box-shadow:0 12px 32px rgba(0,0,0,.16);max-height:264px;overflow-y:auto;padding:4px;
 }
 .cs-panel.hidden{display:none}
+/* cam49.1：面板浮层化——#staticForm 有 overflow:auto，绝对定位的面板会被裁在滚动容器底边；
+   .cs-float 改用 fixed 坐标（JS 现算 top/left/width），跳出裁剪，并按上下剩余空间自动翻转 */
+.cs-panel.cs-float{position:fixed;right:auto;bottom:auto;min-width:0;z-index:220}
 .cs-item{
   display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:8px 10px;border-radius:7px;font-size:13.5px;cursor:pointer;color:var(--text);
@@ -247,6 +261,15 @@ body{
 }
 .seg-btn:hover{color:var(--text)}
 .seg-btn.active{background:var(--surface);color:var(--gold);box-shadow:var(--shadow)}
+/* cam50.1：工具条（机台运行 / 存储运行）内控件统一基准高度。
+   原本三者各按内容算高：.seg 随内文行高浮动（「全部」37px / 「1F」32px，中文 normal 行高比拉丁大）、
+   .field select 38px、.btn-sm 29px —— 并排时右侧按钮永远矮一截。
+   统一后不随文案/字体漂移；纵向 padding 归零、文字靠 flex 居中，故不会裁字 */
+.run-tools{--ctl-h:34px}
+.run-tools .seg{height:var(--ctl-h);padding-top:0;padding-bottom:0;align-items:center}
+.run-tools .seg-btn{height:100%;display:inline-flex;align-items:center;padding-top:0;padding-bottom:0}
+.run-tools .field > select{height:var(--ctl-h);padding-top:0;padding-bottom:0}
+.run-tools .btn-sm{height:var(--ctl-h);padding-top:0;padding-bottom:0}
 /* 统计卡片：图标色块 + 标签 + 大数字 */
 .cam-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .stat-card{
@@ -476,6 +499,17 @@ body.booting{overflow:hidden}
 .login-or::before,.login-or::after{content:'';flex:1;height:1px;background:var(--border)}
 .login-btn.ghost{background:transparent;color:var(--text2);border:1px solid var(--border);font-weight:600;letter-spacing:0}
 .login-btn.ghost:hover{border-color:var(--gold);color:var(--gold);opacity:1}
+/* cam49：登录页「记住账号密码」——原生 checkbox + accent-color，不自绘开关（自绘要自己处理焦点环与键盘可达，收益不抵风险） */
+.login-remember{display:flex;align-items:center;gap:8px;margin:-4px 0 4px;min-height:20px}
+.lr-main{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;-webkit-user-select:none;font-size:12px;color:var(--text2);line-height:1}
+.lr-main input[type=checkbox]{width:14px;height:14px;margin:0;accent-color:#c9971f;cursor:pointer;flex-shrink:0}
+.lr-main:hover .lr-txt{color:var(--text)}
+.lr-main input:disabled{cursor:not-allowed}
+.lr-main input:disabled+.lr-txt{color:var(--text3);cursor:not-allowed}
+.lr-clear{margin-left:auto;flex-shrink:0;white-space:nowrap;border:none;background:transparent;color:var(--text3);font-size:11px;cursor:pointer;padding:2px 5px;border-radius:5px}
+.lr-clear:hover{color:var(--red);background:rgba(215,58,58,.08)}
+.lr-clear[disabled]{opacity:.32;cursor:default;pointer-events:none}
+.lr-clear.busy{opacity:.5;pointer-events:none}
 /* 访客模式顶条（无侧栏，全宽提示条） */
 #guestBar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 20px;background:linear-gradient(90deg,rgba(201,151,71,.14),rgba(201,151,71,.05));border-bottom:1px solid var(--border)}
 #guestBar .gb-txt{font-size:12.5px;color:var(--text2)}
@@ -752,6 +786,17 @@ body.guest-mode #guestBar{position:fixed;top:0;left:0;right:0;z-index:900;backgr
 #idlePreview .seg{padding:4px}
 #idlePreview .seg-btn{font-size:15px;padding:7px 20px;white-space:nowrap}
 .pv-clock{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--gold);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:7px 14px;line-height:1}   /* cam39.15：孤悬大字改胶囊块，与右侧控件成组 */
+/* cam50.3：看板头部控件统一基准高度（用户截图：楼层分段 ≈47px / 存储运行 ≈30px / 时钟 33px，三者中线对齐但上下各差 7~8px）
+   与 cam50.1 的 .run-tools 同源同法——容器给 --pv-ctl-h，三个控件都取该高度，纵向 padding 归零或收窄、文字靠 flex 居中。
+   基准取 36 而非页面工具条的 34：分段按钮是 15px 中文字，34 会显局促；看板远看也需大一号。
+   #idlePreview .seg 是 ID 选择器，.pv-head .seg 压不动它，故本段按同权重追加在原规则之后 */
+.pv-head{--pv-ctl-h:36px}
+#idlePreview .seg{height:var(--pv-ctl-h);padding-top:3px;padding-bottom:3px;align-items:center}
+/* 保留 .seg 的 3px 纵向 padding（不是归零）：.seg-btn 是白底药丸且 height:100%，padding 归零会让药丸紧贴边框只剩 1px 缝；
+   3px → 内容盒 28px，药丸上下各留 4px 视觉内缩。seg-btn 自身纵向 padding 必须归零，否则 15px 字 + 7px padding 只剩 14px 内容会裁字 */
+#idlePreview .seg-btn{height:100%;display:inline-flex;align-items:center;padding-top:0;padding-bottom:0}
+.pv-head .pv-switch{height:var(--pv-ctl-h);display:inline-flex;align-items:center;padding-top:0;padding-bottom:0;font-size:14px}
+.pv-head .pv-clock{height:var(--pv-ctl-h);display:inline-flex;align-items:center;padding-top:0;padding-bottom:0;font-size:18px}
 /* cam38.6：grid-auto-rows:1fr 会把每行等分整个看板高度——机台只有 1~2 台时（如 3F 单台），
    唯一一行被拉满整屏，而列宽仍只有 1/cols，卡片就成了细长条。真实行高改由 pvRowFit() 计算：
    「按可用高度均分」与「列宽 × 4/3」取小值，行数多时仍能一屏放下，行数少时不再拉长。 */
@@ -830,8 +875,16 @@ body.guest-mode #guestBar{position:fixed;top:0;left:0;right:0;z-index:900;backgr
 .pd-sam .pd-sam-main{color:var(--text);min-width:0}
 .pd-sam .pd-sam-time{display:flex;align-items:center;gap:6px;flex-shrink:0;font-variant-numeric:tabular-nums}
 .pd-sam .ss-cd{font-weight:700;color:var(--text)}
+/* cam49：详情里「谁看过这条预约」——小字副行，未读时灰字提示 */
+.pd-rv-main{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pd-guest{flex-shrink:0;background:var(--red);color:#fff;font-size:10px;font-weight:800;border-radius:4px;padding:1px 4px;line-height:1.35}
+.pd-read{font-size:11.5px;color:var(--text2);margin:3px 0 9px 22px;line-height:1.6;word-break:break-all}
+.pd-read b{color:var(--amber-deep);font-weight:700}
+.pd-read .pd-read-none{color:var(--text3)}
+.pd-read:empty{display:none}
+.pd-rv-wrap:last-child .pd-rv{border-bottom:none}
 .pd-sam.ended{opacity:.55}
-.pd-rv{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px dashed var(--border)}
+.pd-rv{display:flex;align-items:flex-start;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px dashed var(--border)}
 .pd-rv:last-child{border-bottom:none}
 .pd-no{width:20px;height:20px;border-radius:50%;background:var(--gold-light);color:var(--gold);font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .pd-sep{color:var(--text3);margin:0 2px}
@@ -1034,7 +1087,7 @@ body.no-breath .machine-box.ended{animation:none}
 .mb-info .row2 .c2 .v{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mb-info .row2 .c2.r .v{color:var(--gold);font-weight:700}
 .mb-info .stage-cd{font-variant-numeric:tabular-nums}
-/* cam39：通用按钮 loading（结束设备使用等写操作防重复点击） */
+/* cam39：通用按钮 loading（结束使用等写操作防重复点击） */
 .btn.loading{pointer-events:none;opacity:.65;position:relative;color:transparent!important}
 .btn.loading::after{content:'';position:absolute;left:50%;top:50%;width:15px;height:15px;margin:-7.5px 0 0 -7.5px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:btnSpin .7s linear infinite}
 @keyframes btnSpin{to{transform:rotate(360deg)}}
@@ -1221,6 +1274,133 @@ body.no-breath .machine-box.ended{animation:none}
 .modal .sub{font-size:12px;color:var(--text2);margin-bottom:16px}
 .modal .field{margin-bottom:12px}
 .modal .field input,.modal .field select{width:100%;min-width:0}
+/* ===== cam49：静置试验存储（大弹窗，列表 / 表单两态互斥） ===== */
+.st-modal{max-width:760px;display:flex;flex-direction:column;max-height:88vh}
+.st-modal h3{flex:none}
+/* KPI 指标带：形状+颜色+文字三通道，不只靠颜色区分（色弱可读） */
+.st-kpi{display:flex;align-items:stretch;background:var(--surface2);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;flex:none;overflow:visible}
+.st-kc{display:flex;align-items:center;gap:8px;padding:9px 13px;min-width:0;flex:1}
+.st-kc + .st-kc{border-left:1px solid var(--border)}
+.st-kc-mk{width:9px;height:9px;flex:none;box-sizing:border-box;border:2px solid var(--text2);border-radius:50%;background:transparent}
+.st-kc-v{font-size:20px;font-weight:800;line-height:1;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--text)}
+.st-kc-k{font-size:11.5px;font-weight:600;color:var(--text2);white-space:nowrap}
+.st-kc.z .st-kc-v{color:var(--text3)}
+.st-kc.k-today:not(.z) .st-kc-mk{background:var(--amber-deep);border-color:var(--amber-deep)}
+.st-kc.k-today:not(.z) .st-kc-v{color:var(--amber-deep)}
+.st-kc.k-tmr:not(.z) .st-kc-mk{background:var(--blue);border-color:var(--blue)}
+.st-kc.k-tmr:not(.z) .st-kc-v{color:var(--blue)}
+.st-kc.k-over:not(.z) .st-kc-mk{background:var(--red);border-color:var(--red);border-radius:2px;transform:rotate(45deg)}  /* 菱形 = 需处理 */
+.st-kc.k-over:not(.z) .st-kc-v{color:var(--red-deep)}
+/* 列表容器：弹窗内滚动，头尾固定（flex 列内滚动必须 min-height:0） */
+.st-list{flex:1;min-height:0;overflow:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:14px;padding-right:4px;margin-bottom:4px}
+.st-grp{}
+.st-grp-h{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px;font-weight:800;color:var(--text2);letter-spacing:.3px}
+.st-tag{display:inline-flex;align-items:center;height:17px;padding:0 6px;border-radius:5px;font-size:10.5px;font-weight:800;letter-spacing:0;background:var(--surface2);border:1px solid var(--border);color:var(--text2);flex-shrink:0}
+.st-grp.g-today .st-tag{background:var(--orange-light);border-color:transparent;color:var(--amber-deep)}
+.st-grp.g-tmr .st-tag{background:var(--blue-light);border-color:transparent;color:var(--blue)}
+.st-grp.g-over .st-tag{background:var(--red-light);border-color:transparent;color:var(--red-deep)}
+/* 逾期组没有 tag（会和组名"逾期未取"重复），靠标题文字与行底色双通道表达 */
+.st-grp.g-over .st-grp-h{color:var(--red-deep)}
+.st-grp.g-over .st-grp-cnt{color:var(--red-deep)}
+.st-grp-cnt{margin-left:auto;font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap}
+.st-grp-b{display:flex;flex-direction:column;gap:6px}
+.st-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px}
+.st-row.g-over{border-color:rgba(215,58,58,.35);background:var(--red-light)}
+.st-row.g-today{border-color:rgba(245,158,11,.45)}
+.st-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.st-name{font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-meta{font-size:11.5px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-meta b{font-weight:700;color:var(--text2)}
+.st-due{flex:none;font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;font-variant-numeric:tabular-nums;background:var(--surface);border:1px solid var(--border);color:var(--text2)}
+/* 实心徽标一律用固定深色，不跟主题变量：暗色主题下 --amber-deep 会变成浅黄 #fbbf24，
+   配白字只有 1.7:1，直接废掉。这三个色白字对比分别 5.91 / 4.84 / 5.31，且深浅底上都看得见 */
+.st-due.k-over{background:#b91c1c;border-color:#b91c1c;color:#fff}
+.st-due.k-today{background:#b45309;border-color:#b45309;color:#fff}
+.st-due.k-tmr{background:#1d6fb8;border-color:#1d6fb8;color:#fff}
+.st-del{flex:none;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;color:var(--text3);cursor:pointer;border-radius:7px}
+.st-del:hover{color:var(--red);background:rgba(215,58,58,.1)}
+.st-del svg{width:15px;height:15px}
+.st-empty{padding:30px 16px;text-align:center;color:var(--text3);font-size:12.5px;line-height:1.9;border:1px dashed var(--border);border-radius:12px}
+.st-empty b{display:block;font-size:13px;color:var(--text2);font-weight:700;margin-bottom:2px}
+/* 表单态 */
+#staticForm{flex:1;min-height:0;overflow:auto;padding-right:2px}
+.st-hint{font-size:11px;color:var(--text3);margin-top:-4px;margin-bottom:10px}
+.st-btn-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;margin-left:5px;border-radius:8px;background:#b45309;color:#fff;font-size:10.5px;font-weight:800;line-height:1;letter-spacing:0}
+.st-btn-badge.hidden{display:none}
+/* ===== cam50：静置试验「中途检验日期」（周历网格点选 + 列表行内徽标） ===== */
+/* 勾选行：选择器必须写到 0,3,1 —— 1307 行的 .modal .field input{width:100%} 会把复选框拉满整行（cam38.2 同款坑） */
+.modal .field .st-chk{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--text2);cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1.5}
+.modal .field .st-chk input[type="checkbox"]{width:auto!important;min-width:0!important;flex:none;margin:0;padding:0;accent-color:#c9971f;cursor:pointer}
+.modal .field .st-chk b{font-size:13px;font-weight:700;color:var(--text);flex:none}
+.modal .field .st-chk.off{opacity:.5;cursor:not-allowed}
+.modal .field .st-chk.off input[type="checkbox"]{cursor:not-allowed}
+.st-chk-tip{font-size:11px;font-weight:500;color:var(--text3);min-width:0}
+/* 周历网格（cam50.2 重设计）：去掉左侧 58px 月份列——它是为了「11月→12月」跨月标签才定宽的，
+   结果每行被吃掉一列宽度、日期格只剩 46px。改为「月分隔条」：月份不占列，在换月处插一条居中细线标签，
+   日期区回到满宽 7 列。月份信息一格不少（首行也有），跨月再也不会把 11/30 和 12/1 看混。 */
+.st-cal{margin:10px auto 0;max-width:520px;border:1px solid var(--border);border-radius:12px;padding:10px 10px 9px;background:var(--surface2)}
+.st-cal-wks{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:3px}
+.st-cal-wd{font-size:10.5px;font-weight:700;color:var(--text3);text-align:center;line-height:16px}
+.st-cal-ms{display:flex;align-items:center;gap:8px;margin:7px 0 5px}
+.st-cal-wks + .st-cal-ms{margin-top:3px}   /* 首条紧跟表头时收紧，免得表头与第一行被拉太开 */
+.st-cal-ms::before,.st-cal-ms::after{content:'';flex:1;height:1px;background:var(--border)}
+.st-cal-ms span{font-size:10.5px;font-weight:800;color:var(--text3);letter-spacing:.4px;white-space:nowrap}
+.st-cal-r{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.st-cal-r + .st-cal-r{margin-top:4px}
+/* 34px 高：日历格不必按 44px 触控基准，但 26px 太挤、点错率高；窄屏降到 30px 保 5 行不把表单撑爆 */
+.st-cal-d{height:34px;padding:0;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--text2);font-family:inherit;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;position:relative;transition:background .12s,border-color .12s,color .12s,transform .08s}
+.st-cal-d:hover{background:var(--gold-light);border-color:transparent;color:var(--gold2)}
+.st-cal-d:active{transform:scale(.94)}
+.st-cal-d:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+/* 选中：实心金底 + 白字（形状+明度双通道，不只靠色相）；右上小圆点保留，暗色主题下也能一眼分辨 */
+.st-cal-d.on{background:#c9971f;border-color:#c9971f;color:#fff;box-shadow:0 2px 6px rgba(201,151,31,.3)}
+.st-cal-d.on:hover{background:#c9971f;color:#fff}
+.st-cal-d.on::after{content:'';position:absolute;right:5px;top:5px;width:4px;height:4px;border-radius:50%;background:#fff}
+/* 今天：只描金边、不填充 —— 与「已选中」的实心块区分开。:not(.on) 是必须的：
+   它让特异性升到 0,3,0，一旦今天同时被选中，颜色仍由 .on 的白字说了算，不会被这里盖成金底金字 */
+.st-cal-d.td:not(.on){border-color:#c9971f;color:#b45309;font-weight:800}
+/* 暗色下 #b45309 对深底只有约 3.2:1，换浅金；描边也跟着提亮，否则金圈在深底上几乎看不见 */
+[data-theme="dark"] .st-cal-d.td:not(.on){border-color:var(--gold2);color:var(--gold2)}
+/* 区间外：淡灰但保留日期数字（原 visibility:hidden 会让用户看不出这段为什么空着） */
+.st-cal-d.x{color:var(--text3);opacity:.45;cursor:default}
+.st-cal-d.x:hover{background:transparent;color:var(--text3)}
+.st-cal-none{font-size:11.5px;color:var(--text3);line-height:1.75;padding:3px 0}
+/* 已选摘要：由纯文字改为可逐个移除的标签（点标签 = 取消该天） */
+.st-cal-sum{margin-top:9px;font-size:11.5px;color:var(--text2);line-height:1.6;display:flex;flex-wrap:wrap;align-items:center;gap:5px 6px}
+.st-cal-sum .z{color:var(--text3);font-weight:500}
+.st-cal-sum b{color:#b45309;font-weight:800;font-variant-numeric:tabular-nums}
+[data-theme="dark"] .st-cal-sum b{color:var(--gold2)}
+.st-cal-tag{display:inline-flex;align-items:center;gap:3px;height:23px;padding:0 6px 0 8px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text2);font-family:inherit;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;transition:border-color .12s,color .12s}
+.st-cal-tag:hover{border-color:#b91c1c;color:#b91c1c}
+.st-cal-tag i{font-style:normal;font-size:12px;line-height:1;opacity:.5}
+/* 行内检验徽标：按钮不继承字体，必须显式写 font-family/font-size，否则与 .st-due 基线不齐 */
+.st-ins{flex:0 1 auto;min-width:0;display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-family:inherit;font-size:11.5px;font-weight:700;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;font-variant-numeric:tabular-nums}
+.st-ins:hover{border-color:#7c3aed;color:#7c3aed}
+/* 实心底 + 白字一律写死深色：暗色主题下 --purple 会变浅紫 #a78bfa，白字只剩 1.8:1 */
+.st-ins.k-today{background:#7c3aed;border-color:#7c3aed;color:#fff}
+.st-ins.k-today:hover{color:#fff;border-color:#7c3aed;filter:brightness(1.1)}
+.st-ins.k-next{background:var(--purple-light);border-color:transparent;color:#6d28d9}
+[data-theme="dark"] .st-ins.k-next{color:#c4b5fd}
+.st-ins.k-next:hover{border-color:#7c3aed}
+.st-ins.k-past,.st-ins.k-add{border-style:dashed;color:var(--text3);font-weight:600}
+.st-ins.k-past:hover,.st-ins.k-add:hover{color:#7c3aed;border-color:#7c3aed}
+.st-kc.k-ins .st-kc-mk{border-radius:2px}                       /* 方框：与 圆(今)/圆(明)/菱形(逾期) 三形状区分 */
+.st-kc.k-ins:not(.z) .st-kc-mk{background:#7c3aed;border-color:#7c3aed}
+.st-kc.k-ins:not(.z) .st-kc-v{color:#6d28d9}
+[data-theme="dark"] .st-kc.k-ins:not(.z) .st-kc-v{color:#c4b5fd}
+/* 5 格指标带在 500px 窗口必溢出（.st-kpi 是 overflow:visible，不会出滚动条，只会压叠）→ 640px 起折成 3 列 */
+@media(max-width:640px){
+  .st-kpi{display:grid;grid-template-columns:repeat(3,1fr)}
+  .st-kc{min-width:0;padding:8px 10px;border-left:1px solid var(--border);border-top:1px solid var(--border)}
+  .st-kc:nth-child(-n+3){border-top:none}
+  .st-kc:nth-child(3n+1){border-left:none}
+}
+@media(max-width:560px){
+  .st-ins .st-ins-p{display:none}                                /* 窄屏只剩「11/26」，省 3 个字宽 */
+  .st-cal{padding:8px 7px}
+  .st-cal-wks,.st-cal-r{grid-template-columns:repeat(7,1fr);gap:3px}   /* cam50.2：不再留月份列，窄屏也是满宽 7 列 */
+  .st-cal-d{height:30px;font-size:12px;border-radius:8px}
+}
 /* 两列表单（预约弹窗 / 编辑实验弹窗） */
 .modal .form-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .modal .form-grid2 .field{margin-bottom:0;min-width:0}
@@ -1325,6 +1505,14 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
           <button class="lc-eye" type="button" onclick="toggleLoginPw()" title="显示 / 隐藏密码"><svg id="lcEyeIc" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button>
         </div>
       </div>
+      <!-- cam49：记住账号密码（勾选后本机加密留存；下次自动填好，仍需点「登录」） -->
+      <div class="login-remember">
+        <label class="lr-main" for="loginRemember">
+          <input type="checkbox" id="loginRemember" onchange="toggleLoginRemember()">
+          <span class="lr-txt" id="lrTxt">记住账号密码</span>
+        </label>
+        <button type="button" class="lr-clear" id="lrClearBtn" onclick="clearRememberedCreds(true)" title="清除本机已记住的账号与密码" disabled>清除记录</button>
+      </div>
       <button class="login-btn" id="loginBtn" onclick="doLogin()">登 录</button>
       <div class="login-or"><span>或</span></div>
       <button class="login-btn ghost" id="guestBtn" onclick="enterGuest()">访客进入 · 仅机台运行与预约试验</button>
@@ -1366,7 +1554,7 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
   </button>
   <button class="nav-item" data-page="run" onclick="switchPage('run')">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
-    机台运行
+    机台运行<span class="nav-badge hidden" id="resvNavBadge"></span>
   </button>
   <button class="nav-item" data-page="srun" onclick="switchPage('srun')">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/></svg>
@@ -1493,18 +1681,19 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
         <div class="page-title">实验条件</div>
         <div class="page-sub">预设实验项目与各阶段温度/湿度/时长，创建实验时可直接选择；节点进度按开始时间自动推算</div>
       </div>
-      <button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="openTplModal()">
+      <button class="btn btn-primary" style="flex-shrink:0" onclick="openTplModal()">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>新建实验条件
       </button>
     </div>
-    <!-- cam39.2：实验基础条件（全局）——切换段 = 温度/湿度差 ÷ 对应速率（并行取大者），第一段从常温起始值开始；cam42.3：温度速率按升降方向拆分（ΔT<0 用下降速率） -->
+    <!-- cam39.2：实验基础条件（全局）——切换段 = 温度/湿度差 ÷ 对应速率（并行取大者），第一段从常温起始值开始；cam42.3：温度速率按升降方向拆分（ΔT<0 用下降速率）；cam48：目标温度 < 0℃ 的段再拆出负温速率 -->
     <div class="card" style="margin-bottom:12px">
       <div class="form-grid" style="align-items:end;margin-bottom:0">
-        <div class="field"><label>常温起始温度（℃）</label><input id="bcAmbT" type="number" step="0.5" placeholder="如 25"></div>
-        <div class="field"><label>常温起始湿度（%RH）</label><input id="bcAmbRh" type="number" step="1" placeholder="如 98"></div>
-        <div class="field"><label>温度上升转换速率（℃/min）</label><input id="bcRateT" type="number" step="0.1" min="0.01" placeholder="如 1"></div>
-        <div class="field"><label>温度下降转换速率（℃/min）</label><input id="bcRateDn" type="number" step="0.1" min="0.01" placeholder="留空同上升速率"></div>
-        <div class="field"><label>湿度转换速率（%RH/min）</label><input id="bcRateRh" type="number" step="0.1" min="0.01" placeholder="如 0.3"></div>
+        <div class="field"><label>常温起始温度（℃）</label><input id="bcAmbT" type="number" step="0.5" placeholder="如 25" style="width:148px;min-width:0"></div>
+        <div class="field"><label>常温起始湿度（%RH）</label><input id="bcAmbRh" type="number" step="1" placeholder="如 98" style="width:148px;min-width:0"></div>
+        <div class="field"><label>温度上升转换速率（℃/min）</label><input id="bcRateT" type="number" step="0.1" min="0.01" placeholder="如 1" style="width:148px;min-width:0"></div>
+        <div class="field"><label>温度下降转换速率（℃/min）</label><input id="bcRateDn" type="number" step="0.1" min="0.01" placeholder="留空同上升速率" style="width:148px;min-width:0"></div>
+        <div class="field"><label>负温区降温速率（℃/min）</label><input id="bcRateNeg" type="number" step="0.1" min="0.01" placeholder="留空同下降速率" style="width:148px;min-width:0"></div>
+        <div class="field"><label>湿度转换速率（%RH/min）</label><input id="bcRateRh" type="number" step="0.1" min="0.01" placeholder="如 0.3" style="width:148px;min-width:0"></div>
         <button class="btn btn-primary" id="bcSaveBtn" onclick="saveStageBase()">保存基础条件</button>
       </div>
     </div>
@@ -1592,6 +1781,10 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
           <label>楼层</label>
           <div class="seg" id="srunLocSeg" data-val="1F"></div>
         </div>
+        <!-- cam49：静置存储入口（楼层右侧）——不占机台的相机静置登记与到期提醒 -->
+        <button class="btn btn-ghost btn-sm" id="staticBtn" style="flex-shrink:0" onclick="openStaticModal()" title="查看静置试验的相机存放情况，可登记新的静置试验">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.99.99 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88zM12 4.15l-1.89 1.07L16 8.61l1.96-1.11zM6.04 7.5L12 10.85l1.96-1.1l-5.88-3.4zM5 15.91l6 3.38v-6.71L5 9.21zm14 0v-6.7l-6 3.37v6.71z"/></svg>静置存储<span class="st-btn-badge hidden" id="staticBtnBadge"></span>
+        </button>
       </div>
     </div>
     <!-- cam28：存储实验统计区（按到期时间升序；到点未取闪烁提醒；每条可点「已取」取出并写入已完成实验） -->
@@ -1718,6 +1911,7 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
           <option value="mch">机台管理</option>
           <option value="cam">相机管理</option>
           <option value="store">存储箱</option>
+          <option value="static">静置试验</option>
           <option value="set">设置维护</option>
           <option value="staff">人员管理</option>
         </select>
@@ -2144,7 +2338,7 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
     <div class="form-grid2">
       <div class="field"><label>实验项目（必填）</label><input id="resvItem" placeholder="请输入实验项目"></div>
       <div class="field"><label>机种名称（必填）</label><div class="pre-input"><select class="pre-sel"><option>YT</option><option>UH</option></select><input id="resvModel" placeholder="如 123 或 转接盖" maxlength="30"></div></div>
-      <div class="field"><label id="resvSenderLabel">送样人</label><input id="resvSender" placeholder="选填"></div>
+      <div class="field"><label id="resvSenderLabel">送样人</label><input id="resvSender"></div>
       <div class="field"><label>实验时间（小时，如 24）</label><input id="resvHours" type="number" min="0.5" step="0.5" placeholder="选填，留空运行时补填"></div>
       <div class="field"><label>相机型号（选填）</label>
         <div class="cus-sel" id="resvCameraWrap">
@@ -2162,7 +2356,73 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
   </div>
 </div>
 
-<!-- 结束使用弹窗（运行中机台）：cam43.1 加宽至 560px——四颗按钮（取消/跳段/修正时间/结束设备使用）排一行 -->
+<!-- ===== cam49：静置试验存储（列表 / 创建表单两态互斥；用弹窗而不新增 page key，switchPage 一行不用改） ===== -->
+<div id="staticModal" class="mo-bg hidden" onclick="if(event.target===this)closeModal('staticModal')">
+  <div class="modal st-modal">
+    <h3><svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;color:var(--gold);flex:none"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.99.99 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88zM12 4.15l-1.89 1.07L16 8.61l1.96-1.11zM6.04 7.5L12 10.85l1.96-1.1l-5.88-3.4zM5 15.91l6 3.38v-6.71L5 9.21zm14 0v-6.7l-6 3.37v6.71z"/></svg>静置试验存储</h3>
+    <div class="sub" id="staticSub">不占机台的相机静置登记 · 按结束日分组，今天 / 明天到期置顶提醒</div>
+
+    <!-- 态一：列表 -->
+    <div id="staticView" style="display:flex;flex-direction:column;min-height:0;flex:1">
+      <div class="st-kpi" id="stKpi"></div>
+      <div class="st-list" id="stList"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('staticModal')">关闭</button>
+        <button class="btn btn-primary" onclick="staticGoForm()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>创建试验</button>
+      </div>
+    </div>
+
+    <!-- 态二：创建表单 -->
+    <div id="staticForm" class="hidden">
+      <div class="form-grid2">
+        <!-- cam50.2：机种名称补前缀下拉（其余 5 处机种输入点早已是 .pre-input 结构，静置这处漏了） -->
+        <div class="field" style="grid-column:1/-1"><label>机种名称（必填）</label><div class="pre-input"><select class="pre-sel"><option>YT</option><option>UH</option></select><input id="stModel" placeholder="如 123 或 转接盖" maxlength="30"></div></div>
+        <div class="field"><label>开始时间（必填）</label><input type="datetime-local" id="stStart" onchange="staticStartChanged()"></div>
+        <div class="field"><label>结束时间（默认开始 +30 天）</label><input type="datetime-local" id="stEnd" onchange="staticEndChanged()"></div>
+        <div class="field"><label>相机型号（必填）</label>
+          <div class="cus-sel" id="staticCameraWrap">
+            <button type="button" class="cs-trigger" id="staticCameraTrigger" onclick="camSelToggle(event,'staticCamera')">请选择</button>
+            <div class="cs-panel hidden" id="staticCameraPanel"></div>
+          </div>
+          <select id="staticCamera" style="display:none"><option value="">请选择</option></select>
+        </div>
+        <div class="field"><label>使用数量（台）</label><input id="stQty" type="number" min="1" step="1" value="1"></div>
+        <!-- cam50：中途检验——勾选后才能在下面的周历网格里点选检验日期（可多选）；取消勾选只隐藏，不清已选 -->
+        <div class="field" style="grid-column:1/-1">
+          <label class="st-chk" id="stInsLabel">
+            <input type="checkbox" id="stInsOn" onchange="staticInsPaint()">
+            <b>中途检验</b><span class="st-chk-tip" id="stInsTip">勾选后可点选检验日期</span>
+          </label>
+          <div id="stCalBox" class="hidden">
+            <div id="stCalGrid"></div>
+            <div class="st-cal-sum" id="stCalCnt"></div>
+          </div>
+        </div>
+      </div>
+      <div class="st-hint">结束时间默认跟随开始时间 +30 天，手动改过就不再跟随。中途检验只记录「计划哪天检查一次」，不记录是否已完成。</div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="staticGoList()">返回列表</button>
+        <button class="btn btn-primary" id="stCreateBtn" onclick="createStatic()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V7zm2 16H5V5h11.17L19 7.83zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3s3-1.34 3-3s-1.34-3-3-3M6 6h9v4H6z"/></svg>创建</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- cam50：修改检验日期（列表行内徽标点开）。必须排在 #staticModal 之后——两者都是 .mo-bg{z-index:100}，靠 DOM 顺序决定谁叠在上面 -->
+<div id="insModal" class="mo-bg hidden" onclick="if(event.target===this)closeInsModal()">
+  <div class="modal" style="max-width:520px">
+    <h3><svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;color:#7c3aed;flex:none"><path d="M19 3h-1V1h-2v2H8V1H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m0 16H5V8h14zM7 10h5v5H7z"/></svg>修改检验日期</h3>
+    <div class="sub" id="insSub"></div>
+    <div id="siCalGrid"></div>
+    <div class="st-cal-sum" id="siCalCnt"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeInsModal()">取消</button>
+      <button class="btn btn-primary" id="insSaveBtn" onclick="saveInsDates()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 结束使用弹窗（运行中机台）：cam43.1 加宽至 560px——四颗按钮（取消/跳段/修正时间/结束使用）排一行；cam48.1 尾按钮文案缩为「结束使用」，宽度随内容自适应收窄 -->
 <div id="stopModal" class="mo-bg hidden" onclick="if(event.target===this)closeModal('stopModal')">
   <div class="modal sr-modal" style="max-width:560px">
     <h3 id="stopModalTitle">机台使用中</h3>
@@ -2172,7 +2432,7 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
       <button class="btn btn-ghost" onclick="closeModal('stopModal')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>取消</button>
       <button class="btn btn-ghost" id="stopSkipBtn" onclick="openStageSkip()" style="display:none" title="以实际工况修正当前节点：按速率转换或直接跳到下一节点"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>跳段</button>
       <button class="btn btn-ghost" id="stopFixBtn" onclick="openFixTime()" style="display:none" title="修正当前节点的已运行/剩余时间，剩余与预计结束自动重算"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20a8 8 0 0 0 8-8a8 8 0 0 0-8-8a8 8 0 0 0-8 8a8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10a10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m.5 5v5.25l4.5 2.67l-.75 1.23L11 13V7z"/></svg>修正时间</button>
-      <button class="btn btn-red" id="stopBtn" onclick="confirmStop()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 18H6V6h12z"/></svg>结束设备使用</button>
+      <button class="btn btn-red" id="stopBtn" onclick="confirmStop()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 18H6V6h12z"/></svg>结束使用</button>
     </div>
   </div>
 </div>
@@ -2379,12 +2639,222 @@ var CUR_USER = null;    // { id, username, name, guest? } 登录/访客进入后
 var IS_ADMIN = false;   // profiles.role === 'admin'，控制 settings 保存等管理操作
 var AUTH_READY = false; // 会话检查完成（getSession 返回后才允许发起数据请求）
 
+// ============ cam49：登录页「记住账号密码」（本机加密留存） ============
+// 【威胁模型·请照实理解】密文与派生盐都放在本机 localStorage，同源脚本随时能解开。
+// 它挡的是「别人借你电脑顺手看一眼密码框 / 打开控制台翻 localStorage 直接读明文」；
+// 挡不住同源 XSS、也挡不住把整份 localStorage 拷走的人。所以：只在自己常用电脑上勾选，
+// 公用机用完请点「清除记录」。
+// 【为什么密钥里塞设备指纹】换浏览器 / 换电脑时解出来的只能是乱码，与其让它静默解错，
+// 不如指纹对不上就直接丢记录，用户看到的是"需要重输"而不是"密码错了"。
+var CRED_KEY  = 'mch_cred_v1';        // 密文记录
+var CRED_SALT = 'mch_cred_salt';      // 每安装随机盐（首次生成后固定，不随记录删除而清，避免重复派生）
+var CRED_WANT = 'mch_cred_want';      // 勾选意向（登录失败时也要记住"他想记住"）
+var CRED_ABLE = null;                 // 能力探测缓存：crypto.subtle 只在安全上下文（https / localhost / file）可用
+
+function credReady(){
+  if (CRED_ABLE !== null) return CRED_ABLE;
+  CRED_ABLE = !!(window.crypto && window.crypto.subtle && window.crypto.subtle.importKey
+                 && window.crypto.subtle.digest && window.crypto.getRandomValues);
+  return CRED_ABLE;
+}
+// 设备指纹：只取"极难自动变化"的粗粒度特征。
+// 踩过的坑：最初用完整 userAgent，结果 Chrome 每次自动升级 UA 里的版本号就变，
+// 用户隔几天再打开就是"密码解不开"——这是最容易被误判成"记住密码功能坏了"的场景。
+// 所以这里把版本号全部剔掉，只留浏览器家族 + 系统大类；screen 尺寸更不行（接外显/改缩放/F11 全屏都会变）。
+// 代价是指纹变粗，但 salt 本来就是每安装随机生成，指纹只负责挡住"把 localStorage 整份搬到别的机器"。
+function credFingerprint(){
+  var n = navigator, ua = n.userAgent || '', fam = 'other', os = 'unknown';
+  if (/Edg\//.test(ua)) fam = 'edge';
+  else if (/OPR\//.test(ua)) fam = 'opera';
+  else if (/Firefox\//.test(ua)) fam = 'firefox';
+  else if (/Chrome\//.test(ua)) fam = 'chrome';
+  else if (/Safari\//.test(ua)) fam = 'safari';
+  if (/Windows NT/.test(ua)) os = 'win';
+  else if (/Android/.test(ua)) os = 'android';
+  else if (/iPhone|iPad|iPod/.test(ua)) os = 'ios';
+  else if (/Mac OS X/.test(ua)) os = 'mac';
+  else if (/Linux/.test(ua)) os = 'linux';
+  return [fam, os, String(n.platform || ''), String(n.hardwareConcurrency || '')].join('|');
+}
+// 同步短指纹（FNV-1a 32 位）：只用来快速判"这条记录还是这台机"，不当密钥材料
+function credFpShort(){
+  var s = credFingerprint(), h = 2166136261, i;
+  for (i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = (h * 16777619) >>> 0; }
+  return h.toString(36);
+}
+function credB64(buf){
+  var b = new Uint8Array(buf), s = '', i;
+  for (i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+  return btoa(s);
+}
+function credUnB64(s){
+  var raw = atob(s), b = new Uint8Array(raw.length), i;
+  for (i = 0; i < raw.length; i++) b[i] = raw.charCodeAt(i);
+  return b;
+}
+// 手写 UTF-8：不依赖 TextEncoder（老内核可能没有），且工号/密码里的中文字符也能原样往返
+function credUtf8(s){
+  var out = [], i, c;
+  for (i = 0; i < s.length; i++){
+    c = s.charCodeAt(i);
+    if (c < 0x80) out.push(c);
+    else if (c < 0x800) out.push(0xC0 | (c >> 6), 0x80 | (c & 63));
+    else out.push(0xE0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+  }
+  return new Uint8Array(out);
+}
+function credUtf8Dec(bytes){
+  var s = '', i = 0, c, cp;
+  while (i < bytes.length){
+    c = bytes[i++];
+    if (c < 0x80) s += String.fromCharCode(c);
+    else if (c < 0xE0) s += String.fromCharCode(((c & 31) << 6) | (bytes[i++] & 63));
+    else if (c < 0xF0) s += String.fromCharCode(((c & 15) << 12) | ((bytes[i++] & 63) << 6) | (bytes[i++] & 63));
+    else {
+      cp = (((c & 7) << 18) | ((bytes[i++] & 63) << 12) | ((bytes[i++] & 63) << 6) | (bytes[i++] & 63)) - 0x10000;
+      s += String.fromCharCode(0xD800 + (cp >> 10), 0xDC00 + (cp & 1023));
+    }
+  }
+  return s;
+}
+function credSaltGet(){
+  var s = null;
+  try { s = localStorage.getItem(CRED_SALT); } catch (e) { return null; }
+  if (s) return s;
+  if (!credReady()) return null;
+  var b = new Uint8Array(16);
+  window.crypto.getRandomValues(b);
+  s = credB64(b.buffer);
+  try { localStorage.setItem(CRED_SALT, s); } catch (e) { return null; }
+  return s;
+}
+// 派生 AES-GCM 密钥：SHA-256(设备指纹 | 盐) —— 单轮足够，这里的对手不是离线爆破者而是"顺手看一眼"的人
+function credKeyGet(){
+  var salt = credSaltGet();
+  if (!salt) return Promise.reject(new Error('nosalt'));
+  var data = credUtf8(credFingerprint() + '|' + salt);
+  return window.crypto.subtle.digest('SHA-256', data).then(function(h){
+    return window.crypto.subtle.importKey('raw', h, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  });
+}
+// 落盘：有 crypto.subtle → 密文；没有 → 只留工号（明文，不敏感），并让 UI 说清楚
+// 返回 Promise<'full'|'uidonly'|false>
+function credSave(user, pass){
+  if (!user) return Promise.resolve(false);
+  if (!credReady()){
+    try { localStorage.setItem(CRED_KEY, JSON.stringify({ v: 1, u: user, p: null, fp: null, t: Date.now() })); }
+    catch (e) { return Promise.resolve(false); }
+    return Promise.resolve('uidonly');
+  }
+  return credKeyGet().then(function(k){
+    var iv = new Uint8Array(12);
+    window.crypto.getRandomValues(iv);
+    return window.crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, k, credUtf8(pass || '')).then(function(ct){
+      var rec = { v: 1, u: user, p: credB64(iv.buffer) + ':' + credB64(ct), fp: credFpShort(), t: Date.now() };
+      try { localStorage.setItem(CRED_KEY, JSON.stringify(rec)); } catch (e) { return false; }
+      return 'full';
+    });
+  }).catch(function(){ return false; });
+}
+// 读取：返回 Promise<{u,p}> / null。p 为空串表示"只记住了工号"
+function credLoad(){
+  var rec = null;
+  try { rec = JSON.parse(localStorage.getItem(CRED_KEY) || 'null'); } catch (e) { return Promise.resolve(null); }
+  if (!rec || !rec.u) return Promise.resolve(null);
+  if (!rec.p) return Promise.resolve({ u: rec.u, p: '' });
+  if (rec.fp !== credFpShort()) {   // 换了浏览器 / 换了机器：整条记录丢弃，不给半解不开的残值
+    try { localStorage.removeItem(CRED_KEY); } catch (e) {}
+    return Promise.resolve(null);
+  }
+  if (!credReady()) return Promise.resolve({ u: rec.u, p: '' });
+  return credKeyGet().then(function(k){
+    var seg = String(rec.p).split(':');
+    if (seg.length !== 2) throw new Error('bad');
+    return window.crypto.subtle.decrypt({ name: 'AES-GCM', iv: credUnB64(seg[0]) }, k, credUnB64(seg[1]));
+  }).then(function(pt){
+    return { u: rec.u, p: credUtf8Dec(new Uint8Array(pt)) };
+  }).catch(function(){
+    // 解密失败（指纹变了 / 密文被改 / 盐丢了）：降级为只填工号，并清掉废密文
+    try { localStorage.setItem(CRED_KEY, JSON.stringify({ v: 1, u: rec.u, p: null, fp: null, t: rec.t || Date.now() })); } catch (e) {}
+    return { u: rec.u, p: '' };
+  });
+}
+function credHas(){
+  try {
+    var rec = JSON.parse(localStorage.getItem(CRED_KEY) || 'null');
+    return !!(rec && rec.u);
+  } catch (e) { return false; }
+}
+// 勾选框 / 清除按钮 / 文案 的唯一刷新入口（状态只在 localStorage，不从 DOM 反读）
+function loginRememberPaint(){
+  var cb = document.getElementById('loginRemember');
+  var cl = document.getElementById('lrClearBtn');
+  var tx = document.getElementById('lrTxt');
+  var has = credHas();
+  var able = credReady();
+  var want = false;
+  try { want = localStorage.getItem(CRED_WANT) === '1'; } catch (e) {}
+  if (cb) cb.checked = want || has;
+  if (cl) cl.disabled = !has;
+  if (tx) tx.textContent = able ? '记住账号密码' : '记住工号（此环境不能加密存密码）';
+  var lb = document.querySelector('.lr-main');
+  if (lb) lb.title = able
+    ? '勾选后本机加密保存，下次自动填好；登录仍需点一下「登录」'
+    : '当前非 HTTPS 环境，浏览器不提供加密能力，只能记住工号；密码需每次手动输入';
+}
+function toggleLoginRemember(){
+  var cb = document.getElementById('loginRemember');
+  var on = !!(cb && cb.checked);
+  try {
+    if (on) localStorage.setItem(CRED_WANT, '1');
+    else localStorage.removeItem(CRED_WANT);
+  } catch (e) {}
+  if (!on) clearRememberedCreds(false);   // 取消勾选 = 立即抹掉已存的密文，不留后门
+  else loginRememberPaint();
+}
+function clearRememberedCreds(notify){
+  try { localStorage.removeItem(CRED_KEY); localStorage.removeItem(CRED_WANT); } catch (e) {}
+  var cb = document.getElementById('loginRemember');
+  if (cb) cb.checked = false;
+  loginRememberPaint();
+  if (notify) toastOnce('cred_clear', '已清除本机记住的账号密码');
+}
+// 回填：只在登录层显示时调用。异步窗口里用户可能已手输，绝不覆盖非空输入框
+function restoreLoginCreds(){
+  loginRememberPaint();
+  var uEl = document.getElementById('loginUser');
+  var pEl = document.getElementById('loginPass');
+  if (!uEl) return;
+  credLoad().then(function(rec){
+    if (!rec) { loginRememberPaint(); return; }
+    if (!uEl.value) uEl.value = rec.u;
+    if (rec.p && pEl && !pEl.value) pEl.value = rec.p;
+    loginRememberPaint();
+  }).catch(function(){});
+}
+// 登录成功后按勾选落盘（供 doLogin 调用）——勾了才存，没勾就把旧记录抹掉，不允许"取消勾选但记录还在"
+function rememberCredAfterLogin(user, pass){
+  var cb = document.getElementById('loginRemember');
+  if (cb && cb.checked) {
+    try { localStorage.setItem(CRED_WANT, '1'); } catch (e) {}
+    credSave(user, pass).then(function(ok){
+      if (ok === 'uidonly') toastOnce('cred_uidonly', '当前环境不支持加密保存密码，已只记住工号');
+    });
+  } else {
+    clearRememberedCreds(false);
+  }
+}
+
+
 // 使用日志：关键操作埋点（fire-and-forget，失败仅 console，不阻塞 UI / 不弹提示）
-function logUsage(action, detail){
+// cam49.2：访客登录态没有真实姓名（CUR_USER.name 恒为「访客」），涉及具体本人的动作可传第三个参数署名，
+// 只改 actor（使用人列）不动 role（身份列仍是「访客」徽标）；不传则沿用 CUR_USER.name，老调用点零改动
+function logUsage(action, detail, actor){
   try {
     if (!sb || !CUR_USER) return;
     var role = CUR_USER.guest ? 'guest' : (IS_ADMIN ? 'admin' : 'user');
-    sb.from('usage_logs').insert({ actor: CUR_USER.name, role: role, action: action, detail: detail || null })
+    var who = (actor && String(actor).trim()) ? String(actor).trim() : CUR_USER.name;
+    sb.from('usage_logs').insert({ actor: who, role: role, action: action, detail: detail || null })
       .then(function(r){ if (r && r.error) console.warn('[usage_log]', r.error.message); });
   } catch (e) {}
 }
@@ -2400,6 +2870,7 @@ function showLogin(errMsg){
   if (gb) gb.style.display = 'none';
   var aside = document.querySelector('.sidebar');
   if (aside) aside.style.display = '';   // 访客态下侧栏被隐藏，回登录层时恢复
+  restoreLoginCreds();   // cam49：回填记住的账号密码（异步，不等它，遮罩该显示就显示）
 }
 function enterApp(user){
   CUR_USER = user;
@@ -2515,6 +2986,7 @@ async function doLogin(){
     if (pr.error || !pr.data) throw new Error('noprofile');
     IS_ADMIN = pr.data.role === 'admin';
     enterApp({ id: pr.data.id, username: pr.data.username, name: pr.data.display_name || pr.data.username });
+    rememberCredAfterLogin(un, pw);   // cam49：登录成功才落盘（未经校验的密码存下来没有意义）
     await safeReload();
     // cam38.3：首帧定页可能已把 active 设到上次的页面，登录是新会话起点——清记忆并显式归位实验信息页
     try { sessionStorage.removeItem('mch_last_page'); } catch (e) {}
@@ -2541,9 +3013,16 @@ function applySignedOut(){
   try { sessionStorage.removeItem('mch_guest'); sessionStorage.removeItem('mch_last_page'); } catch (e) {}
   if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
   machines = []; experiments = []; cameras = [];
-  showLogin('');
+  // cam49：把上一会话的提醒 / 静置状态清干净——否则下一个登录的人会看到上一个人的已读与角标数字
+  resvReads = {}; resvSeenIds = {}; resvSeenTs = 0; resvPageSettled = false;
+  statics = []; staticsTs = 0; staticViewMode = 'list';
+  renderNavBadge();
+  renderStaticBadge();
+  // cam49：密码框必须在 showLogin 之前清空。showLogin 末尾会异步回填记住的密码，
+  // 顺序反了就是"刚清空又被自己填回上一个账号的密码"
   var lp = document.getElementById('loginPass');
   if (lp) lp.value = '';
+  showLogin('');
 }
 var _loggingOut = false;   // 防重入：signOut 触发 SIGNED_OUT 回调时不得再走 doLogout
 async function doLogout(){
@@ -2601,7 +3080,8 @@ var DEFAULTS = {
   commission_format: '',
   // cam39.2：实验基础条件（全局）——切换段 = 温度/湿度差 ÷ 对应速率（并行取大者），
   // 第一段从常温起始值开始切换；存 settings 表，实验条件页设置
-  exp_amb_t: 25, exp_amb_rh: 98, exp_rate_t: 1, exp_rate_rh: 0.3
+  // cam48：exp_rate_t_neg = 负温区降温速率（目标温度 < 0℃ 的切换段），留空回落下降速率 exp_rate_t_dn
+  exp_amb_t: 25, exp_amb_rh: 98, exp_rate_t: 1, exp_rate_rh: 0.3, exp_rate_t_neg: null
 };
 var CFG = Object.assign({}, DEFAULTS);
 // 设置页表单被编辑未保存 → 30s 自动刷新跳过重渲染；setter 同步驱动保存条脏状态指示
@@ -2883,7 +3363,20 @@ function switchPage(key){
   });
   try { sessionStorage.setItem('mch_last_page', key); } catch (e) {}   // cam20：刷新后恢复原界面
   // cam38.4：先补齐该页需要的数据再渲染（轮询不再全量拉，切页必须自补）
-  return Promise.resolve(ensureDataFor(key)).then(function(){ renderCurrent(key); });
+  return Promise.resolve(ensureDataFor(key)).then(function(){
+    renderCurrent(key);
+    // cam49：进机台运行页 = 查收了这批访客预约。顺序必须是「先提醒、后记账」——
+    // init 里 safeReload(loadData→detectNewResvs) 跑在 switchPage 之前，若这里直接标记已读，
+    // 那条 path 会因为「未读已被清空」而什么都不提示，提醒就被静默吃掉。
+    if (key === 'run') {
+      var unN = unreadGuestResvs().length;
+      applyPendingPulse();
+      if (unN) toast('有 ' + unN + ' 条待查看的访客预约');
+      markPendingGuestRead();
+    }
+    // cam49：静置角标要有数据才准 —— 进存储运行页懒加载一次（60s TTL 内直接复用，不额外打库）
+    if (key === 'srun') loadStatics(false);
+  });
 }
 function renderCurrent(key){
   if (key === 'exp') renderExpTable();
@@ -2896,6 +3389,11 @@ function renderCurrent(key){
   else if (key === 'done') renderDoneTable();
   else if (key === 'logs') renderLogs();
   else if (key === 'set') renderSetPage();
+  // cam49：页面定下来这一刻才敢按"是否在运行页"下结论；从"未定"翻到"已定"时补一次流光
+  var wasUnsettled = !resvPageSettled;
+  resvPageSettled = true;
+  renderNavBadge();
+  if (wasUnsettled) applyPendingPulse();
 }
 
 // ===================== 相机图片本地缓存（首载缓存，图片有更改才重新拉取） =====================
@@ -3128,6 +3626,8 @@ async function loadData(opts){
     }
   } catch (e) {}
   if (stoNew) migrateBoxSamples();   // cam28：旧箱级实验数据迁移为样品行（幂等，失败静默不影响主流程）
+  // cam49：有新的实验数据才判预约提醒（放最后：要等 machines/experiments 都落位才能拼机台名）
+  if (expNew) detectNewResvs();
 }
 // cam38.4：按需加载「已完成实验」归档——只在进入已完成/相机台账/相机预览/设置页时调用，
 // 并做 5 分钟 TTL 缓存。limit 1000 与 PostgREST 默认 max-rows 一致，避免静默截断带来的困惑。
@@ -3332,13 +3832,17 @@ function stageBaseOf(e){
   if (s && !Array.isArray(s) && s.v === 2 && s.amb && s.rate && Array.isArray(s.list)) return { amb: s.amb, rate: s.rate };
   return null;
 }
-// cam39.2：当前全局基础条件（模板预览/创建快照/估算用，读 CFG）；cam42.3：温度速率按升降拆分——td=下降速率，未配置回落上升速率 t（老数据行为不变）
+// cam39.2：当前全局基础条件（模板预览/创建快照/估算用，读 CFG）；cam42.3：温度速率按升降拆分——td=下降速率，未配置回落上升速率 t（老数据行为不变）；cam48：tn=负温区降温速率（目标温度 < 0℃），未配置回落 td
 function cfgStageBase(){
   function num(x, d){ var f = parseFloat(x); return isNaN(f) ? d : f; }
   function pos(x, d){ var f = parseFloat(x); return (isNaN(f) || f <= 0) ? d : f; }
   var tUp = CFG.exp_rate_t, tDn = (CFG.exp_rate_t_dn === null || CFG.exp_rate_t_dn === undefined || CFG.exp_rate_t_dn === '') ? tUp : CFG.exp_rate_t_dn;
+  // cam48：负温区降温速率 tn——目标温度 < 0℃ 的切换段用它；未配置回落下降速率 td（老数据零影响）
+  var tNegRaw = CFG.exp_rate_t_neg;
+  var tNegSet = !(tNegRaw === null || tNegRaw === undefined || tNegRaw === '');   // 是否配置过负温档（未配置时 tn 回落 td，不单独生效）
+  var tNeg = tNegSet ? tNegRaw : tDn;
   return { amb: { t: num(CFG.exp_amb_t, 25), rh: num(CFG.exp_amb_rh, 98) },
-           rate: { t: pos(tUp, 1), td: pos(tDn, pos(tUp, 1)), rh: pos(CFG.exp_rate_rh, 0.3) } };
+           rate: { t: pos(tUp, 1), td: pos(tDn, pos(tUp, 1)), tn: pos(tNeg, pos(tDn, pos(tUp, 1))), neg: tNegSet, rh: pos(CFG.exp_rate_rh, 0.3) } };
 }
 // cam39.2：进入第 i 段前的切换时长（分钟）——温度差÷温度速率 与 湿度差÷湿度速率 取大者（并行转换）；
 // i===0 时从基础条件常温值开始；某维度任一侧为空则该维度不参与切换（沿用"常温留空"语义）
@@ -3363,6 +3867,8 @@ function stageRampMinBetween(base, from, to){
   var rt = parseFloat(base.rate.t) || 0, rr = parseFloat(base.rate.rh) || 0;
   // cam42.3：温度下降（ΔT<0）用下降转换速率 td（老快照无 td 键回落上升速率 t，行为不变）
   if (has(to.t) && has(from.t) && (parseFloat(to.t) - parseFloat(from.t)) < 0 && has(base.rate.td)) rt = parseFloat(base.rate.td) || 0;
+  // cam48：目标温度 < 0℃ 且已配置负温档 neg 时用 tn（相邻负温段与跨 0℃ 段都算）；未配置时保持上一行结果
+  if (has(to.t) && parseFloat(to.t) < 0 && base.rate.neg && has(base.rate.tn)) rt = parseFloat(base.rate.tn) || 0;
   if (has(to.t) && has(from.t) && rt > 0) mins = Math.max(mins, Math.abs(parseFloat(to.t) - parseFloat(from.t)) / rt);
   if (has(to.rh) && has(from.rh) && rr > 0) mins = Math.max(mins, Math.abs(parseFloat(to.rh) - parseFloat(from.rh)) / rr);
   return mins;
@@ -3609,6 +4115,20 @@ function stageRowHtml(exps){
 // cam39.4：运行详情弹窗阶段时间线——紧凑排版每节点 2 行（标题+时间/进度）；
 // 已完成=标题后绿勾图标（ic('check')），进行中=金色播放标（ic('play')）+同行进度条；未到=灰标题+时间范围；
 // 截图时间点行已按需求整体移除（创建实验预览中的「截图 N 次」总次数文案保留）
+// cam47.5：切换段时长 = 温度与湿度各自耗时取大者。标出温度速率与两者耗时——否则「段时长÷温差」会被误读成温度变慢
+function rampRateTxt(seg){
+  var f = (seg && seg.fromCond) || {}, st = (seg && seg.st) || {}, r = cfgStageBase().rate;
+  var has = function(v){ return v !== null && v !== undefined && v !== ''; };
+  if (!has(f.t) || !has(st.t)) return '';
+  var dT = parseFloat(st.t) - parseFloat(f.t);
+  // cam48：与 stageRampMinBetween 同源——目标温度 < 0℃ 优先负温档 tn，其次下降档 td，否则上升档 t
+  var neg = has(st.t) && parseFloat(st.t) < 0 && !!r.neg;
+  var rt = neg ? parseFloat(r.tn) : ((dT < 0 && has(r.td)) ? parseFloat(r.td) : parseFloat(r.t));
+  if (!(rt > 0)) return '';
+  var tm = Math.round(Math.abs(dT) / rt), rm = 0;
+  if (has(f.rh) && has(st.rh) && parseFloat(r.rh) > 0) rm = Math.round(Math.abs(parseFloat(st.rh) - parseFloat(f.rh)) / parseFloat(r.rh));
+  return ' · ' + rt + '℃/min' + (neg ? '·负温' : '') + (rm > tm ? '（温度需 ' + tm + 'min · 湿度需 ' + rm + 'min）' : '');
+}
 function stageTimelineHtml(e, opt){
   var tl = stageTimeline(e);
   if (!tl) return '';
@@ -3636,7 +4156,7 @@ function stageTimelineHtml(e, opt){
         // cam44.1：sr-tl 下进度条本身即「剩余」语义，去掉「剩余」二字避免与右侧时长列语义打架
         + '<span class="tl-left">' + (runSkin ? '' : '剩余 ') + cdText(new Date(seg.t1).toISOString()) + '</span></div>';
     } else if (seg.type === 'ramp') {
-      body = '<div class="tl-time">约 ' + Math.round((seg.t1 - seg.t0) / 60000) + ' 分钟 · ' + fmtShort(new Date(seg.t0).toISOString()) + ' ~ ' + fmtShort(new Date(seg.t1).toISOString()) + '</div>';
+      body = '<div class="tl-time">约 ' + Math.round((seg.t1 - seg.t0) / 60000) + ' 分钟' + (runSkin ? '' : rampRateTxt(seg)) + ' · ' + fmtShort(new Date(seg.t0).toISOString()) + ' ~ ' + fmtShort(new Date(seg.t1).toISOString()) + '</div>';
     } else {
       body = '<div class="tl-time">' + fmtShort(new Date(seg.t0).toISOString()) + ' ~ ' + fmtShort(new Date(seg.t1).toISOString()) + '</div>';
     }
@@ -4195,7 +4715,7 @@ async function deleteTpl(id){
 }
 // ---------- cam39.2：实验基础条件（全局，存 settings 表 4 键；值进 DEFAULTS 兜底） ----------
 function loadStageBase(){
-  var map = { bcAmbT: 'exp_amb_t', bcAmbRh: 'exp_amb_rh', bcRateT: 'exp_rate_t', bcRateDn: 'exp_rate_t_dn', bcRateRh: 'exp_rate_rh' };
+  var map = { bcAmbT: 'exp_amb_t', bcAmbRh: 'exp_amb_rh', bcRateT: 'exp_rate_t', bcRateDn: 'exp_rate_t_dn', bcRateNeg: 'exp_rate_t_neg', bcRateRh: 'exp_rate_rh' };
   Object.keys(map).forEach(function(id){
     var el = document.getElementById(id);
     if (el && el !== document.activeElement) { var v = CFG[map[id]]; el.value = v == null ? '' : v; }   // 正在编辑的框不覆盖；cam42.3：null/undefined 显示为空（=同上升速率）
@@ -4210,9 +4730,12 @@ async function saveStageBase(){
   var rateR = parseFloat(document.getElementById('bcRateRh').value);
   var rateDnRaw = (document.getElementById('bcRateDn').value || '').trim();   // cam42.3：下降转换速率，留空=同上升速率
   var rateDn = rateDnRaw === '' ? null : parseFloat(rateDnRaw);
+  var rateNegRaw = (document.getElementById('bcRateNeg').value || '').trim();   // cam48：负温区降温速率，留空=同下降速率
+  var rateNeg = rateNegRaw === '' ? null : parseFloat(rateNegRaw);
   if (isNaN(ambT) || isNaN(ambR)) { toast('常温起始温度/湿度请填写数字'); return; }
   if (!(rateT > 0) || !(rateR > 0)) { toast('转换速率请填写大于 0 的数字'); return; }
   if (rateDn !== null && !(rateDn > 0)) { toast('温度下降转换速率请填写大于 0 的数字，或留空表示同上升速率'); return; }
+  if (rateNeg !== null && !(rateNeg > 0)) { toast('负温区降温速率请填写大于 0 的数字，或留空表示同下降速率'); return; }
   var btn = document.getElementById('bcSaveBtn');
   btn.classList.add('loading');
   var rows = [
@@ -4220,12 +4743,13 @@ async function saveStageBase(){
     { key: 'exp_rate_t', value: rateT }, { key: 'exp_rate_rh', value: rateR }
   ].map(function(r){ return { key: r.key, value: r.value, updated_at: new Date().toISOString() }; });
   if (rateDn !== null) rows.push({ key: 'exp_rate_t_dn', value: rateDn, updated_at: new Date().toISOString() });   // cam42.3：留空不写库（回落上升速率）
+  if (rateNeg !== null) rows.push({ key: 'exp_rate_t_neg', value: rateNeg, updated_at: new Date().toISOString() });   // cam48：留空不写库（回落下降速率）
   var err = (await sb.from('settings').upsert(rows, { onConflict: 'key' })).error;
   btn.classList.remove('loading');
   if (err) { toast('保存失败：' + friendlyErr(err)); return; }
-  CFG.exp_amb_t = ambT; CFG.exp_amb_rh = ambR; CFG.exp_rate_t = rateT; CFG.exp_rate_rh = rateR; CFG.exp_rate_t_dn = rateDn;
+  CFG.exp_amb_t = ambT; CFG.exp_amb_rh = ambR; CFG.exp_rate_t = rateT; CFG.exp_rate_rh = rateR; CFG.exp_rate_t_dn = rateDn; CFG.exp_rate_t_neg = rateNeg;
   toast('保存成功');
-  logUsage('stage_base_save', '常温' + ambT + '℃/' + ambR + '%RH · 速率↑' + rateT + (rateDn !== null ? '/↓' + rateDn : '') + '℃/min · ' + rateR + '%RH/min');
+  logUsage('stage_base_save', '常温' + ambT + '℃/' + ambR + '%RH · 速率↑' + rateT + (rateDn !== null ? '/↓' + rateDn : '') + (rateNeg !== null ? '/负温' + rateNeg : '') + '℃/min · ' + rateR + '%RH/min');
   // cam41：速率实时生效——按新速率重估运行中实验时间轴并重写预计结束
   //        （倒计时/即将结束预警/相机归还/超期收尾都读 expected_end，自动跟随；无阶段快照的实验不受影响）
   var touched = 0, fail = 0;
@@ -4310,7 +4834,9 @@ async function deleteExperiment(id){
   var wasResv = experiments.some(function(x){ return x.id === id && x.status === '待运行'; });
   // cam47.1：详情记名称不记 uuid 前 8 位（旧版删已完成记录时 experiments 里查不到、只剩乱码片段）
   var dex = allExps().find(function(x){ return x.id === id; }) || {};
-  logUsage(wasResv ? 'resv_delete' : 'done_delete', [dex.model_name, dex.exp_item].filter(Boolean).join(' · ') || ('实验 ' + id.slice(0, 8)));
+  // cam49.2：删的是访客自己下的预约时，使用人同样记「预约人」而不是笼统的「访客」
+  var delWho = (wasResv && dex.is_guest && CUR_USER && CUR_USER.guest && dex.sender) ? dex.sender : '';
+  logUsage(wasResv ? 'resv_delete' : 'done_delete', [dex.model_name, dex.exp_item].filter(Boolean).join(' · ') || ('实验 ' + id.slice(0, 8)), delWho);
   toast('已删除');
   if (await safeReload()) renderCurrent(document.querySelector('.page.active').id.replace('page-', ''));
 }
@@ -4682,6 +5208,9 @@ var LOG_ACTION_LABELS = {
   sbox_exp: '存储箱登记实验', sbox_auto_end: '存储箱自动收尾',
   ssample_in: '样品投放', ssample_edit: '样品信息修改', ssample_auto_end: '样品自动到期',
   ssample_continue: '样品继续执行', ssample_pick: '样品取出',
+  // cam49：静置试验 + 预约查看（新增动作必须同时补 LABELS 与 CAT，否则日志动作列会露出裸变量名）
+  static_create: '创建静置试验', static_delete: '删除静置试验', resv_view: '查看预约提醒',
+  static_inspect: '修改检验日期',   // cam50
   settings_save: '保存设置', csv_export: '导出CSV', logs_clear: '清空使用日志',
   cache_clear: '清除图片缓存', done_clean: '批量清理已完成', done_delete: '删除已完成记录',
   // cam47.1：时间轴修正 / 阶段基线 / 实验模板此前漏映射，日志动作列直接露 stage_skip、time_fix
@@ -4698,6 +5227,7 @@ var LOG_ACTION_CAT = {
   cam_add: 'cam', cam_edit: 'cam', cam_delete: 'cam',
   sbox_start: 'store', sbox_stop: 'store', sbox_reset: 'store', sbox_exp: 'store', sbox_auto_end: 'store', sbox_cond: 'store',
   ssample_in: 'store', ssample_edit: 'store', ssample_auto_end: 'store', ssample_continue: 'store', ssample_pick: 'store',
+  static_create: 'static', static_delete: 'static', resv_view: 'resv', static_inspect: 'static',
   settings_save: 'set', cache_clear: 'set', csv_export: 'set', done_clean: 'set', done_delete: 'set', logs_clear: 'set',
   stage_skip: 'run', time_fix: 'run', tpl_save: 'run', tpl_delete: 'run',
   stage_base_save: 'set',
@@ -4706,6 +5236,7 @@ var LOG_ACTION_CAT = {
 var LOG_CAT_META = {
   login: ['登录退出', 'b-idle'], resv: ['预约', 'lg-resv'], run: ['运行实验', 'b-run'],
   mch: ['机台管理', 'lg-mch'], cam: ['相机管理', 'lg-cam'], store: ['存储箱', 'lg-store'],
+  static: ['静置试验', 'lg-store'],
   set: ['设置维护', 'b-warn'], staff: ['人员管理', 'lg-staff']
 };
 var LOGIN_FAMILY = ['login', 'login_fail', 'logout', 'guest_enter', 'guest_exit'];
@@ -5523,6 +6054,7 @@ function mchCardHtml(m, interactive, pv){
       + (pv && e.expected_end ? '<div class="pv-cd"><span class="k">剩余时间</span><b class="ss-cd" data-end="' + esc(e.expected_end) + '">' + cdText(e.expected_end) + '</b></div>' : '')   // cam37：看板大倒计时填充卡面
       + '<div class="mb-end ' + st.cls + '">' + nxHtml
       + '<span class="mb-eend" data-end="' + esc(e.expected_end) + '">预计结束：' + fmtShort(e.expected_end) + '</span></div>'
+      + fluxRingHtml()   // cam49：预约提醒流光层（cam46.3 复用；必须是 .machine-box 直接子元素）
       + '</div>';
   } else {
     // cam24：预览为纯展示，空闲提示不带"点击"字样（结构/间距与运行页一致）
@@ -5530,9 +6062,10 @@ function mchCardHtml(m, interactive, pv){
     card = '<div class="machine-box idle"' + ctx + (interactive ? ' onclick="' + (isG ? 'openResvModal(event,\'' + m.id + '\')' : 'openRunModal(\'' + m.id + '\')') + '"' : '') + '>'
       + head('<span class="mb-status idle"><span class="dot"></span>空闲</span>')
       + '<div class="mb-idle-tip"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>' + tip + '</div>'
+      + fluxRingHtml()   // cam49：预约提醒流光层
       + '</div>';
   }
-  return '<div class="mcell">' + card + (interactive ? resvFoldHtml(m.id) : '') + '</div>';
+  return '<div class="mcell" data-mid="' + esc(m.id) + '">' + card + (interactive ? resvFoldHtml(m.id) : '') + '</div>';
 }
 function renderRunGrid(mode){
   // mode='run'（默认）：非存储类机台看板；mode='srun'：存储类机台看板（平铺，无组头）
@@ -5584,6 +6117,7 @@ function renderRunGrid(mode){
   }
   g.innerHTML = html;
   if (mode === 'srun') renderSrunStats();   // cam28：存储运行页同步刷新顶部统计区
+  else applyPendingPulse();                 // cam49：重排后补打预约流光（innerHTML 会抹掉 .flux 类）
 }
 // —— 存储类机台卡片（cam18）：机台头 + N 个箱小卡片（三箱式存储=3，其余=1），箱独立运行 ——
 // cam24：interactive=false（全屏预览）时省略点击事件、提示语去掉"点击"字样
@@ -6249,8 +6783,9 @@ function jumpToMachine(kind){
   if (!fluxMachines(ids)) toast('当前楼层没有对应的机台');
 }
 // cam46.1：把「给一批机台打流光 + 滚到第一台」抽出来，指标带与实验行共用
-function fluxMachines(ids){
-  var grid = document.getElementById('srunGrid');
+// cam49：加 gridId（默认仍 srunGrid）与 noScroll——运行页复用它做预约提醒，轮询重排时不该抢滚动条
+function fluxMachines(ids, gridId, noScroll){
+  var grid = document.getElementById(gridId || 'srunGrid');
   if (!grid) return false;
   var hit = [];
   grid.querySelectorAll('.mcell[data-mid]').forEach(function(el){
@@ -6265,6 +6800,7 @@ function fluxMachines(ids){
     if (fluxTimers[mid]) clearTimeout(fluxTimers[mid]);
     fluxTimers[mid] = setTimeout(function(){ el.classList.remove('flux'); }, 3000);
   });
+  if (noScroll) return true;
   try { hit[0].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   catch (e) { hit[0].scrollIntoView(); }
   return true;
@@ -6543,6 +7079,9 @@ function openResvModal(ev, machineId){
   var isG = !!(CUR_USER && CUR_USER.guest);
   // cam29：访客语义——「送样人」改「预约人」且必填（同一 sender 字段，仅文案变化）
   document.getElementById('resvSenderLabel').textContent = isG ? '预约人（必填）' : '送样人';
+  var senderEl = document.getElementById('resvSender');
+  // cam49.2：placeholder 必须跟着必填/选填走 —— 原来固定写「选填」，与访客态的「预约人（必填）」标签自相矛盾
+  senderEl.placeholder = isG ? '请输入预约人姓名' : '选填';
   document.getElementById('resvModalTitle').textContent = '机台 ' + m.machine_code + '（' + m.location + '）· 创建预约实验排程';
   document.getElementById('resvItem').value = '';
   document.getElementById('resvModel').value = '';
@@ -6584,7 +7123,8 @@ async function saveResv(){
     is_guest: isG   // cam29：标记访客创建的预约（卡片显示「预」图标 + 文案「预约人」）
   })).error;
   if (err) { toast('预约失败：' + friendlyErr(err)); return; }
-  logUsage('resv_create', currentResvMachine.machine_code + ' · ' + item + (isG ? ' · 访客预约' : ''));
+  // cam49.2：访客没有工号姓名，使用人列改用单上填的「预约人」，否则日志里满屏「访客」查不到是谁
+  logUsage('resv_create', currentResvMachine.machine_code + ' · ' + item + (isG ? ' · 访客预约' : ''), isG ? sender : '');
   var code = currentResvMachine.machine_code;
   currentResvMachine = null;
   closeModal('resvModal');
@@ -6845,7 +7385,7 @@ async function confirmStop(){
   if (!currentRunMachine) return;
   var exps = runningExpsOf(currentRunMachine.id);
   if (!exps.length) return;
-  // cam39：结束设备使用 loading——按钮转圈+禁用，逐条 update 期间防重复点击；finally 恢复
+  // cam39：结束使用 loading——按钮转圈+禁用，逐条 update 期间防重复点击；finally 恢复
   var btn = document.getElementById('stopBtn');
   if (btn) btn.classList.add('loading');
   try {
@@ -6902,6 +7442,744 @@ async function batchCloseOverdue(){
   if (await safeReload()) renderCurrent(document.querySelector('.page.active').id.replace('page-', ''));
 }
 
+// ===================== cam49：静置试验存储（static_tests 表） =====================
+// 与 storage_samples（机台箱内存储）无关：这里只登记"哪些相机在静置、哪天结束"，不占机台、不扣库存
+var statics = [];          // static_tests 行（ended_at 升序）
+var staticsTs = 0;         // 上次成功拉取时间
+var staticsBusy = false;   // 防重入：连点按钮不重复打库
+var STATIC_TTL = 60000;    // 60s 内复用结果——每开一次弹窗就全表拉一遍太费 Disk IO
+var staticViewMode = 'list';
+var staticEndAuto = true;  // 结束时间是否仍随开始时间自动 +30 天
+// cam50：中途检验（计划日期，只记哪天检查、不记是否已完成）
+var staticCalSel = { st: [], si: [] };   // 两套网格各自的选中集（本地日期串，升序）——用 ctx 前缀隔开，互不污染
+var staticInsTarget = null;              // 行内「修改检验日期」当前记录 id
+var STATIC_WD = ['一', '二', '三', '四', '五', '六', '日'];   // 周历表头：周一为首列（与国内习惯一致）
+
+function staticDayKey(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function staticPlusDays(d, n){ var x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
+function staticShortDT(v){
+  if (!v) return '-';
+  var d = new Date(v); if (isNaN(d)) return '-';
+  return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+function staticDayLabel(d){
+  return (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][d.getDay()];
+}
+// 状态一律现算，不依赖 status 被定时任务改写：到点没取出就是逾期，库里那个 status 只区分"还在 / 已取出"
+function staticState(r, nowMs){
+  var end = r.ended_at ? new Date(r.ended_at) : null;
+  if (end && isNaN(end)) end = null;
+  var taken = r.status === '已取出';
+  return { taken: taken, over: !taken && !!end && end.getTime() < nowMs, end: end };
+}
+function staticPaintView(){
+  var v = document.getElementById('staticView');
+  var f = document.getElementById('staticForm');
+  var sub = document.getElementById('staticSub');
+  var isList = staticViewMode === 'list';
+  if (v) v.classList.toggle('hidden', !isList);
+  if (f) f.classList.toggle('hidden', isList);
+  if (sub) sub.textContent = isList
+    ? '不占机台的相机静置登记 · 按结束日分组，今天 / 明天到期置顶提醒'
+    : '结束后按结束时间自动归组；结束时间默认跟随开始时间 +30 天';
+}
+function openStaticModal(){
+  staticViewMode = 'list';
+  staticPaintView();
+  openModal('staticModal');
+  loadStatics(false);
+}
+function staticGoForm(){
+  staticViewMode = 'form';
+  staticPaintView();
+  staticFormReset();
+}
+function staticGoList(){
+  staticViewMode = 'list';
+  staticPaintView();
+}
+function staticFormReset(){
+  staticEndAuto = true;
+  var now = new Date();
+  now.setSeconds(0, 0);
+  var m = document.getElementById('stModel');
+  var s = document.getElementById('stStart');
+  var e = document.getElementById('stEnd');
+  var q = document.getElementById('stQty');
+  var c = document.getElementById('staticCamera');
+  if (m) m.value = '';
+  // cam50.2：机种改「前缀下拉 + 后缀输入」后，重置要连前缀一起归位，否则下次打开还停在上次选的 UH
+  var ps = (m && m.parentNode) ? m.parentNode.querySelector('.pre-sel') : null;
+  if (ps) ps.value = grpPrefix();
+  if (s) s.value = isoToLocalVal(now.toISOString());
+  if (e) e.value = isoToLocalVal(staticPlusDays(now, 30).toISOString());
+  if (q) q.value = '1';
+  if (c) { c.value = ''; renderCamSelPanel('staticCamera'); }
+  // cam50：新建表单从零开始——清空检验选中集、复位勾选、重画网格。必须放在 s/e 赋值之后（网格依赖这两个值）
+  staticCalSel.st = [];
+  var ic = document.getElementById('stInsOn');
+  if (ic) ic.checked = false;
+  staticInsPaint();
+  if (m) { try { m.focus(); } catch (err) {} }   // 弹窗刚切到表单态，聚焦失败不影响使用
+}
+// 开始时间变了就重算结束时间——但只在用户没手动改过结束时间时才跟随（改了就别抢回去）
+// cam50：不管是否跟随，都要同步一次检验日期网格。原写法首行 `if (!staticEndAuto) return;` 会让
+// 「手动改过结束时间后再改开始时间」时网格完全不更新（旧范围还在，选的日期是废的）
+function staticStartChanged(){
+  var s = document.getElementById('stStart');
+  var e = document.getElementById('stEnd');
+  if (staticEndAuto && s && e && s.value){
+    var d = new Date(s.value);
+    if (!isNaN(d)) e.value = isoToLocalVal(staticPlusDays(d, 30).toISOString());
+  }
+  staticCalSync('st', true);
+}
+// cam50：结束时间被手动改 → 关掉自动跟随并重算网格（原来 onchange 只置 staticEndAuto=false，网格纹丝不动）
+function staticEndChanged(){
+  staticEndAuto = false;
+  staticCalSync('st', true);
+}
+// 角标：今天结束 + 逾期未取 + 今天要中途检验（这三类才是需要人动手的）
+// cam50：三段短路天然按记录去重——一条记录既今天结束又今天检验，只算 1
+function renderStaticBadge(){
+  var b = document.getElementById('staticBtnBadge');
+  if (!b) return;
+  var now = Date.now(), tk = staticDayKey(new Date(now)), n = 0;
+  statics.forEach(function(r){
+    if (r.status === '已取出') return;
+    var s = staticState(r, now);
+    if (s.over) { n++; return; }
+    if (s.end && staticDayKey(s.end) === tk) { n++; return; }
+    if (staticInsInfo(r, tk).today) n++;
+  });
+  if (n > 0) { b.textContent = n > 99 ? '99+' : String(n); b.classList.remove('hidden'); }
+  else { b.textContent = ''; b.classList.add('hidden'); }
+}
+function loadStatics(force){
+  if (!sb) return Promise.resolve(false);
+  var now = Date.now();
+  if (!force && staticsTs && (now - staticsTs) < STATIC_TTL) { renderStatics(); renderStaticBadge(); return Promise.resolve(true); }
+  if (staticsBusy) return Promise.resolve(false);
+  staticsBusy = true;
+  var chain;
+  try {
+    chain = sb.from('static_tests').select('*').order('ended_at', { ascending: true }).limit(500);
+  } catch (e) { staticsBusy = false; return Promise.resolve(false); }
+  // supabase-js 查询链是 thenable，没有 .catch —— 必须先用 Promise.resolve 包一层
+  return Promise.resolve(chain).then(function(r){
+    staticsBusy = false;
+    if (r && r.error) {
+      console.warn('[static_tests]', r.error.message);
+      toastOnce('static_err', '静置存储读取失败：' + r.error.message
+        + (/(does not exist|schema cache|relation)/i.test(r.error.message) ? '（请先执行 machine\\static_tests.txt 建表）' : ''));
+      renderStatics();
+      return false;
+    }
+    statics = (r && r.data) || [];
+    staticsTs = Date.now();
+    renderStatics();
+    renderStaticBadge();
+    return true;
+  }).catch(function(e){
+    staticsBusy = false;
+    console.warn('[static_tests]', e);
+    return false;
+  });
+}
+function staticKcHtml(cls, v, k){
+  return '<div class="st-kc ' + cls + (v ? '' : ' z') + '"><span class="st-kc-mk"></span>'
+    + '<span class="st-kc-v">' + v + '</span><span class="st-kc-k">' + k + '</span></div>';
+}
+function staticRowHtml(it, now, tk, mk){
+  var r = it.r, s = it.s;
+  var cls = '', due = '', dueCls = '';
+  if (s.over) {
+    cls = 'g-over';
+    var hrs = Math.floor((now - s.end.getTime()) / 3600000);
+    due = hrs >= 24 ? '逾期 ' + Math.floor(hrs / 24) + ' 天' : '逾期 ' + Math.max(1, hrs) + ' 小时';
+    dueCls = 'k-over';
+  } else if (s.end) {
+    var dk = staticDayKey(s.end);
+    var hm = pad(s.end.getHours()) + ':' + pad(s.end.getMinutes());
+    if (dk === tk) { cls = 'g-today'; due = '今天 ' + hm; dueCls = 'k-today'; }
+    else if (dk === mk) { cls = 'g-tmr'; due = '明天 ' + hm; dueCls = 'k-tmr'; }
+    else { due = (s.end.getMonth() + 1) + '/' + s.end.getDate(); }
+  }
+  var cam = cameras.find(function(c){ return c.id === r.camera_id; }) || {};
+  var qty = parseInt(r.camera_qty, 10) || 0;
+  var meta = (cam.model_name ? esc(cam.model_name) + ' × <b>' + qty + '</b> 台 · ' : (qty ? '<b>' + qty + '</b> 台 · ' : ''))
+    + '起 ' + staticShortDT(r.started_at) + ' → 止 ' + staticShortDT(r.ended_at);
+  return '<div class="st-row ' + cls + '">'
+    + '<div class="st-main"><div class="st-name" title="' + esc(r.model_name) + '">' + esc(r.model_name) + '</div>'
+    + '<div class="st-meta">' + meta + '</div></div>'
+    + staticInsChip(it, staticInsInfo(r, tk))
+    + (due ? '<span class="st-due ' + dueCls + '">' + due + '</span>' : '')
+    + '<button class="st-del" type="button" onclick="deleteStatic(\'' + r.id + '\')" title="删除这条静置记录">'
+    + '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM8 9h8v10H8zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>'
+    + '</div>';
+}
+function staticGroupHtml(label, tag, cls, items, now, tk, mk){
+  if (!items.length) return '';
+  var qty = items.reduce(function(a, it){ return a + (parseInt(it.r.camera_qty, 10) || 0); }, 0);
+  return '<div class="st-grp ' + cls + '">'
+    + '<div class="st-grp-h">' + (tag ? '<span class="st-tag">' + tag + '</span>' : '') + label
+    + '<span class="st-grp-cnt">' + items.length + ' 项 · ' + qty + ' 台</span></div>'
+    + '<div class="st-grp-b">' + items.map(function(it){ return staticRowHtml(it, now, tk, mk); }).join('') + '</div>'
+    + '</div>';
+}
+function renderStatics(){
+  var kpi = document.getElementById('stKpi');
+  var list = document.getElementById('stList');
+  if (!kpi || !list) return;
+  var now = Date.now(), todayD = new Date(now);
+  var tk = staticDayKey(todayD), mk = staticDayKey(staticPlusDays(todayD, 1));
+  var live = [], over = [], gToday = [], gTmr = [], rest = {}, restKeys = [];
+  var nToday = 0, nTmr = 0, nOver = 0, nIns = 0;
+  statics.forEach(function(r){
+    if (r.status === '已取出') return;
+    var s = staticState(r, now);
+    live.push(r);
+    // cam50：今天要中途检验的记录数——与「今天结束」相互独立，一条记录可以既今天结束又今天检验
+    if (staticInsInfo(r, tk).today) nIns++;
+    if (s.over) { nOver++; over.push({ r: r, s: s }); return; }
+    if (!s.end) { if (!rest.zzzz) { rest.zzzz = []; restKeys.push('zzzz'); } rest.zzzz.push({ r: r, s: s }); return; }
+    var k = staticDayKey(s.end);
+    if (k === tk) { nToday++; gToday.push({ r: r, s: s }); }
+    else if (k === mk) { nTmr++; gTmr.push({ r: r, s: s }); }
+    else { if (!rest[k]) { rest[k] = []; restKeys.push(k); } rest[k].push({ r: r, s: s }); }
+  });
+  restKeys.sort();
+  kpi.innerHTML = staticKcHtml('', live.length, '在库')
+    + staticKcHtml('k-today', nToday, '今天结束')
+    + staticKcHtml('k-tmr', nTmr, '明天结束')
+    + staticKcHtml('k-over', nOver, '逾期未取')
+    + staticKcHtml('k-ins', nIns, '今日检验');
+  var html = '';
+  html += staticGroupHtml('逾期未取', '', 'g-over', over, now, tk, mk);
+  html += staticGroupHtml(staticDayLabel(todayD), '今天', 'g-today', gToday, now, tk, mk);
+  html += staticGroupHtml(staticDayLabel(staticPlusDays(todayD, 1)), '明天', 'g-tmr', gTmr, now, tk, mk);
+  restKeys.forEach(function(k){
+    var items = rest[k];
+    var lb = (k === 'zzzz' || !items[0].s.end) ? '未设结束时间' : staticDayLabel(items[0].s.end);
+    html += staticGroupHtml(lb, '', '', items, now, tk, mk);
+  });
+  list.innerHTML = html || '<div class="st-empty"><b>暂无静置中的试验</b>点「创建试验」登记机种、开始时间与相机数量</div>';
+}
+function createStatic(){
+  if (!sb) { toast('脚本库未加载，无法创建'); return; }
+  var mEl = document.getElementById('stModel');
+  var sEl = document.getElementById('stStart');
+  var eEl = document.getElementById('stEnd');
+  var qEl = document.getElementById('stQty');
+  var cEl = document.getElementById('staticCamera');
+  var tail = (mEl ? mEl.value : '').replace(/^\s+|\s+$/g, '');
+  if (!tail) { toast('请填写机种名称'); if (mEl) mEl.focus(); return; }
+  var model = pfxOfInput(mEl) + tail;   // cam50.2：前缀下拉 + 后缀，与其余 5 处机种输入点同源
+  var sIso = localValToIso(sEl ? sEl.value : '');
+  var eIso = localValToIso(eEl ? eEl.value : '');
+  if (!sIso) { toast('请选择开始时间'); if (sEl) sEl.focus(); return; }
+  if (!eIso) { toast('请选择结束时间'); if (eEl) eEl.focus(); return; }
+  if (new Date(eIso).getTime() <= new Date(sIso).getTime()) { toast('结束时间必须晚于开始时间'); if (eEl) eEl.focus(); return; }
+  var qty = parseInt(qEl ? qEl.value : '', 10);
+  if (!qty || qty < 1) qty = 1;
+  // cam50.2：相机型号由选填改必填——没型号的静置记录在列表里只剩「N 台」，跟台数统计对不上
+  var camId = (cEl && cEl.value) ? cEl.value : '';
+  if (!camId) { toast('请选择相机型号'); return; }
+  // cam50：中途检验——勾选却一个日期都没选是无效状态，直接拦掉；未勾选写空数组
+  // staticClampSel 而不是 staticCalSel：防止「刚改完时间、onchange 还没触发就按回车」带出越界日期
+  var insCb = document.getElementById('stInsOn');
+  var insOn = !!(insCb && insCb.checked);
+  var insArr = insOn ? staticClampSel('st', sIso, eIso) : [];
+  if (insOn && !insArr.length) { toast('已勾选「中途检验」，请至少选择一个检验日期'); return; }
+  var row = {
+    model_name: model,
+    camera_id: camId,
+    camera_qty: qty,
+    started_at: sIso,
+    ended_at: eIso,
+    status: '静置中',
+    inspect_dates: insArr
+  };
+  if (CUR_USER && !CUR_USER.guest && CUR_USER.id) { row.created_by = CUR_USER.id; row.created_by_name = CUR_USER.name; }
+  else { row.created_by_name = '访客'; }
+  var btn = document.getElementById('stCreateBtn');
+  if (btn) btn.disabled = true;
+  // cam50：列还没建时（没执行 static_tests_inspect.txt）PostgREST 会抛 PGRST204 让整条 insert 失败，
+  // 那是连「创建静置试验」这个老功能一起打挂。所以去掉该键重试一次，其余字段照常写入
+  var insMsg = function(er){ return String((er && er.message) || '') + String((er && er.details) || ''); };
+  var doInsert = function(payload){ return Promise.resolve(sb.from('static_tests').insert(payload)); };
+  doInsert(row).then(function(r0){
+    var er = r0 && r0.error;
+    if (er && /inspect_dates/i.test(insMsg(er))){
+      var row2 = {};
+      for (var kk in row){ if (kk !== 'inspect_dates') row2[kk] = row[kk]; }
+      return doInsert(row2).then(function(r2){
+        if (r2 && !r2.error) toastOnce('static_ins_col', '检验日期没存上：请先在 Supabase 执行 machine\\static_tests_inspect.txt 加列');
+        return r2;
+      });
+    }
+    return r0;
+  }).then(function(r){
+    if (btn) btn.disabled = false;
+    if (r && r.error) { toast('创建失败：' + r.error.message); console.warn('[static_create]', r.error); return; }
+    logUsage('static_create', '机种 ' + model + ' · ' + qty + ' 台 · 止 ' + staticShortDT(eIso) + (insArr.length ? ' · 检验 ' + insArr.length + ' 次' : ''));
+    toast('已创建静置试验');
+    staticGoList();
+    loadStatics(true);
+  }).catch(function(e){
+    if (btn) btn.disabled = false;
+    console.warn('[static_create]', e);
+    toast('创建失败：网络异常');
+  });
+}
+function deleteStatic(id){
+  if (!sb) return;
+  var r = statics.find(function(x){ return x.id === id; });
+  if (!r) return;
+  if (CFG.del_confirm !== false && !confirm('确定删除静置记录「' + r.model_name + '」吗？\n结束时间：' + staticShortDT(r.ended_at) + '，删除后不可恢复。')) return;
+  Promise.resolve(sb.from('static_tests').delete().eq('id', id)).then(function(res){
+    if (res && res.error) { toast('删除失败：' + res.error.message); return; }
+    statics = statics.filter(function(x){ return x.id !== id; });
+    logUsage('static_delete', '机种 ' + r.model_name + ' · 止 ' + staticShortDT(r.ended_at));
+    toast('已删除');
+    renderStatics();
+    renderStaticBadge();
+  }).catch(function(){ toast('删除失败：网络异常'); });
+}
+
+// ===================== cam50：中途检验日期（周历网格点选；只记计划、不记是否已完成） =====================
+// 全链路只用「年/月/日 三个整数 + 本地正午锚点」：
+//   · 不用 new Date('2026-11-19') —— 它按 UTC 解析，负时区会退一天
+//   · 不用 toISOString().slice(0,10) —— 东八区凌晨的时间会被算成前一天
+//   · 不用 (t2-t1)/86400000 —— 夏令时 23/25 小时的日子会算出 0.958/1.04 天
+//   · 跨日比较一律用定宽字符串 k（YYYY-MM-DD 补零后字典序 == 时序）
+
+// 本地正午锚点：避开夏令时当天 00:00 不存在的时区，也避开 23:00 / 01:00 的边界
+function staticYmd(y, mo, d){ return new Date(y, mo, d, 12, 0, 0, 0); }
+// 'YYYY-MM-DD' → Date；非法（2026-02-30 / 空 / 缺段 / 非字符串）返回 null
+function staticParseDay(k){
+  var p = String(k == null ? '' : k).split('-');
+  if (p.length !== 3) return null;
+  var y = parseInt(p[0], 10), mo = parseInt(p[1], 10), d = parseInt(p[2], 10);
+  if (!y || !mo || !d) return null;
+  var x = staticYmd(y, mo - 1, d);
+  // 构造器会把 2026-02-30 归一化成 3-2；回验 y/m/d 不一致即判非法
+  if (x.getFullYear() !== y || x.getMonth() !== mo - 1 || x.getDate() !== d) return null;
+  return x;
+}
+function staticKeyOf(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+// 该日所在周的周一（周日 getDay()=0，要退 6 天）
+function staticWeekMon(d){
+  var x = staticYmd(d.getFullYear(), d.getMonth(), d.getDate());
+  return staticYmd(x.getFullYear(), x.getMonth(), x.getDate() - (x.getDay() + 6) % 7);
+}
+// 静置区间 → 可选中途检验的整天范围（开始日之后、结束日之前）。
+// why 分四种文案：用户改时间时要能看懂「为什么现在不能选」，不能只给一句「不可用」
+function staticCalRange(sIso, eIso){
+  var s = sIso ? new Date(sIso) : null;
+  var e = eIso ? new Date(eIso) : null;
+  if (!s || isNaN(s)) return { ok: false, why: '还没填开始时间' };
+  if (!e || isNaN(e)) return { ok: false, why: '还没填结束时间' };
+  if (e.getTime() <= s.getTime()) return { ok: false, why: '结束时间必须晚于开始时间' };
+  var minK = staticKeyOf(staticYmd(s.getFullYear(), s.getMonth(), s.getDate() + 1));
+  var maxK = staticKeyOf(staticYmd(e.getFullYear(), e.getMonth(), e.getDate() - 1));
+  if (maxK < minK) return { ok: false, why: '静置区间内没有完整的整天' };
+  return { ok: true, minK: minK, maxK: maxK };
+}
+// 生成周表：[{mon, label, cells:[{d,k,on}×7}]，27 周（189 天）硬上限防呆
+function staticCalWeeks(minK, maxK){
+  var minD = staticParseDay(minK), maxD = staticParseDay(maxK);
+  if (!minD || !maxD) return [];
+  var w0 = staticWeekMon(minD), lastMon = staticWeekMon(maxD);
+  var y = w0.getFullYear(), mo = w0.getMonth(), d = w0.getDate();
+  var rows = [], prevM = -1;
+  for (var w = 0; w < 27; w++){
+    var mon = staticYmd(y, mo, d + w * 7);   // 每轮都从基准重算，不累加，跨月/跨年永不漂移
+    if (mon.getTime() > lastMon.getTime()) break;
+    var cells = [], mFrom = -1, mTo = -1;
+    for (var i = 0; i < 7; i++){
+      var c = staticYmd(mon.getFullYear(), mon.getMonth(), mon.getDate() + i);
+      var k = staticKeyOf(c);
+      var on = (k >= minK && k <= maxK);
+      if (on){ if (mFrom < 0) mFrom = c.getMonth(); mTo = c.getMonth(); }
+      cells.push({ d: c, k: k, on: on });
+    }
+    if (mFrom < 0) continue;
+    // label 既是月份文案、也是「这一行要不要插月分隔条」的唯一判据：非空就插，空就不插
+    // 跨月行（如 11/30 与 12/1~6 同一行）必须写两端，否则 12 月那几天会被读成 11 月
+    var label = '';
+    if (mFrom !== prevM) label = (mFrom + 1) + '月';
+    if (mTo !== mFrom){
+      var yTo = cells[6].d.getFullYear();
+      label = (mFrom + 1) + '月→' + (mTo === 0 ? yTo + '年' : '') + (mTo + 1) + '月';
+    }
+    prevM = mTo;
+    rows.push({ mon: mon, label: label, cells: cells });
+  }
+  return rows;
+}
+function staticCalHtml(ctx, rows, sel){
+  if (!rows.length) return '';
+  var h = '<div class="st-cal"><div class="st-cal-wks">';
+  for (var i = 0; i < 7; i++) h += '<span class="st-cal-wd">' + STATIC_WD[i] + '</span>';
+  h += '</div>';
+  var tk = staticDayKey(new Date());
+  rows.forEach(function(row){
+    // staticCalWeeks 已经把「该不该有月份标签」算在 label 里（空 = 这行不换月），这里只管画
+    if (row.label) h += '<div class="st-cal-ms"><span>' + row.label + '</span></div>';
+    h += '<div class="st-cal-r">';
+    row.cells.forEach(function(c){
+      if (!c.on){ h += '<span class="st-cal-d x">' + c.d.getDate() + '</span>'; return; }   // 区间外：淡灰显日期，让用户看得出这段为什么不能点
+      var on = sel.indexOf(c.k) >= 0, td = (c.k === tk);
+      h += '<button type="button" class="st-cal-d' + (on ? ' on' : '') + (td ? ' td' : '') + '" data-k="' + c.k + '"'
+        + ' title="' + c.k + ' 周' + STATIC_WD[(c.d.getDay() + 6) % 7] + (td ? '（今天）' : '') + '"'
+        + ' aria-pressed="' + (on ? 'true' : 'false') + '"'
+        + ' onclick="staticCalToggle(\'' + ctx + '\',this)">' + c.d.getDate() + '</button>';
+    });
+    h += '</div>';
+  });
+  return h + '</div>';
+}
+// 只切被点的那一颗按钮，不整块重渲染：30 天 = 35 颗按钮，整块重画会闪、还会丢滚动位置
+function staticCalToggle(ctx, btn){
+  var k = btn.getAttribute('data-k');
+  var arr = staticCalSel[ctx] || (staticCalSel[ctx] = []);
+  var i = arr.indexOf(k), on = i < 0;
+  if (on){ arr.push(k); arr.sort(); } else arr.splice(i, 1);
+  // 重写 className 时必须留住 td（今天描边），否则点一下「今天」就不再是今天了
+  btn.className = 'st-cal-d' + (/(^|\s)td(\s|$)/.test(btn.className) ? ' td' : '') + (on ? ' on' : '');
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  staticCalCnt(ctx);
+}
+// 点摘要里的标签移除该天（与点格子等价，省得回网格里找）
+function staticCalRemove(ctx, btn){
+  var k = btn.getAttribute('data-k');
+  var arr = staticCalSel[ctx] || [];
+  var i = arr.indexOf(k);
+  if (i < 0) return;
+  arr.splice(i, 1);
+  var box = document.getElementById(ctx === 'st' ? 'stCalGrid' : 'siCalGrid');
+  var d = box ? box.querySelector('.st-cal-d[data-k="' + k + '"]') : null;
+  if (d){ d.className = 'st-cal-d' + (/(^|\s)td(\s|$)/.test(d.className) ? ' td' : ''); d.setAttribute('aria-pressed', 'false'); }
+  staticCalCnt(ctx);
+}
+function staticCalCnt(ctx){
+  var el = document.getElementById(ctx === 'st' ? 'stCalCnt' : 'siCalCnt');
+  if (!el) return;
+  var arr = staticCalSel[ctx] || [];
+  if (!arr.length){ el.innerHTML = '<span class="z">尚未选择检验日期，点上方日期即可</span>'; return; }
+  el.innerHTML = '已选 <b>' + arr.length + '</b> 天'
+    + arr.map(function(k){
+        var p = k.split('-');
+        return '<button type="button" class="st-cal-tag" data-k="' + k + '" title="点一下取消 ' + k + '"'
+          + ' onclick="staticCalRemove(\'' + ctx + '\',this)">'
+          + parseInt(p[1], 10) + '/' + parseInt(p[2], 10) + '<i>×</i></button>';
+      }).join('');
+}
+// 就地裁剪，返回删掉的个数
+function staticCalClamp(ctx, minK, maxK){
+  var arr = staticCalSel[ctx] || [];
+  var keep = arr.filter(function(k){ return k >= minK && k <= maxK; });
+  var removed = arr.length - keep.length;
+  staticCalSel[ctx] = keep;
+  return removed;
+}
+// 只取合法子集、不改状态：提交前二次过滤（防「改完时间没触发 onchange 就回车」）
+function staticClampSel(ctx, sIso, eIso){
+  var rg = staticCalRange(sIso, eIso);
+  if (!rg.ok) return [];
+  return (staticCalSel[ctx] || []).filter(function(k){ return k >= rg.minK && k <= rg.maxK; });
+}
+// 读范围 → 画网格 → 可选裁剪。返回范围对象供调用方判断可用性
+function staticCalSync(ctx, prune){
+  var box = document.getElementById(ctx === 'st' ? 'stCalGrid' : 'siCalGrid');
+  if (!box) return null;
+  var sIso = null, eIso = null;
+  if (ctx === 'st'){
+    var sEl = document.getElementById('stStart'), eEl = document.getElementById('stEnd');
+    sIso = sEl ? localValToIso(sEl.value) : null;
+    eIso = eEl ? localValToIso(eEl.value) : null;
+  } else {
+    var r = statics.find(function(x){ return x.id === staticInsTarget; });
+    sIso = r ? r.started_at : null;
+    eIso = r ? r.ended_at : null;
+  }
+  var rg = staticCalRange(sIso, eIso);
+  if (!rg.ok){
+    box.innerHTML = '<div class="st-cal"><div class="st-cal-none">' + esc(rg.why) + '，暂时不能选择检验日期。</div></div>';
+    staticCalCnt(ctx);
+    return rg;
+  }
+  // 非法范围绝不裁剪 —— 否则用户逐字输入结束时间的过程中，刚选的日期会被一路清空
+  if (prune){
+    var rm = staticCalClamp(ctx, rg.minK, rg.maxK);
+    if (rm > 0) toast('已移除 ' + rm + ' 个超出静置区间的检验日期');
+  }
+  box.innerHTML = staticCalHtml(ctx, staticCalWeeks(rg.minK, rg.maxK), staticCalSel[ctx] || []);
+  staticCalCnt(ctx);
+  return rg;
+}
+// 表单态：勾选框可用性 + 日期区显隐 + 不可用原因
+function staticInsPaint(){
+  var cb = document.getElementById('stInsOn');
+  if (!cb) return;
+  var lab = document.getElementById('stInsLabel');
+  var tip = document.getElementById('stInsTip');
+  var box = document.getElementById('stCalBox');
+  var rg = staticCalSync('st', false);
+  var ok = !!(rg && rg.ok);
+  cb.disabled = !ok;
+  if (lab) lab.classList.toggle('off', !ok);
+  if (tip) tip.textContent = ok ? '勾选后可点选日期（开始日之后、结束日之前）' : (rg ? rg.why : '');
+  // 不强制取消勾选：范围暂时非法时保留已选，改好时间就能原样回来
+  if (box) box.classList.toggle('hidden', !cb.checked);
+  return rg;
+}
+// 记录 → 规范化日期数组（排序 + 去重 + 脏值过滤）
+function staticInsList(r){
+  var v = r ? r.inspect_dates : null;
+  if (v == null || v === '') return [];
+  if (typeof v === 'string'){ try { v = JSON.parse(v); } catch (e) { return []; } }   // 防有人在 SQL 里存成双编码字符串
+  if (Object.prototype.toString.call(v) !== '[object Array]') return [];
+  var out = [];
+  for (var i = 0; i < v.length; i++){
+    var d = staticParseDay(v[i]);
+    if (!d) continue;
+    var k = staticKeyOf(d);
+    if (out.indexOf(k) < 0) out.push(k);
+  }
+  out.sort();   // 定宽字符串：字典序即时序
+  return out;
+}
+// n=共几次；today=今天是否要检验；next=下一次检验日（今天之后的第一个）
+function staticInsInfo(r, tk){
+  var a = staticInsList(r), today = false, next = '';
+  for (var i = 0; i < a.length; i++){
+    if (a[i] === tk){ today = true; break; }    // 今天命中优先，不管后面还排了几次
+    if (a[i] > tk){ next = a[i]; break; }       // 升序 ⇒ 第一个大于今天的就是下一次
+  }
+  return { n: a.length, today: today, next: next };
+}
+// 列表行内徽标：今日检验（实心紫）/ 检验 M/D（淡紫）/ 检验 N 次（灰）/ ＋检验（虚线，0 个日期时的添加入口）
+// 四种态都能点开「修改检验日期」，否则「全部已过」的老记录就再没有修改入口了
+function staticInsChip(it, ii){
+  var r = it.r, all = staticInsList(r);
+  var title = all.length ? '检验日：' + all.join('、') + '（点击修改）' : '还未设置中途检验日期（点击添加）';
+  var open = ' onclick="openInsModal(\'' + r.id + '\')" title="' + esc(title) + '">';
+  if (!all.length) return '<button type="button" class="st-ins k-add"' + open + '＋检验</button>';
+  if (ii.today) return '<button type="button" class="st-ins k-today"' + open + '今日检验</button>';
+  if (ii.next){
+    var p = ii.next.split('-');
+    return '<button type="button" class="st-ins k-next"' + open
+      + '<span class="st-ins-p">检验 </span>' + parseInt(p[1], 10) + '/' + parseInt(p[2], 10) + '</button>';
+  }
+  return '<button type="button" class="st-ins k-past"' + open + '检验 ' + all.length + ' 次</button>';
+}
+function openInsModal(id){
+  var r = statics.find(function(x){ return x.id === id; });
+  if (!r) return;
+  staticInsTarget = id;
+  staticCalSel.si = staticInsList(r);
+  var sub = document.getElementById('insSub');
+  if (sub) sub.textContent = r.model_name + ' · 静置 ' + staticShortDT(r.started_at) + ' → ' + staticShortDT(r.ended_at)
+    + '；点日期切换选中。只记「计划哪天检查一次」，不记是否已完成。';
+  staticCalSync('si', false);
+  openModal('insModal');
+}
+function closeInsModal(){
+  staticInsTarget = null;
+  staticCalSel.si = [];
+  closeModal('insModal');
+}
+function saveInsDates(){
+  var id = staticInsTarget;
+  if (!id) return;
+  if (!sb) { toast('脚本库未加载，无法保存'); return; }
+  var r = statics.find(function(x){ return x.id === id; });
+  if (!r) { closeInsModal(); return; }
+  var arr = staticClampSel('si', r.started_at, r.ended_at);
+  var btn = document.getElementById('insSaveBtn');
+  if (btn) btn.disabled = true;
+  Promise.resolve(sb.from('static_tests').update({ inspect_dates: arr }).eq('id', id)).then(function(res){
+    if (btn) btn.disabled = false;
+    var er = res && res.error;
+    if (er){
+      var msg = String(er.message || '') + String(er.details || '');
+      toast('保存失败：' + er.message + (/inspect_dates/i.test(msg) ? '（请先执行 machine\\static_tests_inspect.txt 加列）' : ''));
+      return;
+    }
+    r.inspect_dates = arr;   // 本地单行同步，省一次全表拉取
+    logUsage('static_inspect', '机种 ' + r.model_name + ' · 检验 ' + arr.length + ' 次' + (arr.length ? '（' + arr.join('、') + '）' : ''));
+    toast(arr.length ? '已保存 ' + arr.length + ' 个检验日期' : '已清空检验日期');
+    closeInsModal();
+    renderStatics();
+    renderStaticBadge();
+  }).catch(function(){ if (btn) btn.disabled = false; toast('保存失败：网络异常'); });
+}
+
+
+// ===================== cam49：访客预约提醒（导航徽标 + 按人已读 + 详情查看记录） =====================
+// 口径：预约 = experiments 中 status='待运行' 且 machine_id 非空；is_guest 列 = "这单是访客下的"。
+// ⚠ is_guest 与 CUR_USER.guest 是两回事：前者描述单据来源，后者描述当前登录身份，别混用。
+// 已读按人记（resv_reads 复合主键），所以"一个人看过"不会让别人的提示消失。
+var resvReads = {};          // resv_id -> [{user_id,user_name}]（详情用，按需拉）
+var resvSeenIds = {};        // 本人已读的 resv_id
+var resvSeenTs = 0;          // 本人已读集合的拉取时间
+var resvSeenBusy = false;
+var RESV_READ_TTL = 60000;   // 60s 内复用，避免每轮轮询都为"已读"多打一次库
+// 页面是否已真正定好（renderCurrent 跑过一次）。登录/首帧时 page-run 的 active 可能还是上一次的残留，
+// 若此刻就按"人在运行页"去脉冲并标已读，用户登录后（本该落实验信息页）会漏掉这条提醒。
+var resvPageSettled = false;
+
+function resvUserId(){
+  if (!CUR_USER || CUR_USER.guest || !CUR_USER.id) return null;   // 访客无身份，不参与已读统计
+  return String(CUR_USER.id);
+}
+function resvIsRunPage(){
+  var pg = document.getElementById('page-run');
+  return !!(pg && pg.classList.contains('active'));
+}
+// 访客创建、尚未开跑的预约——正是需要提醒的那批
+function guestResvs(){
+  return experiments.filter(function(x){ return x.is_guest === true && x.status === '待运行' && !!x.machine_id; });
+}
+function unreadGuestResvs(){
+  if (!resvUserId()) return [];
+  return guestResvs().filter(function(x){ return !resvSeenIds[x.id]; });
+}
+// 一句话摘要（机台·机种，同机台多条合并计数），日志与 toast 共用
+function resvBrief(cs){
+  var by = {}, ks = [];
+  cs.forEach(function(x){
+    var m = machines.find(function(mm){ return mm.id === x.machine_id; }) || {};
+    var k = (m.machine_code || '机台') + (x.model_name ? '·' + x.model_name : '');
+    if (by[k] === undefined) { by[k] = 1; ks.push(k); } else by[k]++;
+  });
+  return ks.slice(0, 4).map(function(k){ return k + (by[k] > 1 ? '×' + by[k] : ''); }).join('、') + (ks.length > 4 ? ' 等' : '');
+}
+function renderNavBadge(){
+  var b = document.getElementById('resvNavBadge');
+  if (!b) return;
+  var n = unreadGuestResvs().length;
+  // 人已经在机台运行页 → 徽标没意义（眼前就是），提醒交给卡片流光与 toast
+  if (n > 0 && !resvIsRunPage()) {
+    b.textContent = n > 99 ? '预 99+' : '预 ' + n;
+    b.classList.remove('hidden');
+  } else {
+    b.textContent = '';
+    b.classList.add('hidden');
+  }
+}
+function loadResvSeen(){
+  var uid = resvUserId();
+  if (!uid || !sb) return Promise.resolve(false);
+  if (resvSeenTs && (Date.now() - resvSeenTs) < RESV_READ_TTL) { renderNavBadge(); return Promise.resolve(true); }
+  if (resvSeenBusy) return Promise.resolve(false);
+  resvSeenBusy = true;
+  var chain;
+  try { chain = sb.from('resv_reads').select('resv_id').eq('user_id', uid).limit(2000); }
+  catch (e) { resvSeenBusy = false; return Promise.resolve(false); }
+  return Promise.resolve(chain).then(function(r){
+    resvSeenBusy = false;
+    if (r && r.error) {
+      console.warn('[resv_reads]', r.error.message);
+      toastOnce('resv_reads_err', '预约已读状态读取失败：' + r.error.message
+        + (/(does not exist|schema cache|relation)/i.test(r.error.message) ? '（请先执行 machine\\resv_reads.txt 建表）' : ''));
+      renderNavBadge();
+      return false;
+    }
+    var m = {};
+    (r.data || []).forEach(function(x){ m[x.resv_id] = 1; });
+    // 只增不减地合并本地刚标的：写库是异步的，若整份覆盖会把"刚看过"又变成未读、红点乱闪
+    Object.keys(resvSeenIds).forEach(function(k){ m[k] = 1; });
+    resvSeenIds = m;
+    resvSeenTs = Date.now();
+    renderNavBadge();
+    return true;
+  }).catch(function(){ resvSeenBusy = false; renderNavBadge(); return false; });
+}
+function saveResvReads(ids){
+  var uid = resvUserId();
+  if (!uid || !ids || !ids.length || !sb) return;
+  var nm = (CUR_USER && CUR_USER.name) || '未知';
+  var rows = ids.map(function(id){ return { resv_id: id, user_id: uid, user_name: nm }; });
+  // 复合主键 + ignoreDuplicates：重复标记既不报错也不产生重复行
+  Promise.resolve(sb.from('resv_reads').upsert(rows, { onConflict: 'resv_id,user_id', ignoreDuplicates: true }))
+    .then(function(r){
+      if (r && r.error) { console.warn('[resv_reads write]', r.error.message); return; }
+      ids.forEach(function(id){
+        if (!resvReads[id]) resvReads[id] = [];
+        if (!resvReads[id].some(function(x){ return x.user_id === uid; })) resvReads[id].push({ user_id: uid, user_name: nm });
+      });
+    })
+    .catch(function(e){ console.warn('[resv_reads write]', e); });
+}
+// 进机台运行页 = 已查阅这批预约：本地先标（UI 立即响应），再异步落库并写日志
+function markPendingGuestRead(){
+  var cs = unreadGuestResvs();
+  if (!cs.length) { renderNavBadge(); return; }
+  cs.forEach(function(x){ resvSeenIds[x.id] = 1; });
+  renderNavBadge();
+  logUsage('resv_view', '查阅待运行预约 ' + cs.length + ' 条 · ' + resvBrief(cs));
+  saveResvReads(cs.map(function(x){ return x.id; }));
+}
+// loadData 拿到新数据后调用：页外亮导航徽标；已在页内则流光 + toast（这就是"正在看时怎么提醒"的答案）
+function detectNewResvs(){
+  if (!unreadGuestResvs().length) { renderNavBadge(); return; }   // 本地看没有新的，就不必为"已读"多打一次库
+  loadResvSeen().then(function(){
+    var cs = unreadGuestResvs();
+    if (!cs.length) { renderNavBadge(); return; }
+    if (resvIsRunPage()) {
+      var ids = {};
+      cs.forEach(function(x){ if (x.machine_id) ids[x.machine_id] = 1; });
+      fluxMachines(ids, 'machineGrid', true);
+      toast('新访客预约 ' + cs.length + ' 条：' + resvBrief(cs));
+      markPendingGuestRead();
+    } else {
+      renderNavBadge();
+    }
+  }).catch(function(){});
+}
+// renderRunGrid 重排后补流光：innerHTML 会把上一轮加的 .flux 整片抹掉
+function applyPendingPulse(){
+  if (!resvIsRunPage()) return;
+  var cs = unreadGuestResvs();
+  if (!cs.length) return;
+  var ids = {};
+  cs.forEach(function(x){ if (x.machine_id) ids[x.machine_id] = 1; });
+  fluxMachines(ids, 'machineGrid', true);
+}
+// 详情里「谁看过」——先用本地缓存立刻画，再异步拉最新覆盖
+function paintResvReadInfo(ids){
+  ids.forEach(function(id){
+    var box = document.querySelector('.pd-read[data-rid="' + id + '"]');
+    if (!box) return;
+    var list = resvReads[id] || [], seen = {}, names = [];
+    list.forEach(function(x){
+      var nm = x.user_name || '未署名';
+      if (seen[nm]) return;
+      seen[nm] = 1; names.push(esc(nm));
+    });
+    if (!names.length) { box.innerHTML = '<span class="pd-read-none">系统内暂无人查看</span>'; return; }
+    box.innerHTML = '<b>' + names.length + ' 人已查看</b>：' + names.slice(0, 6).join('、') + (names.length > 6 ? ' 等' : '');
+  });
+}
+function fillResvReadInfo(ids){
+  if (!ids || !ids.length) return;
+  paintResvReadInfo(ids);
+  if (!sb) return;
+  var chain;
+  try { chain = sb.from('resv_reads').select('resv_id,user_id,user_name').in('resv_id', ids).limit(500); }
+  catch (e) { return; }
+  Promise.resolve(chain).then(function(r){
+    if (r && r.error) { console.warn('[resv_reads detail]', r.error.message); return; }
+    var map = {};
+    (r.data || []).forEach(function(x){ if (!map[x.resv_id]) map[x.resv_id] = []; map[x.resv_id].push(x); });
+    ids.forEach(function(id){ resvReads[id] = map[id] || []; });
+    paintResvReadInfo(ids);
+  }).catch(function(){});
+}
+
 // ===================== 相机台账页 + 相机预览页（拆分自原合并页） =====================
 // —— 相机型号自定义下拉：名称默认色，仅数量按 ≤0 红 / ≤橙色档 橙 / 其余绿 着色（档位来自设置）——
 function camSelQtyColor(avail){
@@ -6911,10 +8189,10 @@ function camSelLabel(name, qty){
   if (qty === null || qty === undefined) return '<span class="cs-name">' + esc(name) + '</span>';
   return '<span class="cs-name">' + esc(name) + '</span><span class="cs-qty" style="color:' + camSelQtyColor(qty) + '">（' + qty + '）</span>';
 }
-var CAM_SEL_IDS = ['expCamera', 'resvCamera', 'editExpCamera'];   // 三处共用同一自定义下拉组件
-function camSelItems(cur){
+var CAM_SEL_IDS = ['expCamera', 'resvCamera', 'editExpCamera', 'staticCamera'];   // 多处共用同一自定义下拉组件（cam49 加静置试验）
+function camSelItems(cur, blank){
   var stats = camStats();
-  var items = [{ id: '', name: '不选', qty: null }].concat(cameras.filter(function(c){ return (c.total_qty || 0) > 0; }).map(function(c){
+  var items = [{ id: '', name: blank || '不选', qty: null }].concat(cameras.filter(function(c){ return (c.total_qty || 0) > 0; }).map(function(c){
     var s = stats[c.id] || { avail: c.total_qty || 0 };
     return { id: c.id, name: c.model_name, qty: s.avail };
   }));
@@ -6930,7 +8208,7 @@ function renderCamSelPanel(selId){
   var sel = document.getElementById(selId);
   if (!sel) return;
   var cur = sel.value;
-  var items = camSelItems(cur);
+  var items = camSelItems(cur, selId === 'staticCamera' ? '请选择' : '');   // cam50.2：静置的相机必填，空态不该写「不选」
   var picked = items.find(function(it){ return it.id === cur; }) || items[0];
   var trig = document.getElementById(selId + 'Trigger');
   if (trig) trig.innerHTML = camSelLabel(picked.name, picked.qty);
@@ -6939,11 +8217,57 @@ function renderCamSelPanel(selId){
     return '<div class="cs-item' + (it.id === cur ? ' sel' : '') + '" data-cam="' + it.id + '" onclick="camSelPick(\'' + selId + '\',\'' + it.id + '\')">' + camSelLabel(it.name, it.qty) + '</div>';
   }).join('');
 }
+// ===== cam49.1：下拉面板浮层化（只对"待在滚动容器里"的面板生效，其余三处行为不变）=====
+// 判断祖先链上有没有会把面板裁掉的滚动/隐藏容器；走到弹窗外层 .mo-bg 就停
+function csNeedFloat(wrap){
+  var el = wrap && wrap.parentNode;
+  while (el && el !== document.body) {
+    if (el.classList && el.classList.contains('mo-bg')) return false;
+    var cs = window.getComputedStyle(el);
+    if ((cs.overflowY && cs.overflowY !== 'visible') || (cs.overflowX && cs.overflowX !== 'visible')) return true;
+    el = el.parentNode;
+  }
+  return false;
+}
+// 退出浮层态：内联坐标必须清干净，否则退回绝对定位时会带着旧值跑位
+function csUnfloat(p){
+  p.classList.remove('cs-float');
+  p.style.top = ''; p.style.left = ''; p.style.width = ''; p.style.maxHeight = '';
+}
+function csHidePanel(p){
+  if (!p) return;
+  p.classList.add('hidden');
+  csUnfloat(p);
+}
+// 现算坐标：下方够就往下弹，不够且上方更宽就翻上去；高度按可用空间收，最多 264px
+function csPlacePanel(selId){
+  var t = document.getElementById(selId + 'Trigger');
+  var p = document.getElementById(selId + 'Panel');
+  if (!t || !p) return;
+  if (!csNeedFloat(p.parentNode)) { csUnfloat(p); return; }
+  var r = t.getBoundingClientRect(), gap = 4, vh = window.innerHeight;
+  p.classList.add('cs-float');
+  p.style.width = Math.max(200, Math.round(r.width)) + 'px';
+  p.style.left = Math.round(r.left) + 'px';
+  p.style.maxHeight = '264px';
+  var h = p.offsetHeight;
+  var below = vh - r.bottom - gap - 8;
+  var above = r.top - gap - 8;
+  var up = (h > below) && (above > below);
+  var avail = Math.max(90, up ? above : below);   // 上下都挤时留 90px 下限，不给 0 高度
+  p.style.maxHeight = Math.min(264, avail) + 'px';
+  h = p.offsetHeight;                             // 收完高度重量一次，翻转才对得齐
+  var top = up ? (r.top - gap - h) : (r.bottom + gap);
+  p.style.top = Math.round(Math.max(8, top)) + 'px';
+}
 function camSelToggle(ev, selId){
   if (ev) ev.stopPropagation();
   selId = selId || 'expCamera';
   var p = document.getElementById(selId + 'Panel');
-  if (p) p.classList.toggle('hidden');
+  if (!p) return;
+  if (!p.classList.contains('hidden')) { csHidePanel(p); return; }   // 再点一次 = 收起
+  p.classList.remove('hidden');
+  csPlacePanel(selId);
 }
 function camSelPick(a, b){
   // 兼容旧签名 camSelPick(id)（默认 expCamera）与新签名 camSelPick(selId, id)
@@ -6954,7 +8278,7 @@ function camSelPick(a, b){
   sel.value = id;
   renderCamSelPanel(selId);
   var p = document.getElementById(selId + 'Panel');
-  if (p) p.classList.add('hidden');
+  if (p) csHidePanel(p);
   camHoverHide();   // 选中后收起面板，取消残留的预约定时器
   if (selId === 'expCamera') previewCameraImg();
 }
@@ -6963,15 +8287,26 @@ document.addEventListener('click', function(e){
   Array.prototype.forEach.call(document.querySelectorAll('.cus-sel'), function(w){
     if (!w.contains(e.target)) {
       var p = w.querySelector('.cs-panel');
-      if (p) p.classList.add('hidden');
+      if (p) csHidePanel(p);
     }
   });
 });
 document.addEventListener('keydown', function(e){
   if (e.key === 'Escape') {
-    Array.prototype.forEach.call(document.querySelectorAll('.cs-panel'), function(p){ p.classList.add('hidden'); });
+    Array.prototype.forEach.call(document.querySelectorAll('.cs-panel'), function(p){ csHidePanel(p); });
   }
 });
+// cam49.1：浮层是 fixed 坐标，容器一滚就脱位 —— 跟随重算（滚面板自己的列表不重算）
+function csReplaceOpenPanels(){
+  Array.prototype.forEach.call(document.querySelectorAll('.cs-panel.cs-float'), function(p){
+    if (!p.classList.contains('hidden')) csPlacePanel(p.id.replace(/Panel$/, ''));
+  });
+}
+document.addEventListener('scroll', function(e){
+  if (e.target && e.target.classList && e.target.classList.contains('cs-panel')) return;
+  csReplaceOpenPanels();
+}, true);
+window.addEventListener('resize', csReplaceOpenPanels);
 function fillCameraSelects(){
   // 三处下拉（创建实验 / 创建预约 / 编辑实验）：只列总数量>0 的型号；名称默认色 + 数量着色
   CAM_SEL_IDS.forEach(function(selId){
@@ -7724,11 +9059,18 @@ function openPvDetail(machineId){
       if (r.sender) segs.push((isSt ? '预约人：' : '送样人：') + esc(r.sender));
       segs.push('项目：' + esc(r.exp_item));
       segs.push('时长：' + r.duration_hours + 'H');
-      return '<div class="pd-rv"><b class="pd-no">' + (i + 1) + '</b><span style="min-width:0">' + segs.join('<span class="pd-sep">｜</span>') + '</span></div>';
+      return '<div class="pd-rv-wrap"><div class="pd-rv"><b class="pd-no">' + (i + 1) + '</b>'
+        + '<span class="pd-rv-main">' + segs.join('<span class="pd-sep">｜</span>') + '</span>'
+        + (r.is_guest ? '<span class="pd-guest" title="该预约由访客创建">访客</span>' : '')
+        + '</div>'
+        + (r.is_guest ? '<div class="pd-read" data-rid="' + esc(r.id) + '"></div>' : '')
+        + '</div>';
     }).join('');
   } else rvHtml = '<div class="pd-empty">暂无预约实验</div>';
   secs.push('<div><div class="pd-sec">预约实验（' + rv.length + ' 项）</div>' + rvHtml + '</div>');
   document.getElementById('pvDetailBody').innerHTML = secs.join('');
+  // cam49：访客预约补「哪些人已经查看过」——先用本地缓存立刻画，再异步拉最新覆盖
+  fillResvReadInfo(rv.filter(function(r){ return r.is_guest; }).map(function(r){ return r.id; }));
   openModal('pvDetailModal');
 }
 // 弹窗内单条样品行（存储机台用）：复用 .ss-cd 供 1s ticker 刷新；待检查时总时间显示已暂停
@@ -7784,6 +9126,10 @@ function startRefreshTimer(){
   refreshTimer = setInterval(async function(){
     if (document.hidden) return;
     if (!CUR_USER) return;
+    // cam50：静置弹窗开着时也要跟上「今天」——loadStatics 在 60s TTL 内是零 IO 的（只重算渲染），
+    // 所以跨零点后「今日检验」会自己翻牌；表单态不刷，避免白重建一次隐藏列表
+    var smEl = document.getElementById('staticModal');
+    if (smEl && smEl.className.indexOf('hidden') < 0 && staticViewMode === 'list') loadStatics(false);
     var active = document.querySelector('.page.active');
     var key = active ? active.id.replace('page-', '') : '';
     // cam38.4：这两页数据几乎不变，停留时停轮询（日志页有「刷新」按钮、设置页也已补）
@@ -7979,7 +9325,7 @@ function applyPageAhead(key){
   } catch (e) {}
 })();
 (async function init(){
-  console.log('[machine] version cam47.4');   // cam47.4：机台运行页副标题删除「点击运行中的机台可结束使用（每 30 秒自动刷新）」；结束使用入口仍在机台卡片本身，无需文案提示 // cam47.3：结束使用弹窗「预计结束」按辐照度存在与否切换栅格占位——无辐照度（非氙灯箱）时从 .full 改普通格、紧跟「开始时间」同行，填掉原来那个空格洞；有辐照度时仍满宽跨两列，避免 7 字段排满 3 行后落单留新洞。条件与辐照度格同款 != null && !== ''（0 是有效值，不能用真值判断） // cam47.2：访客进入改为「先定页（applyPageAhead 只切 active 不取数）→ 拉数据 → switchPage 渲染 → 最后撤遮罩」，原顺序是撤遮罩在前、切页在 await 之后，网络窗口里露出的就是 HTML 写死 active 的「实验信息」页；遮罩期按钮显示「正在进入…」并 disabled，数据回来复位；.then 里加 CUR_USER.guest 守卫防止中途登录被抢回 run 页；顺带删掉与 switchPage 重复的那次 renderRunGrid。 // cam47.1：使用日志全中文——①补齐 stage_skip/time_fix/tpl_save/tpl_delete/stage_base_save/sbox_cond 六个动作的中文标签与分类（标签是渲染时查表，旧记录同样立即变中文）②删除详情不再写 uuid 前 8 位，改记「机种 · 实验项目」；已完成记录在 archExps 不在 experiments，原查找必然落空才只剩乱码 // cam47：已完成实验页重构——11 列宽表改 5 列分层表（主行＝机种＋实验项目，副行＝送样人·委托单·相机型号），「未归还」独立成红胶囊不再靠红字挤在数字里；新增勾选列 + 底部浮动批量删除条，批量删走一次 .in() 请求（cam38.4：不做 N+1 写），选中态存 doneSel 对象所以搜索重渲染不丢勾选、渲染时按现存记录自愈剔除死 id。 // cam46.3：边缘流光改 SVG rect + stroke-dashoffset（弃 conic + @property）——实测 prefers-reduced-motion=reduce 时 animation:none 把 conic 动画整体关掉，只剩静止两段弧，就是「边缘一条线、不跑」；SVG 沿真实路径跑、角速度恒定、pathLength=100 归一化使两条 7% 对称线尺寸无关；reduce 环境改减速 2.6s 而非停止。 // cam46.2：边缘流光从「1 条彗星」改成「2 条 180° 对称光带」——①prefers-reduced-motion 下原规则写 background:none，把描边连动画一起抹掉（实测 getComputedStyle 得 anim=none/bg=none，用户开「减少动画」就完全看不到反馈），改静止整圈金描边②.srt 去 overflow:hidden，否则 .srt-m 悬停上浮 2px 与投影被裁（上浮等于没做）③统计区实验行 .ss-row 加 ss-jump 可点击定位（原只有顶部四格可点，弹窗内 .ss-row 不受影响）。cam46：存储运行页 8 项——①指标格可点→滚到对应机台卡并打 3s 边缘流光（.mcell.flux + conic 描边，@property 驱动角度，prefers-reduced-motion 降级）②指标格悬停上浮 2px（零值格 .z 不浮不可点）③页头删「每 30 秒自动刷新」④单箱机台省略「箱1」⑤空箱提示「点击设置温湿度开始运行」→「点击运行」⑥开始运行弹窗删说明段、placeholder 去单位 ⑦温湿度输入加 ℃/% 后缀（.iu 承载边框，input 去边框）⑧箱卡→箱行：1/3 箱统一通栏单列（旧 .sb-n3 三列每格仅 62px 文字全截断），箱区 flex:1 + 行高 1fr 让单箱撑满余高、162px 等高不破；温湿度数字 17px（单箱 21px）、单位降级 10px，旧数据 ℃/%RH 后缀由 envSplit 剥离；已结束改左侧 3px 红条 + 背景脉冲  |  cam45：存储运行页统计区标题行改「单行指标带」——①楼层徽标 + 运行中/待取/待检查/空闲箱 四格（数字 21px 800 等宽）②状态形状三通道：实心圆=运行中、实心圆=待取、菱形=待检查(需人处理)、方框=空闲箱，配文字标签，不靠颜色单独表达 ③待取/待检查 >0 整格染淡底 + 深色数字（新增 --amber-deep/--red-deep，原 --orange/--red 在淡底上仅 2.1:1 不达标）④零值格降级为空心标记 + --text2 数字 ⑤「按到期时间升序」并入条带右侧，原文字汇总行删除，净省约 30px ⑥空态提示补 ss-empty 类使其通栏（原只占半列）; cam44.1：修复 cam44 时间线换皮的三个实质缺陷（用户反馈"设计成这样、实际却是那样"）——①**臆造类名**：cam44 写了 .sr-tl .tl-name / .tl-name .tl-tag，但 DOM 里从来没有这两个类（时间线结构是 .tl-item>.tl-dot+.tl-t>.tl-tx+body），规则全部空转；②**状态语义塌陷**：.tl-dot 被 display:none 后「已完成/进行中/未执行」在结构上无差异，只剩 opacity 区分（违反"不能只靠颜色或透明度传达状态"），用户截图里绿勾缩在标题内、与进度条并成两条绿线；现恢复 .tl-dot 作状态列（done=实心绿/cur=金色脉冲/todo=空心灰/ramp·skip=菱形），并隐藏 .tl-done-ic/.tl-run-ic 让位；③**标题互相抢视觉**：h3 与头卡两个大标题叠加，.sr-modal 未定义过样式，现把 h3 降为 11px 灰色眉标、头卡负边距从 -22px 改为与 padding-top 匹配；另当前段右侧「剩余 00:14:39」在 sr-tl 下去掉「剩余」二字（进度条本身即该语义），进度条定宽 88px 不再 flex:1 挤压标题。——cam44：机台运行弹窗 UI 重构（方案A）——①停止运行弹窗：标题精简为「结束使用」（并行时标项数），机台号/位置移入每项头卡；头卡新增环形进度（r=27，C=169.646，dashoffset=C×(1−pct/100)，口径与 .tl-prog 一致=分母恒为模板标称 st.hrs），大号等宽倒计时 + 阶段名；原两列胶囊改 1px 发丝网格 .sr-kv（实验项目/机种/送样人/时长/辐照度/开始/预计结束）；相机归还原裸 input 改 .sr-stepper 步进器（±1，上限锁死应归数——confirmStop 对超归会中止，放开上限会让用户白填）+ 差异提示 stopQtyCheck；时间线经 stageTimelineHtml(e,{skin:'run'}) 换肤 .sr-tl（去左边框圆点、当前段金色高亮块、未到段降透明度），看板第二调用点不传参故零回归。②跳段/修正时间两弹窗同步换 .sk2-* 模式卡（新前缀，旧 .sk-* 保留不删——原类名被两弹窗共用 14 处，直接改必连带回归）；选中态底色改 var(--gold-light) 以适配暗色。③1s ticker 追加环形 dashoffset/百分比刷新（复用既有定时器，setInterval 总数仍为 6，只改属性不重渲染，零 IO）。——cam43.5：进度条改为「1 − 剩余/模板标称」（.tl-prog 带 data-t1/data-nom），修正时间后剩余变小→进度自动变大；标题恒显标称，被修正时后缀「修正 ±Xmin」——cam43.4：阶段时间线进行中节点标题显示实际保持窗口（非模板标称）——cam43.3：阶段进度条每秒推进（.tl-prog 带 data-t0/data-t1，1s ticker 现算宽度）——修正时间后进度条随新窗口自动更新——cam43.2：修正时间弹窗「已运行时间/结束剩余时间」改为小时+分钟两列并列输入（ftValH/ftValM，分钟 0~59，合成 v=h+m/60 后仍统一存分钟）——cam43.1：运行中弹窗加宽至 560px（四颗按钮排一行，结束设备使用不再单独换行）——cam43：①新增「跳段至下一阶段」（mode:'next'）——跳过当前所在的那一段，进入紧邻下一段（切换段照常按速率执行），与「跳段至下一节点」并存：段2(保持中)点 next → 段3(切换)→段4；当前在切换段或已到末段时置灰。stageNowIdxAt(tl,ts) 参数化定位，重放按事件时刻 T 重算下标不存死下标；弹窗三张模式卡（ramp/next/snap），仅 ramp 显示起点温湿度 ②初始湿度按首节点判定——实验条件第一个阶段无湿度时，初始切换段不带湿度（不参与时长计算、界面不显示 %RH）；老实验快照同样生效（stageRampMin 与 stageTimeline 成对改）——cam42.3：温度转换速率按升降方向拆分——设置页「温度上升转换速率」（原 bcRateT/exp_rate_t，升温 ΔT>=0 用）右侧新增「温度下降转换速率」bcRateDn（新 settings 键 exp_rate_t_dn，降温 ΔT<0 用，留空=同上升速率不写库）；cfgStageBase rate 加 td（未配置回落 t），stageRampMinBetween ΔT<0 择 td（老实验快照无 rate.td 回落 t，老数据行为逐毫秒不变）；湿度速率不拆分；SQL：settings_write_base5.txt 白名单 4键→5键（需 Supabase 执行）——cam42.2：①snap 跳段后被跳过的「切换」条目不再消失——保留为零时长留痕标记段（{type:'skip', t0:t1:跳段时刻, from, st, origMin}，不参与时间累计/后续平移/末段终点，预计结束与倒计时数值完全不变），阶段进度显示灰点删除线「切换：A→B / 已跳段跳过 · 原约 N 分钟」；stageFixApply 包含法与上一段终点跟随跳过零长标记段；ramp 模式不变 ②stageTimelineHtml 进度 pct 加零长段除零防护——cam42.1：①跳段落点保持段改按模板标称时长计时（st.hrs×3600000，「跳到下一节点就只执行该节点的 1H」——修复原窗口取 t1-t0 会把保持段缩放系数的拉伸带给节点，例如实验时长手改大时 1H 被拉成 1H13m、看起来像混入了转换时间；转换时间本就不混入，实测验证）②运行弹窗按钮行重设计（取消/跳段/修正时间/结束设备使用：图标+文字 nowrap 防竖排，flex-wrap 整颗换行，modal-actions 通用规则）——cam42：修正时间——运行详情弹窗跳段旁新增「修正时间」入口与弹窗，两方式二选一（①已运行时间：剩余=节点总时长−已运行，窗口整体平移 D 不变 ②结束剩余时间：已运行不动、终点=now+剩余，D 弹性伸缩），剩余/预计结束实时预览动态重算；stage_jumps 追加 mode:'fix' 记录（kind:'el'|'rm', val:分钟, si, end），stageSkipReplay 按 mode 分派 stageFixApply 重放（包含法定位当前段、方式1上一段终点跟随新起点、后续段整体平移），预计结束同步重写——cam41.1：卡片末排双列（下一节点预计+预计结束）+ 相机归还统计排除存储类 + 机台运行楼层改分段控件 + 基础条件去说明文字——cam41：保存成功」+ settings 移入热轮询 + 侧栏连通性指示器——cam40.3：批量去除界面说明文字——①结束使用弹窗 sub ②存储运行页副标题「存储类机台（试验组=存储类）的运行看板；」③设置页 7 处（页副标题/两列 set-col-desc×2/机种前缀括号段/人员 h-sub/新增人员小注/数据维护 h-sub）——cam40.2：跳段执行弹窗去掉顶部说明文字（sub 行删除）——cam40.1：存储实验统计今日应取红「今」徽章（时间块前，今日到期才显示）+ 机台卡片跳段按钮移除（只留运行详情弹窗入口，stageSkipBtnHtml/.mb-acts 删除）——cam40：跳段执行——运行中机台修正当前节点（以实际工况为准）：卡片小按钮+运行详情弹窗入口，两模式（①按照速率转换：手填起点温湿度（预填推算值）按速率爬到下一节点，转换完成后开始保持→预计结束顺延 ②跳段至下一节点：目标温湿度立即生效开始保持→预计结束提前）；持久化 experiments.stage_jumps jsonb 数组追加式（{ts,mode,to:阶段下标,from_cond,end}，审计留痕多端一致），stageTimeline 顺序重放（stageSkipApply：截断到 T→模式1 插新切换段→目标保持整段起计→后续段整体平移），段补 si=阶段下标/fromCond 数值，消费面（卡片节点/倒计时/详情时间线/看板）单点派生自动跟随；expected_end 跳段时重写（全站倒计时/相机归还锚点），编辑实验运行中改时长也改按时间轴终点重算（跳段后终点≠开始+时长）；stageRampMin 重构出 stageRampMinBetween 两点切换时长助手复用同语义（某维度任一侧空则不参与）；SQL：experiments_stage_jumps.txt 建列；cam39.19：实验条件列表阶段链去背景胶囊改 → 指引——.tpl-chip 去掉 background/padding/border-radius 变纯文字，阶段间箭头由 .tpl-chip:not(:last-child)::after 生成（附着前段末尾，换行不出孤箭头；末段无箭头），.tpl-chain gap:4px 0 列距由箭头 padding 8px 对称承担；cam39.18：存储卡片顶部灰线统一去除 + 实验条件徽章去框纯文字 + 湿度去 RH 只留 %——①machine-box::before 顶部 4px 状态色条只在挂 idle 类时显灰色渐变条，storageCellHtml 仅空闲箱挂 idle、运行中/已结束无类导致无条，同页有线无线不一致；sbox-wrap 统一 ::before display:none 去除（状态由圆点+文字表达）②.env-badge 去背景框去边框只留文字居中（display:block+text-align:center）③新增 humTxt() 把湿度展示的 RH 后缀去掉只留 %（95%RH→95%），仅显示层不动库内值，env-badge 行/实验折叠行/投放与箱内编辑弹窗副标题共四处接入；cam39.17：存储卡片实验条件徽章去金色居中 + 三分区条目改单行——①存储箱卡环境条件（70℃/95%RH·辐照度）由 11px 灰字改金色徽章 .env-badge（storageCellHtml 一处改动，存储运行页与存储看板同款生效）②看板 pv-head 与 pv-grid 之间新增 #pvAlert 关键信息区（空态 :empty 整块隐藏）：机台运行看板=「即将截图」横向条目（遍历运行中机台实验的推算时间轴，当前保持段为截图节点且距段结束≤30min 才显示；条目=机台排号/实验项目/机种/当前节点/剩余倒计时(.ss-cd data-end 由 1s ticker 刷新)，按剩余时间升序，限高 22vh 内部滚动；到点节点自动前进、条目随重渲染消失，无呼吸灯——呼吸灯仅整实验结束沿用结束卡红边；ticker 归零分支补看板打开时无条件重渲染）③存储运行看板=今日应取/明日应取/进行中（后天及以后+长期）三分区（ssamples 按 planned_end 分桶：今日含已逾期、明日、≥后天或 null；条目=机台/实验项目/机种/预计结束；已到点未取（含逾期多日）留今日应取置顶并红色呼吸闪烁 sbFlash 复用，标「待取」）；全部纯前端内存推算，零 IO 零 schema；cam39.12：机种前缀改下拉+后缀任意字符串——①CFG 新增 model_prefixes 列表（默认 YT,UH；设置页「机种名称前缀」改逗号分隔输入，保存同时写 model_prefix=第一项兼容旧逻辑）②6 处机种输入点（创建/预约/投放/箱运行/箱内编辑/编辑弹窗）静态 YT 标签 .pre-tag 改内嵌 .pre-sel 下拉（CSS 仿原标签外观，input 缩进 52px），后缀去掉纯数字 oninput 过滤与 inputmode，placeholder「如 123 或 转接盖」，maxlength 12→30 ③拼接助手 pfxOfInput（按各自容器下拉取前缀，不再全局单值 grpPrefix）、modelPrefixes/modelPfxOf/fillModelPfxSels（applyCfgDom 同步保留已选）④stripModelPrefix 按列表剥离（最长匹配优先）⑤编辑弹窗前缀模式判定改「以任一前缀开头且余串非空」，下拉回显机种原前缀 ⑥保存/日志标签同步（默认机种前缀/机种前缀列表）；cam39.11：实验条件确认改弹窗——创建实验点选模板后不再在输入框下方内联显示实验条件（#expTplPreview 及其 CSS 已删），改为弹出「实验条件确认」弹窗：逐阶段列出名称/环境/时长/截图标记（金色相机图标）+ 总时长（含切换）+ 截图次数说明，点「确定」关闭保持选中、点「取消选择」清空模板回自定义输入；总时长仍在弹窗打开时自动填入实验时间（可手改）；applyTplPreview 重构为 openExpTplCf/confirmExpTpl/cancelExpTpl 三函数；cam39.10：创建实验去掉「开始时间/预计结束时间」两只读输入框——创建后为待运行，两时间在点「运行」（confirmRun 以运行时刻写入）/存储投放（以投放时刻写入）时才落库，符合建表注释原意（start_time='实际开始运行时间'）；列表两列保留、待运行行显示 '—'（原有 null 回落）；附带修复：预约实验经编辑弹窗置「运行中」原先误用创建时刻算预计结束，现走 !start_time 补当下时刻分支；删 updateEndTimePreview/refreshStartTime 及每分钟定时器；cam39.9：编辑实验弹窗补「类型」分段（cam39.8 遗漏）——editExpTypeSeg 与创建侧同款 markSeg 单一真源；openEditExp 按 isStoExp(e) 初始化，备注输入框只显示去掉「存储类」标记的正文（标记由类型分段管理）；saveExpEdit 落库按 editExpTypeVal 计算：存储类='存储类'+正文、机台类=纯正文（切类型自动加/去标记）；cam39.8：实验类型（机台类/存储类）+ 存储运行调用实验——①实验信息创建表单新增「类型」分段（默认机台类，markSeg 不触发 renderCamBoard）与「备注」输入框：选存储类把「存储类」写入备注开头（isStoExp 判定=备注以「存储类」开头），创建后复位②实验信息列表操作列前新增备注列（存储类金标+余下文字），编辑实验弹窗同步备注字段（保存时存储类保持标记在前）③存储运行投放样品弹窗新增「调用实验信息」下拉（只列存储类·待运行），选中自动回填项目/机种/送样人/时长；confirmSboxDeposit 记 storage_samples.exp_id 并把原实验转「运行中」挂到本存储机台（失败不阻断投放）④pickSample 取样时若有 exp_id 直接回写原实验为已完成（时长=实际存放时长、机台释放），不重复插行；本地 active→归档分流⑤机台运行页选择实验排除存储类（others 过滤 !isStoExp）；SQL 见 experiments_remark.txt（experiments.remark + storage_samples.exp_id）；cam39.7：截图节点勾选 + 相机标记 + 网页图标——①模板编辑弹窗每阶段新增「截图」勾选列（stage-row .sr-c/.sr-shot，存 stages[].shot，随 v2 快照定格；无任何 shot 字段的旧模板/旧快照回落旧行为「各保持段结束前30min、末段除外」，hasShotFlag/shotCount/stageShotNode 三助手）②修复表头「时长H」后的空方框＝删除列占位格 .sr-del 被按钮样式画出边框，表头格 visibility:hidden ③运行详情弹窗时间线：截图节点的节点名前加金色相机图标 ic('camera')（mdi 精确路径经 Iconify API 获取）④机台卡片第 4 行：当前保持段为截图节点 → 倒计时前加相机图标+空格（图标放 .stage-cd 外层 .cd-wrap 内，防每秒 ticker 重写 textContent 抹掉）⑤<head> 新增 favicon：金色圆角底+白色 mdi monitor 图标（纯 data URI 零请求）；cam39.6：运行详情弹窗（openStopModal）前四项信息压为一行两列——实验项目|机种名称、送样人|实验时长（.detail-rows .row2 新样式：单元格沿用 .row 胶囊外观，值过长省略号+title 悬停看全文；辐照度及之后各行保持单行不变）；cam39.5：氙灯辐照度补进箱式启动流程（用户实测「氙灯试验箱无辐照度的输入框」——cam39.1 误加在机台 runModal，而氙灯试验箱是箱式存储设备，走 sboxStartModal→storage_boxes，机台 runModal 流程对它根本不经过）——①箱启动弹窗新增 #sbIrrField 辐照度输入（openSboxStart 按 isXenon 控显隐+清空）②confirmSboxStart 校验（≥0 数字，留空 null）后写入 storage_boxes.irradiance（SQL 见 machine_irradiance.txt 补充段 alter table storage_boxes add column if not exists irradiance numeric）；仅氙灯带键防列未建时 PGRST204 波及其他箱③boxIrrTxt 展示助手，七个位置同步：箱卡行/运行卡 rv-meta/投放弹窗当前环境/箱内实验详情当前环境/箱运行详情新增辐照度行/存储统计条件串/看板详情箱头（均有值才显示）④pickSample 取样入档时把箱辐照度带入 experiments.irradiance（已有三处 e.irradiance 展示自动生效）⑤sboxReset 复位清辐照度（仅氙灯带键+本地置 null）；cam39.4：阶段时间线紧凑重设计（运行详情弹窗 + 看板详情共用 stageTimelineHtml，一处改两处同步）——①每节点 4 行压 2 行：删「📷截图时间点」行（截图点信息整体移除，创建实验预览的「截图 N 次」总次数保留）、删状态行（「已完成」三字由绿勾图标代替、「xx 开始」删除——时间范围已含开始时间）②状态图标：已完成=标题后绿色圆勾 ic('check')，进行中=金色播放标 ic('play')（IC 表新增 mdi play 路径）+同行进度条（.tl-currow flex：进度条 flex:1 + 右侧剩余时间）③CSS 收紧：.tl-item padding 12px→8px、.tl-t flex 化+标题 .tl-tx 过长省略、删 .tl-shot 两条规则；cam39.3：实验项目改组合框（单输入框双用途）——①删除「下拉框+隐藏输入框」两件套，expItem 输入框常驻可自由打字（自定义项目）②点击/聚焦输入框浮出模板列表（复用 .cs-panel 浮层样式，按已输入文字实时过滤，每项标注阶段数）③列表项 onmousedown+preventDefault 保住输入框焦点（规避 blur 竞态提前收起浮层），选中写回模板名+显示阶段预览+自动带总时长④手动改字与选中模板名不一致即清选中态、隐预览、视为自定义；blur 延时 150ms 收起，Esc/点外部经全局监听兜底⑤createExperiment 改读 expItemSelId 状态变量（含「文字与模板名不一致→自定义」兜底），提交逻辑与 stages 快照 v2 不变；cam39.2：实验基础条件与切换段——①实验条件页新增「基础条件」卡（常温起始 25℃/98%RH、温度速率 1℃/min、湿度速率 0.3%RH/min，存 settings 表 4 键，全局共用）②节点时间轴升级：相邻节点环境差÷速率=切换时长（温度/湿度并行取大者，第一段从常温起始值起切），到达目标才开始保持计时、切换不计入保持；实验快照升级 v2（{v:2,amb,rate,list}，创建时定格基础条件），v1 旧快照维持纯保持段不变 ③手改总时长=保持段按比例缩放、切换段按设备速率固定 ④卡片第四行切换中显「起始→目标环境 + 到达倒计时」、保持中末段右侧改「实验结束」⑤详情时间线插入切换段节点（灰菱形+虚线，标注起止环境与耗时，无截图点；📷仍锚在各保持段结束前 30min）⑥模板编辑弹窗实时估算行 + 列表总时长含切换；cam39.1：①氙灯试验箱开始运行弹窗新增辐照度输入（W/m²，experiments.irradiance 数值列，SQL 见 machine_irradiance.txt，卡片/详情/看板详情三处展示）②存储设备运行中可改环境条件：右键实验详情弹窗新增「修改环境条件」→ 单箱 1 组/三箱式 3 箱逐箱编辑 storage_boxes.temp/humidity ③机台管理页筛选三件套：关键词（编号/名称/排号/备注/组/位置）+ 位置 + 试验组，纯前端过滤；cam39：实验条件（实验项目模板）——①新菜单页「实验条件」：创建/编辑/删除模板（阶段=名称+温度+湿度+时长，存 exp_templates.stages jsonb，SQL 见 exp_templates.txt）②创建实验「实验项目」双模式：选模板（自动带出阶段与总时长）或自定义输入；选中模板把阶段快照定格存入 experiments.stages ③机台卡片改行：第3行=送样人|实验时长（一行两列）、第4行=当前节点|下一节点倒计时（推算式：按 start_time+stages+duration_hours 前端推算，零额外 IO）、第5行=预计结束不变 ④运行详情弹窗/看板详情弹窗新增阶段时间线（已过✓/当前进度条/未到灰，📷标注各阶段结束前30min截图点）⑤节点切换每秒计时器自动重渲染 ⑥结束设备使用按钮 loading 防重复点击 ⑦看板 pvRowFit 行高下限 110→160；cam38.8：相机预览「按机种聚合」①只显示仍占用的机种（实验全结束且相机还清的行直接消失）②状态细分「占用中（运行 X）/ 已结束·未归还 Y 台」③内存自愈：experiments 混入已完成行时本地立即分流进归档（YT222「始终占用中」＝页面挂夜内存陈旧，强刷即愈）④visibilitychange 回前台 ≥30s 全量对账一次（根治后台 tab 定时器节流导致的陈旧）；cam38.7：看板行高按「该视图全部机台」计行数（①存储运行页统计只统计当前楼层机台的样品，该楼层无存储机台时也清空统计②楼层写入 localStorage，刷新/重开浏览器仍停在上次选的楼层③全屏看板右上角新增「全部/1F/3F」分段，按楼层过滤并与运行页/存储页共用同一记忆）；cam38.4：降低 Supabase 磁盘 IO（Nano 基线仅 5MB/s，收到预算耗尽预警）——①loadData 参数化分组（hot/storage/cold）按页按需拉取，轮询从「6 表全量」降到「2 张小表」②已完成实验分流 archExps 懒加载（allExps），轮询只取待运行+运行中③日志页/设置页停留时停轮询（设置页补「刷新数据」按钮）④storage_samples 排除「已取」⑤轮询间隔 30→60 秒，设置上限 300⑥清理/批量收尾由 N 次往返改为单语句批量；cam38.3：消除首屏两处闪现（bootOv 加载层 + restorePageAhead + 主题前移）
+  console.log('[machine] version cam50.4');   // cam50.4：两处高度对齐（用户截图）——①实验信息表单「相机型号」自定义下拉 .cs-trigger 比同排原生 input 高 4px（实测 40 vs 36：padding 9/12、border 1px、字号 14px 全一样，差在 <button> 的匿名行盒是 20px 而 input 是 16px），改显式 height:36px + 纵向 padding 归零靠 flex 居中，四处分 .cus-sel（实验信息/预约/静置/编辑实验）一并生效 ②实验条件页右上角「新建实验条件」原挂 .btn-sm（27px，字号 12）比卡片里「保存基础条件」.btn（38px，字号 14）矮一截，去掉 btn-sm 使两者同款同高。   // cam50.3：看板头部三控件统一高度（用户截图：楼层分段 ≈47px / 「存储运行」≈30px / 时钟 33px，align-items:center 下三者中线对齐但上下各差 7~8px）——根因同 cam50.1：没有基准高度，谁的内文行盒大谁就高；现由 .pv-head 给 --pv-ctl-h:36px，分段 / .seg-btn / 存储运行 / 时钟全部取该高度（.seg 留 3px 纵向 padding 让白底药丸内缩，.seg-btn 纵向 padding 归零防裁字；#idlePreview .seg 是 ID 选择器故按同权重追加覆盖），按钮字号 12.5→14、时钟 17→18 填满盒子；机台运行看板与存储运行看板共用同一 .pv-head，一处生效两处。   // cam50.2：静置试验表单三处（用户截图反馈）——①机种名称补前缀下拉：其余 5 处机种输入点早就是 .pre-input + .pre-sel，只有静置这处是裸 input，创建出来记成「123」而不是「YT123」，列表里跟别处对不上；createStatic 改 pfxOfInput(下拉) + 后缀拼接，staticFormReset 连前缀一起归位 ②相机型号由「选填」改「必填」并加提交校验，空态下拉文案由「不选」改「请选择」（camSelItems 加可选第二参，只 staticCamera 传，其余三处零回归）③中途检验日期控件重设计：去掉左侧 58px 月份列——它是为「11月→12月」跨月标签才定宽的，代价是每行白吃一列、日期格只剩 46px；改为换月处插居中细线月分隔条，日期区回到满宽 7 列、格高 26→34px（窄屏 30px）；新增「今天」金环描边态与选中实心块区分；区间外日期由 visibility:hidden 改淡灰显数字（看得懂这段为什么不能点）；:focus-visible 焦点环 + :active 回弹；选中摘要由一行纯文字改可点标签，点标签即取消该天（新增 staticCalRemove），staticCalToggle 重写 className 时保留 td 类    // cam50.1：修复「静置存储」按钮比左侧楼层分段控件矮一截（用户截图反馈）——根因不是某一个写死的值，而是工具条里三类控件各按内容算高：.seg 随内文行高浮动（「全部」37px / 「1F」32px，中文 normal 行高比拉丁大）、.field select 38px、.btn-sm 29px，并排时右侧按钮永远差 3~9px。现由 .run-tools 提供 --ctl-h:34px 统一基准，seg/seg-btn/select/btn-sm 一律取该高度且纵向 padding 归零（文字靠 flex 居中，不裁字）；机台运行页同一工具条一并修好（原本四种高度各不相同）。    // cam50：静置试验新增「中途检验日期」——只记计划哪天检查一次、不记是否已完成（static_tests 加 inspect_dates jsonb，存本地日期串数组，不用 timestamptz 以免跨时区偏一天）；表单勾选「中途检验」后展开周历网格（周一为首列，只在开始日之后、结束日之前可选），点格子多选，选中集 staticCalSel 按 ctx 分开互不污染，取消勾选只隐藏不清空；日期算法全链路只用「年/月/日 整数 + 本地正午锚点」，不用 new Date('YYYY-MM-DD')、不用 toISOString().slice、不用 (t2-t1)/86400000（夏令时 23/25 小时的日子会算错）；KPI 由 4 格扩为 5 格「今日检验」，行内新增检验徽标（今日/下次/已过/未设置四态，四态都可点开改日期，否则「全部已过」的老记录就没有修改入口），导航角标三段短路天然按记录去重；#stEnd 的 onchange 由内联置 staticEndAuto=false 改为 staticEndChanged()，staticStartChanged 去掉首行 return 短路——否则「改过结束时间后再改开始时间」网格完全不更新；createStatic 对 inspect_dates 做 PGRST204 降级重试，列没建也不连累老的创建流程；需先执行 machine\static_tests_inspect.txt // cam49.2：使用日志「创建/删除预约」的「使用人」列原记 CUR_USER.name（访客登录态恒为「访客」），查不出是谁下的单，改记单上填的「预约人」姓名——logUsage 新增可选第三参 actor 覆写署名，身份列仍按 role 显示「访客」徽标，其余调用点不传即零改动；同时修复创建预约弹窗「预约人」输入框 placeholder 写死「选填」、与访客态「预约人（必填）」标签自相矛盾的问题，改为按身份切换（访客=请输入预约人姓名，员工=选填） // cam49.1：静置创建表单的「相机型号」下拉原本是 .cus-sel 内的绝对定位面板，被 #staticForm 的 overflow:auto 齐平裁掉，只露一两行；现改为按需浮层化（csNeedFloat 检测祖先滚动容器 → csPlacePanel 用 fixed 坐标现算 top/left/width，并按上下剩余空间自动翻转、按可用高度收 maxHeight），其余三处下拉不在滚动容器里故行为不变 // cam49：①登录页「记住账号密码」——AES-GCM 密文存本机，密钥＝SHA-256(浏览器家族|系统大类|platform|逻辑核数|每安装随机盐)；设备指纹刻意剔除 UA 版本号，否则 Chrome 自动升级就会「密码解不开」；非安全上下文（非 https/localhost/file）自动降级为只记工号，勾选框文案同步说明 ②存储运行页楼层右侧新增「静置存储」——static_tests 表 + 单弹窗两态（列表/创建表单），列表按结束日分组（今天/明天/逾期置顶），创建表单结束时间默认随开始 +30 天，手动改过就不再跟随；独立 loadStatics() + 60s TTL，不动 loadData 的 7 路并发 ③访客预约提醒——导航「预 N」徽标，已读按人记在 resv_reads（复合主键 resv_id+user_id），所以一个人看过不会让别人的提示消失；人已在机台运行页时不显示徽标，改机台卡片边缘流光 + toast 并即时标记已读；看板详情里显示「N 人已查看」；resvPageSettled 守卫避免登录过程中把残留的运行页误判成「人已在页面」而漏提醒。需先执行 machine\\static_tests.txt 与 machine\\resv_reads.txt // cam48.1：结束使用弹窗尾按钮文案缩短为「结束使用」；.modal-actions .btn 是 flex-shrink:0 + white-space:nowrap 的按内容宽度，文案缩短后宽度自动收窄（实测 134→107px），无需另设宽度 // cam48：实验基础条件新增「负温区降温速率」exp_rate_t_neg（目标温度 < 0℃ 的切换段按它算，含跨 0℃ 段）——实测 25→−20℃ 实际约 0.75℃/min，此前只能套一档下降速率导致预估偏快；留空回落 exp_rate_t_dn，老数据零影响；时长算法 stageRampMinBetween 与显示 rampRateTxt 同优先级改造（负温 → 下降 → 上升），显示侧追加「·负温」标识；需同步执行 settings_write_base6.txt 扩 RLS 白名单 // cam47.5：切换段标出温度速率与温度/湿度各自耗时——「段时长÷温差」不再被误读成温度变慢（时长取两者长者，速率本身没变） // cam47.4：机台运行页副标题删除「点击运行中的机台可结束使用（每 30 秒自动刷新）」；结束使用入口仍在机台卡片本身，无需文案提示 // cam47.3：结束使用弹窗「预计结束」按辐照度存在与否切换栅格占位——无辐照度（非氙灯箱）时从 .full 改普通格、紧跟「开始时间」同行，填掉原来那个空格洞；有辐照度时仍满宽跨两列，避免 7 字段排满 3 行后落单留新洞。条件与辐照度格同款 != null && !== ''（0 是有效值，不能用真值判断） // cam47.2：访客进入改为「先定页（applyPageAhead 只切 active 不取数）→ 拉数据 → switchPage 渲染 → 最后撤遮罩」，原顺序是撤遮罩在前、切页在 await 之后，网络窗口里露出的就是 HTML 写死 active 的「实验信息」页；遮罩期按钮显示「正在进入…」并 disabled，数据回来复位；.then 里加 CUR_USER.guest 守卫防止中途登录被抢回 run 页；顺带删掉与 switchPage 重复的那次 renderRunGrid。 // cam47.1：使用日志全中文——①补齐 stage_skip/time_fix/tpl_save/tpl_delete/stage_base_save/sbox_cond 六个动作的中文标签与分类（标签是渲染时查表，旧记录同样立即变中文）②删除详情不再写 uuid 前 8 位，改记「机种 · 实验项目」；已完成记录在 archExps 不在 experiments，原查找必然落空才只剩乱码 // cam47：已完成实验页重构——11 列宽表改 5 列分层表（主行＝机种＋实验项目，副行＝送样人·委托单·相机型号），「未归还」独立成红胶囊不再靠红字挤在数字里；新增勾选列 + 底部浮动批量删除条，批量删走一次 .in() 请求（cam38.4：不做 N+1 写），选中态存 doneSel 对象所以搜索重渲染不丢勾选、渲染时按现存记录自愈剔除死 id。 // cam46.3：边缘流光改 SVG rect + stroke-dashoffset（弃 conic + @property）——实测 prefers-reduced-motion=reduce 时 animation:none 把 conic 动画整体关掉，只剩静止两段弧，就是「边缘一条线、不跑」；SVG 沿真实路径跑、角速度恒定、pathLength=100 归一化使两条 7% 对称线尺寸无关；reduce 环境改减速 2.6s 而非停止。 // cam46.2：边缘流光从「1 条彗星」改成「2 条 180° 对称光带」——①prefers-reduced-motion 下原规则写 background:none，把描边连动画一起抹掉（实测 getComputedStyle 得 anim=none/bg=none，用户开「减少动画」就完全看不到反馈），改静止整圈金描边②.srt 去 overflow:hidden，否则 .srt-m 悬停上浮 2px 与投影被裁（上浮等于没做）③统计区实验行 .ss-row 加 ss-jump 可点击定位（原只有顶部四格可点，弹窗内 .ss-row 不受影响）。cam46：存储运行页 8 项——①指标格可点→滚到对应机台卡并打 3s 边缘流光（.mcell.flux + conic 描边，@property 驱动角度，prefers-reduced-motion 降级）②指标格悬停上浮 2px（零值格 .z 不浮不可点）③页头删「每 30 秒自动刷新」④单箱机台省略「箱1」⑤空箱提示「点击设置温湿度开始运行」→「点击运行」⑥开始运行弹窗删说明段、placeholder 去单位 ⑦温湿度输入加 ℃/% 后缀（.iu 承载边框，input 去边框）⑧箱卡→箱行：1/3 箱统一通栏单列（旧 .sb-n3 三列每格仅 62px 文字全截断），箱区 flex:1 + 行高 1fr 让单箱撑满余高、162px 等高不破；温湿度数字 17px（单箱 21px）、单位降级 10px，旧数据 ℃/%RH 后缀由 envSplit 剥离；已结束改左侧 3px 红条 + 背景脉冲  |  cam45：存储运行页统计区标题行改「单行指标带」——①楼层徽标 + 运行中/待取/待检查/空闲箱 四格（数字 21px 800 等宽）②状态形状三通道：实心圆=运行中、实心圆=待取、菱形=待检查(需人处理)、方框=空闲箱，配文字标签，不靠颜色单独表达 ③待取/待检查 >0 整格染淡底 + 深色数字（新增 --amber-deep/--red-deep，原 --orange/--red 在淡底上仅 2.1:1 不达标）④零值格降级为空心标记 + --text2 数字 ⑤「按到期时间升序」并入条带右侧，原文字汇总行删除，净省约 30px ⑥空态提示补 ss-empty 类使其通栏（原只占半列）; cam44.1：修复 cam44 时间线换皮的三个实质缺陷（用户反馈"设计成这样、实际却是那样"）——①**臆造类名**：cam44 写了 .sr-tl .tl-name / .tl-name .tl-tag，但 DOM 里从来没有这两个类（时间线结构是 .tl-item>.tl-dot+.tl-t>.tl-tx+body），规则全部空转；②**状态语义塌陷**：.tl-dot 被 display:none 后「已完成/进行中/未执行」在结构上无差异，只剩 opacity 区分（违反"不能只靠颜色或透明度传达状态"），用户截图里绿勾缩在标题内、与进度条并成两条绿线；现恢复 .tl-dot 作状态列（done=实心绿/cur=金色脉冲/todo=空心灰/ramp·skip=菱形），并隐藏 .tl-done-ic/.tl-run-ic 让位；③**标题互相抢视觉**：h3 与头卡两个大标题叠加，.sr-modal 未定义过样式，现把 h3 降为 11px 灰色眉标、头卡负边距从 -22px 改为与 padding-top 匹配；另当前段右侧「剩余 00:14:39」在 sr-tl 下去掉「剩余」二字（进度条本身即该语义），进度条定宽 88px 不再 flex:1 挤压标题。——cam44：机台运行弹窗 UI 重构（方案A）——①停止运行弹窗：标题精简为「结束使用」（并行时标项数），机台号/位置移入每项头卡；头卡新增环形进度（r=27，C=169.646，dashoffset=C×(1−pct/100)，口径与 .tl-prog 一致=分母恒为模板标称 st.hrs），大号等宽倒计时 + 阶段名；原两列胶囊改 1px 发丝网格 .sr-kv（实验项目/机种/送样人/时长/辐照度/开始/预计结束）；相机归还原裸 input 改 .sr-stepper 步进器（±1，上限锁死应归数——confirmStop 对超归会中止，放开上限会让用户白填）+ 差异提示 stopQtyCheck；时间线经 stageTimelineHtml(e,{skin:'run'}) 换肤 .sr-tl（去左边框圆点、当前段金色高亮块、未到段降透明度），看板第二调用点不传参故零回归。②跳段/修正时间两弹窗同步换 .sk2-* 模式卡（新前缀，旧 .sk-* 保留不删——原类名被两弹窗共用 14 处，直接改必连带回归）；选中态底色改 var(--gold-light) 以适配暗色。③1s ticker 追加环形 dashoffset/百分比刷新（复用既有定时器，setInterval 总数仍为 6，只改属性不重渲染，零 IO）。——cam43.5：进度条改为「1 − 剩余/模板标称」（.tl-prog 带 data-t1/data-nom），修正时间后剩余变小→进度自动变大；标题恒显标称，被修正时后缀「修正 ±Xmin」——cam43.4：阶段时间线进行中节点标题显示实际保持窗口（非模板标称）——cam43.3：阶段进度条每秒推进（.tl-prog 带 data-t0/data-t1，1s ticker 现算宽度）——修正时间后进度条随新窗口自动更新——cam43.2：修正时间弹窗「已运行时间/结束剩余时间」改为小时+分钟两列并列输入（ftValH/ftValM，分钟 0~59，合成 v=h+m/60 后仍统一存分钟）——cam43.1：运行中弹窗加宽至 560px（四颗按钮排一行，结束设备使用不再单独换行）——cam43：①新增「跳段至下一阶段」（mode:'next'）——跳过当前所在的那一段，进入紧邻下一段（切换段照常按速率执行），与「跳段至下一节点」并存：段2(保持中)点 next → 段3(切换)→段4；当前在切换段或已到末段时置灰。stageNowIdxAt(tl,ts) 参数化定位，重放按事件时刻 T 重算下标不存死下标；弹窗三张模式卡（ramp/next/snap），仅 ramp 显示起点温湿度 ②初始湿度按首节点判定——实验条件第一个阶段无湿度时，初始切换段不带湿度（不参与时长计算、界面不显示 %RH）；老实验快照同样生效（stageRampMin 与 stageTimeline 成对改）——cam42.3：温度转换速率按升降方向拆分——设置页「温度上升转换速率」（原 bcRateT/exp_rate_t，升温 ΔT>=0 用）右侧新增「温度下降转换速率」bcRateDn（新 settings 键 exp_rate_t_dn，降温 ΔT<0 用，留空=同上升速率不写库）；cfgStageBase rate 加 td（未配置回落 t），stageRampMinBetween ΔT<0 择 td（老实验快照无 rate.td 回落 t，老数据行为逐毫秒不变）；湿度速率不拆分；SQL：settings_write_base5.txt 白名单 4键→5键（需 Supabase 执行）——cam42.2：①snap 跳段后被跳过的「切换」条目不再消失——保留为零时长留痕标记段（{type:'skip', t0:t1:跳段时刻, from, st, origMin}，不参与时间累计/后续平移/末段终点，预计结束与倒计时数值完全不变），阶段进度显示灰点删除线「切换：A→B / 已跳段跳过 · 原约 N 分钟」；stageFixApply 包含法与上一段终点跟随跳过零长标记段；ramp 模式不变 ②stageTimelineHtml 进度 pct 加零长段除零防护——cam42.1：①跳段落点保持段改按模板标称时长计时（st.hrs×3600000，「跳到下一节点就只执行该节点的 1H」——修复原窗口取 t1-t0 会把保持段缩放系数的拉伸带给节点，例如实验时长手改大时 1H 被拉成 1H13m、看起来像混入了转换时间；转换时间本就不混入，实测验证）②运行弹窗按钮行重设计（取消/跳段/修正时间/结束设备使用：图标+文字 nowrap 防竖排，flex-wrap 整颗换行，modal-actions 通用规则）——cam42：修正时间——运行详情弹窗跳段旁新增「修正时间」入口与弹窗，两方式二选一（①已运行时间：剩余=节点总时长−已运行，窗口整体平移 D 不变 ②结束剩余时间：已运行不动、终点=now+剩余，D 弹性伸缩），剩余/预计结束实时预览动态重算；stage_jumps 追加 mode:'fix' 记录（kind:'el'|'rm', val:分钟, si, end），stageSkipReplay 按 mode 分派 stageFixApply 重放（包含法定位当前段、方式1上一段终点跟随新起点、后续段整体平移），预计结束同步重写——cam41.1：卡片末排双列（下一节点预计+预计结束）+ 相机归还统计排除存储类 + 机台运行楼层改分段控件 + 基础条件去说明文字——cam41：保存成功」+ settings 移入热轮询 + 侧栏连通性指示器——cam40.3：批量去除界面说明文字——①结束使用弹窗 sub ②存储运行页副标题「存储类机台（试验组=存储类）的运行看板；」③设置页 7 处（页副标题/两列 set-col-desc×2/机种前缀括号段/人员 h-sub/新增人员小注/数据维护 h-sub）——cam40.2：跳段执行弹窗去掉顶部说明文字（sub 行删除）——cam40.1：存储实验统计今日应取红「今」徽章（时间块前，今日到期才显示）+ 机台卡片跳段按钮移除（只留运行详情弹窗入口，stageSkipBtnHtml/.mb-acts 删除）——cam40：跳段执行——运行中机台修正当前节点（以实际工况为准）：卡片小按钮+运行详情弹窗入口，两模式（①按照速率转换：手填起点温湿度（预填推算值）按速率爬到下一节点，转换完成后开始保持→预计结束顺延 ②跳段至下一节点：目标温湿度立即生效开始保持→预计结束提前）；持久化 experiments.stage_jumps jsonb 数组追加式（{ts,mode,to:阶段下标,from_cond,end}，审计留痕多端一致），stageTimeline 顺序重放（stageSkipApply：截断到 T→模式1 插新切换段→目标保持整段起计→后续段整体平移），段补 si=阶段下标/fromCond 数值，消费面（卡片节点/倒计时/详情时间线/看板）单点派生自动跟随；expected_end 跳段时重写（全站倒计时/相机归还锚点），编辑实验运行中改时长也改按时间轴终点重算（跳段后终点≠开始+时长）；stageRampMin 重构出 stageRampMinBetween 两点切换时长助手复用同语义（某维度任一侧空则不参与）；SQL：experiments_stage_jumps.txt 建列；cam39.19：实验条件列表阶段链去背景胶囊改 → 指引——.tpl-chip 去掉 background/padding/border-radius 变纯文字，阶段间箭头由 .tpl-chip:not(:last-child)::after 生成（附着前段末尾，换行不出孤箭头；末段无箭头），.tpl-chain gap:4px 0 列距由箭头 padding 8px 对称承担；cam39.18：存储卡片顶部灰线统一去除 + 实验条件徽章去框纯文字 + 湿度去 RH 只留 %——①machine-box::before 顶部 4px 状态色条只在挂 idle 类时显灰色渐变条，storageCellHtml 仅空闲箱挂 idle、运行中/已结束无类导致无条，同页有线无线不一致；sbox-wrap 统一 ::before display:none 去除（状态由圆点+文字表达）②.env-badge 去背景框去边框只留文字居中（display:block+text-align:center）③新增 humTxt() 把湿度展示的 RH 后缀去掉只留 %（95%RH→95%），仅显示层不动库内值，env-badge 行/实验折叠行/投放与箱内编辑弹窗副标题共四处接入；cam39.17：存储卡片实验条件徽章去金色居中 + 三分区条目改单行——①存储箱卡环境条件（70℃/95%RH·辐照度）由 11px 灰字改金色徽章 .env-badge（storageCellHtml 一处改动，存储运行页与存储看板同款生效）②看板 pv-head 与 pv-grid 之间新增 #pvAlert 关键信息区（空态 :empty 整块隐藏）：机台运行看板=「即将截图」横向条目（遍历运行中机台实验的推算时间轴，当前保持段为截图节点且距段结束≤30min 才显示；条目=机台排号/实验项目/机种/当前节点/剩余倒计时(.ss-cd data-end 由 1s ticker 刷新)，按剩余时间升序，限高 22vh 内部滚动；到点节点自动前进、条目随重渲染消失，无呼吸灯——呼吸灯仅整实验结束沿用结束卡红边；ticker 归零分支补看板打开时无条件重渲染）③存储运行看板=今日应取/明日应取/进行中（后天及以后+长期）三分区（ssamples 按 planned_end 分桶：今日含已逾期、明日、≥后天或 null；条目=机台/实验项目/机种/预计结束；已到点未取（含逾期多日）留今日应取置顶并红色呼吸闪烁 sbFlash 复用，标「待取」）；全部纯前端内存推算，零 IO 零 schema；cam39.12：机种前缀改下拉+后缀任意字符串——①CFG 新增 model_prefixes 列表（默认 YT,UH；设置页「机种名称前缀」改逗号分隔输入，保存同时写 model_prefix=第一项兼容旧逻辑）②6 处机种输入点（创建/预约/投放/箱运行/箱内编辑/编辑弹窗）静态 YT 标签 .pre-tag 改内嵌 .pre-sel 下拉（CSS 仿原标签外观，input 缩进 52px），后缀去掉纯数字 oninput 过滤与 inputmode，placeholder「如 123 或 转接盖」，maxlength 12→30 ③拼接助手 pfxOfInput（按各自容器下拉取前缀，不再全局单值 grpPrefix）、modelPrefixes/modelPfxOf/fillModelPfxSels（applyCfgDom 同步保留已选）④stripModelPrefix 按列表剥离（最长匹配优先）⑤编辑弹窗前缀模式判定改「以任一前缀开头且余串非空」，下拉回显机种原前缀 ⑥保存/日志标签同步（默认机种前缀/机种前缀列表）；cam39.11：实验条件确认改弹窗——创建实验点选模板后不再在输入框下方内联显示实验条件（#expTplPreview 及其 CSS 已删），改为弹出「实验条件确认」弹窗：逐阶段列出名称/环境/时长/截图标记（金色相机图标）+ 总时长（含切换）+ 截图次数说明，点「确定」关闭保持选中、点「取消选择」清空模板回自定义输入；总时长仍在弹窗打开时自动填入实验时间（可手改）；applyTplPreview 重构为 openExpTplCf/confirmExpTpl/cancelExpTpl 三函数；cam39.10：创建实验去掉「开始时间/预计结束时间」两只读输入框——创建后为待运行，两时间在点「运行」（confirmRun 以运行时刻写入）/存储投放（以投放时刻写入）时才落库，符合建表注释原意（start_time='实际开始运行时间'）；列表两列保留、待运行行显示 '—'（原有 null 回落）；附带修复：预约实验经编辑弹窗置「运行中」原先误用创建时刻算预计结束，现走 !start_time 补当下时刻分支；删 updateEndTimePreview/refreshStartTime 及每分钟定时器；cam39.9：编辑实验弹窗补「类型」分段（cam39.8 遗漏）——editExpTypeSeg 与创建侧同款 markSeg 单一真源；openEditExp 按 isStoExp(e) 初始化，备注输入框只显示去掉「存储类」标记的正文（标记由类型分段管理）；saveExpEdit 落库按 editExpTypeVal 计算：存储类='存储类'+正文、机台类=纯正文（切类型自动加/去标记）；cam39.8：实验类型（机台类/存储类）+ 存储运行调用实验——①实验信息创建表单新增「类型」分段（默认机台类，markSeg 不触发 renderCamBoard）与「备注」输入框：选存储类把「存储类」写入备注开头（isStoExp 判定=备注以「存储类」开头），创建后复位②实验信息列表操作列前新增备注列（存储类金标+余下文字），编辑实验弹窗同步备注字段（保存时存储类保持标记在前）③存储运行投放样品弹窗新增「调用实验信息」下拉（只列存储类·待运行），选中自动回填项目/机种/送样人/时长；confirmSboxDeposit 记 storage_samples.exp_id 并把原实验转「运行中」挂到本存储机台（失败不阻断投放）④pickSample 取样时若有 exp_id 直接回写原实验为已完成（时长=实际存放时长、机台释放），不重复插行；本地 active→归档分流⑤机台运行页选择实验排除存储类（others 过滤 !isStoExp）；SQL 见 experiments_remark.txt（experiments.remark + storage_samples.exp_id）；cam39.7：截图节点勾选 + 相机标记 + 网页图标——①模板编辑弹窗每阶段新增「截图」勾选列（stage-row .sr-c/.sr-shot，存 stages[].shot，随 v2 快照定格；无任何 shot 字段的旧模板/旧快照回落旧行为「各保持段结束前30min、末段除外」，hasShotFlag/shotCount/stageShotNode 三助手）②修复表头「时长H」后的空方框＝删除列占位格 .sr-del 被按钮样式画出边框，表头格 visibility:hidden ③运行详情弹窗时间线：截图节点的节点名前加金色相机图标 ic('camera')（mdi 精确路径经 Iconify API 获取）④机台卡片第 4 行：当前保持段为截图节点 → 倒计时前加相机图标+空格（图标放 .stage-cd 外层 .cd-wrap 内，防每秒 ticker 重写 textContent 抹掉）⑤<head> 新增 favicon：金色圆角底+白色 mdi monitor 图标（纯 data URI 零请求）；cam39.6：运行详情弹窗（openStopModal）前四项信息压为一行两列——实验项目|机种名称、送样人|实验时长（.detail-rows .row2 新样式：单元格沿用 .row 胶囊外观，值过长省略号+title 悬停看全文；辐照度及之后各行保持单行不变）；cam39.5：氙灯辐照度补进箱式启动流程（用户实测「氙灯试验箱无辐照度的输入框」——cam39.1 误加在机台 runModal，而氙灯试验箱是箱式存储设备，走 sboxStartModal→storage_boxes，机台 runModal 流程对它根本不经过）——①箱启动弹窗新增 #sbIrrField 辐照度输入（openSboxStart 按 isXenon 控显隐+清空）②confirmSboxStart 校验（≥0 数字，留空 null）后写入 storage_boxes.irradiance（SQL 见 machine_irradiance.txt 补充段 alter table storage_boxes add column if not exists irradiance numeric）；仅氙灯带键防列未建时 PGRST204 波及其他箱③boxIrrTxt 展示助手，七个位置同步：箱卡行/运行卡 rv-meta/投放弹窗当前环境/箱内实验详情当前环境/箱运行详情新增辐照度行/存储统计条件串/看板详情箱头（均有值才显示）④pickSample 取样入档时把箱辐照度带入 experiments.irradiance（已有三处 e.irradiance 展示自动生效）⑤sboxReset 复位清辐照度（仅氙灯带键+本地置 null）；cam39.4：阶段时间线紧凑重设计（运行详情弹窗 + 看板详情共用 stageTimelineHtml，一处改两处同步）——①每节点 4 行压 2 行：删「📷截图时间点」行（截图点信息整体移除，创建实验预览的「截图 N 次」总次数保留）、删状态行（「已完成」三字由绿勾图标代替、「xx 开始」删除——时间范围已含开始时间）②状态图标：已完成=标题后绿色圆勾 ic('check')，进行中=金色播放标 ic('play')（IC 表新增 mdi play 路径）+同行进度条（.tl-currow flex：进度条 flex:1 + 右侧剩余时间）③CSS 收紧：.tl-item padding 12px→8px、.tl-t flex 化+标题 .tl-tx 过长省略、删 .tl-shot 两条规则；cam39.3：实验项目改组合框（单输入框双用途）——①删除「下拉框+隐藏输入框」两件套，expItem 输入框常驻可自由打字（自定义项目）②点击/聚焦输入框浮出模板列表（复用 .cs-panel 浮层样式，按已输入文字实时过滤，每项标注阶段数）③列表项 onmousedown+preventDefault 保住输入框焦点（规避 blur 竞态提前收起浮层），选中写回模板名+显示阶段预览+自动带总时长④手动改字与选中模板名不一致即清选中态、隐预览、视为自定义；blur 延时 150ms 收起，Esc/点外部经全局监听兜底⑤createExperiment 改读 expItemSelId 状态变量（含「文字与模板名不一致→自定义」兜底），提交逻辑与 stages 快照 v2 不变；cam39.2：实验基础条件与切换段——①实验条件页新增「基础条件」卡（常温起始 25℃/98%RH、温度速率 1℃/min、湿度速率 0.3%RH/min，存 settings 表 4 键，全局共用）②节点时间轴升级：相邻节点环境差÷速率=切换时长（温度/湿度并行取大者，第一段从常温起始值起切），到达目标才开始保持计时、切换不计入保持；实验快照升级 v2（{v:2,amb,rate,list}，创建时定格基础条件），v1 旧快照维持纯保持段不变 ③手改总时长=保持段按比例缩放、切换段按设备速率固定 ④卡片第四行切换中显「起始→目标环境 + 到达倒计时」、保持中末段右侧改「实验结束」⑤详情时间线插入切换段节点（灰菱形+虚线，标注起止环境与耗时，无截图点；📷仍锚在各保持段结束前 30min）⑥模板编辑弹窗实时估算行 + 列表总时长含切换；cam39.1：①氙灯试验箱开始运行弹窗新增辐照度输入（W/m²，experiments.irradiance 数值列，SQL 见 machine_irradiance.txt，卡片/详情/看板详情三处展示）②存储设备运行中可改环境条件：右键实验详情弹窗新增「修改环境条件」→ 单箱 1 组/三箱式 3 箱逐箱编辑 storage_boxes.temp/humidity ③机台管理页筛选三件套：关键词（编号/名称/排号/备注/组/位置）+ 位置 + 试验组，纯前端过滤；cam39：实验条件（实验项目模板）——①新菜单页「实验条件」：创建/编辑/删除模板（阶段=名称+温度+湿度+时长，存 exp_templates.stages jsonb，SQL 见 exp_templates.txt）②创建实验「实验项目」双模式：选模板（自动带出阶段与总时长）或自定义输入；选中模板把阶段快照定格存入 experiments.stages ③机台卡片改行：第3行=送样人|实验时长（一行两列）、第4行=当前节点|下一节点倒计时（推算式：按 start_time+stages+duration_hours 前端推算，零额外 IO）、第5行=预计结束不变 ④运行详情弹窗/看板详情弹窗新增阶段时间线（已过✓/当前进度条/未到灰，📷标注各阶段结束前30min截图点）⑤节点切换每秒计时器自动重渲染 ⑥结束设备使用按钮 loading 防重复点击 ⑦看板 pvRowFit 行高下限 110→160；cam38.8：相机预览「按机种聚合」①只显示仍占用的机种（实验全结束且相机还清的行直接消失）②状态细分「占用中（运行 X）/ 已结束·未归还 Y 台」③内存自愈：experiments 混入已完成行时本地立即分流进归档（YT222「始终占用中」＝页面挂夜内存陈旧，强刷即愈）④visibilitychange 回前台 ≥30s 全量对账一次（根治后台 tab 定时器节流导致的陈旧）；cam38.7：看板行高按「该视图全部机台」计行数（①存储运行页统计只统计当前楼层机台的样品，该楼层无存储机台时也清空统计②楼层写入 localStorage，刷新/重开浏览器仍停在上次选的楼层③全屏看板右上角新增「全部/1F/3F」分段，按楼层过滤并与运行页/存储页共用同一记忆）；cam38.4：降低 Supabase 磁盘 IO（Nano 基线仅 5MB/s，收到预算耗尽预警）——①loadData 参数化分组（hot/storage/cold）按页按需拉取，轮询从「6 表全量」降到「2 张小表」②已完成实验分流 archExps 懒加载（allExps），轮询只取待运行+运行中③日志页/设置页停留时停轮询（设置页补「刷新数据」按钮）④storage_samples 排除「已取」⑤轮询间隔 30→60 秒，设置上限 300⑥清理/批量收尾由 N 次往返改为单语句批量；cam38.3：消除首屏两处闪现（bootOv 加载层 + restorePageAhead + 主题前移）
   // cam39.10：删 refreshStartTime 及每分钟定时器——创建表单已无开始时间框
   if (!sb) { AUTH_READY = true; showLogin('脚本库未加载，请检查网络后刷新'); bootDone(); return; }   // cam38.3：SDK 缺失也要撤掉加载层
   try {
