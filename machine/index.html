@@ -19,6 +19,8 @@
   --sidebar-w:220px;
   --amber-deep:#b45309;--red-deep:#b91c1c;   /* cam45：告警数字深色版（--orange/--red 落在 --orange-light/--red-light 上只有 2.1:1，大字号也过不了 3:1） */
   --green-deep:#15803d;   /* cam52：色块演示的绿字深色版（--green 落在 --green-light 上只有 2.3:1） */
+  /* cam55：select 右侧实心三角。data-uri 里写不了 currentColor，故按主题各存一份（此值 = --text2 亮色 #64748b） */
+  --sel-arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0h10L5 6z' fill='%2364748b'/%3E%3C/svg%3E");
 }
 [data-theme="dark"]{
   --gold:#d4a853;--gold-light:rgba(212,168,83,.12);
@@ -31,6 +33,8 @@
   --border:#2d3048;--shadow:0 1px 3px rgba(0,0,0,.2);
   --amber-deep:#fbbf24;--red-deep:#f87171;   /* cam45：暗色下淡底本身很深，直接用浅色语义色即可（7.9:1 / 5.4:1） */
   --green-deep:#4ade80;   /* cam52：暗色淡底同样很深，直接复用浅绿 */
+  /* cam55：暗色三角用 --text2 暗色值 #94a3b8，落在 #252840 上约 5.4:1 */
+  --sel-arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0h10L5 6z' fill='%2394a3b8'/%3E%3C/svg%3E");
 }
 *{margin:0;padding:0;box-sizing:border-box}
 /* 不能给 html,body 设 height:100%：那会把侧栏 sticky 的包含块压成一屏高，
@@ -138,10 +142,11 @@ body{
 .field label{font-size:12px;font-weight:600;color:var(--text2)}
 .field input,.field select{
   padding:9px 12px;border:1px solid var(--border);border-radius:9px;
-  background:var(--surface2);color:var(--text);font-size:14px;min-width:150px;
+  background-color:var(--surface2);color:var(--text);font-size:14px;min-width:150px;
   transition:border-color .2s;
 }
 .field input:focus,.field select:focus{outline:none;border-color:var(--gold)}
+.field select{padding-right:30px}   /* cam55：给自绘三角留位（与上条同特异性，后写者胜） */
 .field input[readonly]{color:var(--text3);cursor:default}
 /* 相机型号自定义下拉：名称默认色、仅数量按严重程度着色（原生 option 无法部分着色） */
 .cus-sel{position:relative;min-width:150px}
@@ -220,8 +225,9 @@ body{
 .logs-stats{font-size:12.5px;color:var(--text2);white-space:nowrap}
 .logs-stats b{color:var(--text);font-weight:700}
 .logs-filters{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
-.logs-filters input,.logs-filters select{padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:12.5px}
+.logs-filters input,.logs-filters select{padding:7px 10px;border:1px solid var(--border);border-radius:8px;background-color:var(--surface2);color:var(--text);font-size:12.5px}
 .logs-filters input{width:200px}
+.logs-filters select{padding-right:26px}   /* cam55：给自绘三角留位 */
 .logs-filters input:focus,.logs-filters select:focus{outline:none;border-color:var(--gold)}
 .logs-tbl tbody tr:nth-child(even){background:var(--surface2)}
 .lg-resv{background:var(--blue-light);color:var(--blue)}
@@ -251,7 +257,7 @@ body{
 .bf-label{font-size:12px;font-weight:600;color:var(--text2);white-space:nowrap}
 .bf-select{
   padding:8px 30px 8px 12px;border:1px solid var(--border);border-radius:9px;
-  background:var(--surface2);color:var(--text);font-size:13px;min-width:132px;
+  background-color:var(--surface2);color:var(--text);font-size:13px;min-width:132px;
   cursor:pointer;transition:border-color .2s;
 }
 .bf-select:focus{outline:none;border-color:var(--gold)}
@@ -272,6 +278,25 @@ body{
 .run-tools .seg-btn{height:100%;display:inline-flex;align-items:center;padding-top:0;padding-bottom:0}
 .run-tools .field > select{height:var(--ctl-h);padding-top:0;padding-bottom:0}
 .run-tools .btn-sm{height:var(--ctl-h);padding-top:0;padding-bottom:0}
+/* cam54：实验信息筛选栏——刻意不复用 .form-grid：它在 #page-exp 被 768 断点强制成 2 列 grid
+   （见 @media 里 #page-exp .form-grid 那条），工具栏会被拽成半列宽；这里只借 .run-tools 的 --ctl-h 等高 */
+.exp-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;margin-bottom:12px}
+.exp-tools .field{flex:0 0 auto}
+.exp-tools .exp-count{margin-left:auto;font-size:12.5px;color:var(--text3);white-space:nowrap}
+.exp-tools .exp-count b{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums}
+@media(max-width:768px){
+  .exp-tools{padding:10px 12px;row-gap:8px}
+  .exp-tools .field{flex:1 1 100%}
+  .exp-tools .field select{width:100%}
+  /* 两个分段若并排会顶出右边界（类型 3 钮 + 楼层 3 钮 ≈ 317px，375 屏卡片内容只有 327px），
+     故各占一行、按钮等分撑满，重置与计数同排 */
+  .exp-tools .seg{flex:1 1 100%;justify-content:space-between}
+  .exp-tools .seg-btn{flex:1 1 0;padding-left:8px;padding-right:8px}
+  .exp-tools .btn-sm{flex:0 0 auto}
+  /* cam55：排序只有 2 个 4 字钮（≈147px），与「重置 + 计数」同排仍够，不跟着上面那条通栏，省一行 */
+  .exp-tools .seg.exp-sort{flex:0 1 auto}
+  .exp-tools .seg.exp-sort .seg-btn{flex:0 0 auto;padding-left:9px;padding-right:9px}
+}
 /* 统计卡片：图标色块 + 标签 + 大数字 */
 .cam-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .stat-card{
@@ -389,12 +414,12 @@ img.zoomable{cursor:zoom-in}
 .set-row-2:last-child{border-bottom:none}
 .set-row-2 .set-row{padding:0;border-bottom:none}
 /* 行内紧凑输入框（右对齐控件列） */
-.sr-in{padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:13px;width:92px;text-align:center;font-variant-numeric:tabular-nums;transition:border-color .2s}
+.sr-in{padding:7px 10px;border:1px solid var(--border);border-radius:8px;background-color:var(--surface2);color:var(--text);font-size:13px;width:92px;text-align:center;font-variant-numeric:tabular-nums;transition:border-color .2s}
 .sr-in:focus{outline:none;border-color:var(--gold)}
 .sr-in.w-sm{width:66px}
 .sr-in.w-md{width:126px}
 .sr-in.w-lg{width:200px;text-align:left}
-select.sr-in{cursor:pointer}
+select.sr-in{cursor:pointer;padding-right:24px}   /* cam55：给自绘三角留位 */
 /* cam37.5：新增人员表单条——修 min-width 泄漏（scoped min-width:0 覆盖全局 150px，input 不再溢出吞掉 gap）；
    间距 10→18px 加大呼吸感；字段聚左、按钮 margin-left:auto 推到行最右（留白呼吸）；
    输入/按钮高度统一 38px；640px 窄屏两列（calc 同步 18px 间距）按钮通栏 */
@@ -422,7 +447,8 @@ select.sr-in{cursor:pointer}
 #setGrpTable input,#setMchNameTable input{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:13px}
 #setGrpTable input:focus,#setMchNameTable input:focus{outline:none;border-color:var(--gold)}
 /* cam34：人员名单表输入控件（与试验组表同款） */
-#setStaffTable input,#setStaffTable select{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:13px}
+#setStaffTable input,#setStaffTable select{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background-color:var(--surface2);color:var(--text);font-size:13px}
+#setStaffTable select{padding-right:26px}   /* cam55：给自绘三角留位 */
 #setStaffTable input:focus,#setStaffTable select:focus{outline:none;border-color:var(--gold)}
 #setStaffTable td .btn{margin-right:4px}
 /* 吸底保存条：滚动时常驻底部 + 未保存状态指示 */
@@ -937,9 +963,10 @@ body.guest-mode #guestBar{position:fixed;top:0;left:0;right:0;z-index:900;backgr
 .pre-input{position:relative;display:block}
 .pre-input .pre-sel{
   position:absolute;left:4px;top:4px;bottom:4px;width:44px;min-width:44px; /* cam39.15：min-width 兜底——页面级创建区（实验信息 .form-grid，非 .modal）里 .field select{min-width:150px} 会把 44px 的 width 撑到 150px（min-width 恒压过 width，与特异性无关），cam39.14 只修了弹窗内 */
-  background:var(--bg2);border:none;border-radius:7px;color:var(--text2);
+  background-color:var(--bg2);border:none;border-radius:7px;color:var(--text2);
   font-size:12.5px;font-weight:700;text-align:center;text-align-last:center;cursor:pointer;
-  padding:0 2px;outline:none;-webkit-appearance:auto;appearance:auto;
+  padding:0 2px;outline:none;-webkit-appearance:none;-moz-appearance:none;appearance:none;
+  background-image:var(--sel-arrow);background-repeat:no-repeat;background-position:right 3px center;background-size:7px 4px;
 }
 .modal .field .pre-input .pre-sel{width:44px;min-width:44px} /* cam39.14：压住 .modal .field select{width:100%}(0,2,1)，防前缀下拉撑满溢出 */
 .pre-input input{text-indent:52px}
@@ -1209,10 +1236,23 @@ body.no-breath .machine-box.ended{animation:none}
 .sr-ring circle.t{stroke:var(--border)}
 .sr-ring circle.f{stroke:var(--gold);transition:stroke-dashoffset .9s linear}
 .sr-ring-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums}
-.sr-big{font-size:28px;font-weight:800;letter-spacing:.5px;line-height:1.15;font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text)}
-.sr-hk{margin-top:3px}
+/* cam57：已结束满环——绿色底与文字（环内仍显示 100%，与进行中同一套表达） */
+.sr-ring.done circle.f{stroke:var(--green)}
+.sr-ring.done .sr-ring-txt{color:var(--green)}
+.sr-big{font-size:26px;font-weight:800;letter-spacing:.5px;line-height:1.15;font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text)}
 .sr-meta{font-size:12px;color:var(--text3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sr-meta b{color:var(--text2);font-weight:600}
+/* cam58：头卡三段指标（环右侧铺满整宽）——1.7/1/1.05 由倒计时权重最高决定。
+   格子用 flex 列 + 说明 margin-top:auto：倒计时 26px、其余值 18px，行高不同，
+   说明行靠底对齐才不会被 7px 的行高差顶得参差 */
+.sr-cells{display:grid;grid-template-columns:1.7fr 1fr 1.05fr;margin-top:6px}
+.sr-c{min-width:0;padding:0 12px;display:flex;flex-direction:column}
+.sr-c:first-child{padding-left:0}
+.sr-c+.sr-c{border-left:1px solid var(--border)}
+.sr-c-k{font-size:11px;color:var(--text3)}
+.sr-c-v{font-size:18px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;line-height:1.25;margin-top:2px}
+.sr-c-v.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.sr-c-s{font-size:11.5px;color:var(--text3);margin-top:auto;padding-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* 信息网格：1px 间隙用父底色描线，天然发丝分割线 */
 .sr-kv{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px}
@@ -1258,32 +1298,52 @@ body.no-breath .machine-box.ended{animation:none}
 .sr-tl .tl-fix{font-size:10.5px}
 .sr-tl .tl-done-ic,.sr-tl .tl-run-ic{display:none}   /* 状态已由 .tl-dot 表达，避免绿勾与进度条并列成两条绿线（用户截图里的问题） */
 .sr-tl .tl-prog{height:4px}
+/* cam57：节点之间补连线——从本节点圆点下缘拉到下一节点圆点上缘。
+   top/bottom 双向锚定，行高随断点与 .cur 的 padding 变化时自动跟随，不写死长度。
+   不能挂在 .tl-dot 上：菱形靠 rotate(45deg) 画的，伪元素会跟着转 45° */
+.sr-tl .tl-item{position:relative}
+.sr-tl .tl-item::before{
+  content:'';position:absolute;left:11px;top:calc(50% + 5px);bottom:-11px;
+  width:2px;background:var(--border);border-radius:1px;
+}
+.sr-tl .tl-item:last-child::before{content:none}
+.sr-tl .tl-item.done::before{background:var(--green)}
+.sr-tl .tl-item.cur::before{background:var(--gold)}
+.sr-tl .tl-item.skipped::before{background:var(--border)}
 
-/* 跳段/修正时间：模式卡 v2（圆点 + 标题 + 说明；选中态金色描边） */
-.sk2-opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;margin-bottom:8px;background:var(--surface);transition:border-color .15s,background .15s}
+/* 跳段/修正时间：模式卡 v3（cam56：并排选项卡，无圆点，选中金边米底）
+   grid-auto-flow:column + 1fr → 2 项自动两等分、3 项自动三等分，无需第二个类名；
+   560 以下改竖排——三列在 375 屏只剩 90px/列，标题会被挤断 */
+.sk2-grid{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px;margin-bottom:10px}
+.sk2-opt{border:1px solid var(--border);border-radius:12px;padding:11px 13px;cursor:pointer;background:var(--surface);transition:border-color .15s,background .15s}
 .sk2-opt:hover{border-color:var(--gold)}
 .sk2-opt.sel{border-color:var(--gold);background:var(--gold-light)}
 .sk2-opt.disabled{opacity:.45;cursor:not-allowed}
 .sk2-opt.disabled:hover{border-color:var(--border)}
-.sk2-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;margin-top:3px;box-sizing:border-box}
-.sk2-opt.sel .sk2-dot{border-color:var(--gold);background:var(--gold);box-shadow:inset 0 0 0 3px var(--surface)}
-.sk2-t{font-size:13px;font-weight:700;color:var(--text)}
-.sk2-d{font-size:11.5px;color:var(--text3);margin-top:2px;line-height:1.6}
-.sk2-body{min-width:0;flex:1}
+.sk2-t{font-size:13px;font-weight:700;color:var(--text);line-height:1.35}
+.sk2-d{font-size:11.5px;color:var(--text3);margin-top:4px;line-height:1.65}
+@media(max-width:560px){ .sk2-grid{grid-auto-flow:row} }
 
 /* 移动端：头卡改为纵向两栏仍留环形，字号收一档；信息网格严格 1 行 2 列 */
 @media(max-width:560px){
   /* cam50.5：原 margin:-18px -16px —— 上边 -18 会压住 h3 眉标（.sr-modal padding-top 只有 16px），
      左右 -16 又让头卡比桌面态（-22 满宽）内缩 6px；改回与 .modal padding:22px 对称的满宽 */
-  .sr-head{margin:0 -22px 12px;padding:14px 22px;gap:12px}
-  .sr-big{font-size:22px}
+  .sr-head{margin:0 -22px 12px;padding:14px 22px;gap:12px;align-items:flex-start}
+  .sr-big{font-size:24px}
   .sr-ring,.sr-ring svg{width:54px;height:54px}
   .sr-ring-txt{font-size:12px}
+  /* cam58：三格在 375 屏放不下——首格（倒计时）独占整行，节点/结束时刻落第二行 */
+  .sr-cells{grid-template-columns:1fr 1fr}
+  .sr-c{padding:0 8px}
+  .sr-c:first-child{grid-column:1/-1;padding-left:0;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:7px}
+  .sr-c:nth-child(2){border-left:0;padding-left:0}
   /* cam50.5：原 .sr-kv{grid-template-columns:1fr} 单列删除——6 项回到严格 1 行 2 列；
      单元格 padding 10→8，给「2026/11/13 10:03」多留 4px（375 视口下可用 128px，文本约 101px） */
   .sr-kv{grid-template-columns:1fr 1fr}
   .sr-kv>div{padding:7px 8px}
   .sr-tl .tl-item{padding:5px 6px}
+  /* cam57：padding-left 6px → 圆点中心 10px，连线左移 2px 保持居中 */
+  .sr-tl .tl-item::before{left:9px}
   .sr-tl .tl-time{font-size:10.5px}
 }
 
@@ -1506,6 +1566,8 @@ body.guest-mode #toast{top:64px}     /* cam29：访客横幅(z-index:900)固定�
      padding 左右 12→8 再挤出 8px 给内容 */
   #page-exp .form-grid .field input,
   #page-exp .form-grid .field select{width:100%;min-width:0;padding-left:8px;padding-right:8px}
+  /* cam55：上条把右 padding 压回 8px，自绘三角会盖住文字；同特异性后写者胜，只补 select */
+  #page-exp .form-grid .field select{padding-right:24px}
   #page-exp .form-grid>.fw,
   #page-exp .form-grid>#expCameraImgBox,
   #page-exp .form-grid>.btn{grid-column:1 / -1}
@@ -1513,7 +1575,8 @@ body.guest-mode #toast{top:64px}     /* cam29：访客横幅(z-index:900)固定�
   #page-exp .form-grid>.btn{order:10;justify-content:center}
   /* 机种名称：上面那条 `.field select{width:100%}`（1,2,1）会连带选中绝对定位的前缀下拉 .pre-sel（1,1,0），
      把它从 44px 拉满整行、盖住输入文字（实测「YT」消失）。这里用 (1,3,0) 打回它原本的 44px；
-     不能收窄到 36px——原生下拉箭头就占去大半，「YT」会被整个裁掉只剩一个箭头。
+     cam55：箭头已改为自绘 7×4 三角，理论上可再收窄，但缩窄要同步 955/960/1534 三处 width 与
+     input 的 text-indent:52px，无收益，宽度保持 44px。
      input 保持全局 text-indent:52px，半列内容区 134px 扣掉后仍有 82px，「YT10286」约 55px 放得下 */
   #page-exp .form-grid .field .pre-sel{width:44px;min-width:44px;padding:0 2px}
   /* 相机型号下拉：.cs-panel{min-width:250px} + left:0;right:0，半列只有 152px，面板按 min-width 撑到 250 会越过视口，
@@ -1521,6 +1584,34 @@ body.guest-mode #toast{top:64px}     /* cam29：访客横幅(z-index:900)固定�
      故左对齐 + 定宽 240（≤ 视口右缘），max-width 再兜一层极窄屏 */
   #page-exp #expCameraWrap .cs-panel{left:0;right:auto;min-width:0;width:240px;max-width:calc(100vw - 44px)}
 }
+
+/* ===== cam55：全站 select 统一外观（浅底 / 圆角 / 右侧实心小三角）=====
+   为什么不用 ::after：<select> 是替换元素，Chromium 与 Safari 不渲染它的伪元素（只有 Firefox 认），
+   故关掉原生箭头再用 background-image 画自己的三角；data-uri 无法继承 currentColor，颜色走 --sel-arrow。
+   注意：任何给 select 写了 background 简写的地方都必须改成 background-color，否则会把这张图重置掉。 */
+select{
+  -webkit-appearance:none;-moz-appearance:none;appearance:none;
+  background-color:var(--surface2);color:var(--text);   /* 兜底：漏网的 select 在暗色下也不会是白底黑字 */
+  background-image:var(--sel-arrow);background-repeat:no-repeat;
+  background-position:right 9px center;background-size:10px 6px;
+  padding-right:30px;cursor:pointer;
+}
+
+/* ===== cam55：通用确认/输入弹窗（替代 16 处 confirm + 1 处 prompt） ===== */
+.ask-bg{z-index:400}                    /* 高于 .mo-bg(100) 与 .cs-panel.cs-float(220)，低于 #toast(3000) */
+.ask-modal{max-width:400px}
+.ask-modal h3{font-size:15.5px;margin-bottom:8px}
+.ask-ic{display:inline-flex;flex-shrink:0;color:var(--gold)}
+.ask-ic svg{width:17px;height:17px;display:block}   /* ic() 返回的 svg 不带宽高，必须显式约束 */
+.ask-bg.danger .ask-ic{color:var(--red-deep)}
+/* 多行文案：调用点沿用原来的 '\n' 字符串，靠 pre-line 还原换行，文案零改动 */
+.ask-body{font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-line;word-break:break-word;max-height:220px;overflow:auto}
+.ask-bg.danger .ask-body{color:var(--text)}
+.ask-modal .field{margin:12px 0 0}
+.ask-modal .field input{width:100%;min-width:0}
+/* 固定深红：--red 在暗色是 #f87171，白字仅 2.2:1；#b91c1c + 白 ≈ 6.2:1（同 .st-due.k-over 先例） */
+.ask-ok-danger{background:#b91c1c;color:#fff}
+.ask-ok-danger:hover{filter:brightness(1.12)}
 </style>
 <script>
 // cam38.3：主题提前判定——原先在 body 末尾才执行，暗色用户刷新时会先白闪一帧
@@ -1698,7 +1789,7 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
     </div>
     <div class="card">
       <div class="form-grid">
-        <div class="field"><label>送样人</label><input id="expSender" maxlength="50" placeholder="请输入送样人"></div>
+        <div class="field"><label>测试员</label><select id="expSender" data-staff="1" data-default="me" data-empty="请选择测试员"><option value="">请选择测试员</option></select></div>
         <div class="field"><label>机种名称</label><div class="pre-input"><select class="pre-sel"><option>YT</option><option>UH</option></select><input id="expModel" placeholder="如 123 或 转接盖" maxlength="30"></div></div>
         <div class="field fw"><label>实验项目</label>
           <!-- cam39.3：组合框——单输入框双用途：直接打字=自定义项目；点击/聚焦浮出模板列表（按已输入文字过滤），点选自动带出阶段与总时长 -->
@@ -1730,6 +1821,23 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
         <div class="field"><label>相机使用数量（台）</label><input id="expCameraQty" type="number" min="1" step="1" placeholder="不使用相机留空"></div>
         <button class="btn btn-primary" onclick="createExperiment()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>创建实验</button>
       </div>
+    </div>
+    <!-- cam54：实验信息筛选栏（测试员 / 类型 / 楼层，纯前端过滤、零 IO） -->
+    <div class="card exp-tools run-tools">
+      <div class="field"><select id="expFilterSender" data-staff="1" data-empty="全部测试员" onchange="renderExpTable()"><option value="">全部测试员</option></select></div>
+      <div class="seg" id="expTypeFilterSeg" data-val="all">
+        <button type="button" class="seg-btn active" data-v="all" onclick="pickExpTypeFilter('all')">全部</button>
+        <button type="button" class="seg-btn" data-v="mch" onclick="pickExpTypeFilter('mch')">机台类</button>
+        <button type="button" class="seg-btn" data-v="sto" onclick="pickExpTypeFilter('sto')">存储类</button>
+      </div>
+      <div class="seg" id="expFloorSeg" data-val="all"></div>
+      <!-- cam55：按预计结束时间排序（仅前端重排；未排期实验恒沉底，不进 localStorage） -->
+      <div class="seg exp-sort" id="expSortSeg" data-val="none">
+        <button type="button" class="seg-btn" data-v="asc" onclick="pickExpSort('asc')">最早优先</button>
+        <button type="button" class="seg-btn" data-v="desc" onclick="pickExpSort('desc')">最晚优先</button>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="resetExpFilter()">重置</button>
+      <span class="exp-count" id="expFilterCount"></span>
     </div>
     <div class="card">
       <div class="tbl-wrap"><table class="tbl" id="expTable"></table></div>
@@ -1777,7 +1885,7 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
           <div class="field" id="mchNameField" style="display:none"><label>机台名称</label><select id="mchName"></select></div>
           <div class="field"><label>机台排号</label><input id="mchRow" maxlength="10" placeholder="如 1" style="width:66px;min-width:66px"></div>
           <div class="field"><label>机台编号</label><input id="mchCode" maxlength="30" placeholder="YTOTY3001" style="width:112px;min-width:112px"></div>
-          <div class="field"><label>位置</label><select id="mchLoc" style="width:66px;min-width:66px"><option value="1F">1F</option><option value="3F">3F</option></select></div>
+          <div class="field"><label>位置</label><select id="mchLoc" style="width:74px;min-width:74px"><option value="1F">1F</option><option value="3F">3F</option></select></div>
           <div class="field"><label>备注</label><input id="mchRemark" maxlength="50" placeholder="选填"></div>
           <button class="btn btn-primary" onclick="addMachine()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>添加机台</button>
         </div>
@@ -1931,7 +2039,7 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
     <div class="card dk-bar">
       <div class="dk-search">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5l-1.5 1.5l-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16A6.5 6.5 0 0 1 3 9.5A6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14S14 12 14 9.5S12 5 9.5 5"/></svg>
-        <input id="doneSearch" oninput="renderDoneTable()" placeholder="搜索 送样人 / 机种 / 实验项目 / 委托单号">
+        <input id="doneSearch" oninput="renderDoneTable()" placeholder="搜索 测试员 / 机种 / 实验项目 / 委托单号">
       </div>
       <div class="dk-stat" id="doneCount"></div>
     </div>
@@ -2263,7 +2371,7 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
     <h3 id="runModalTitle">选择实验</h3>
     <div class="sub">选择要在此机台上运行的实验项目（本机预约优先置顶）</div>
     <div class="field">
-      <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
         <label style="margin:0">待运行实验</label>
         <label class="sw" id="runParallelSw" onclick="toggleRunParallel()" title="开启后可多选实验并行运行（要求登记时长一致，最多 3 项）"><b id="runParallelTxt">多项并行实验：否</b><span class="sw-track"></span></label>
       </div>
@@ -2316,7 +2424,7 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
     <div class="form-grid2">
       <div class="field"><label>实验项目（必填）</label><input id="sbExpItem" placeholder="请输入实验项目"></div>
       <div class="field"><label>机种</label><div class="pre-input"><select class="pre-sel"><option>YT</option><option>UH</option></select><input id="sbExpModel" placeholder="如 123 或 转接盖" maxlength="30"></div></div>
-      <div class="field"><label>送样人</label><input id="sbExpSender" placeholder="选填"></div>
+      <div class="field"><label>测试员</label><select id="sbExpSender" data-staff="1" data-empty="选填"><option value="">选填</option></select></div>
       <div class="field"><label>备注</label><input id="sbExpRemark" placeholder="选填"></div>
     </div>
     <div class="modal-actions">
@@ -2388,7 +2496,7 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
       <div class="field" style="grid-column:1/-1"><label>调用实验信息（存储类 · 待运行，选填）</label><select id="sbDpExp" onchange="applySboxExpSel()"><option value="">不调用，手动填写</option></select></div>
       <div class="field"><label>实验项目（必填）</label><input id="sbDpItem" placeholder="请输入实验项目"></div>
       <div class="field"><label>机种</label><div class="pre-input"><select class="pre-sel"><option>YT</option><option>UH</option></select><input id="sbDpModel" placeholder="如 123 或 转接盖" maxlength="30"></div></div>
-      <div class="field"><label>送样人</label><input id="sbDpSender" placeholder="选填"></div>
+      <div class="field"><label>测试员</label><select id="sbDpSender" data-staff="1" data-empty="选填"><option value="">选填</option></select></div>
       <div class="field"><label>备注</label><input id="sbDpRemark" placeholder="选填"></div>
       <div class="field" style="grid-column:1/-1"><label>存放时长（小时，留空 = 一直运行）</label><input id="sbDpHours" type="number" min="0.5" step="0.5" placeholder="如 24；留空则一直运行"></div>
       <div class="field" style="grid-column:1/-1"><label>间隔检查节点（小时，选填）</label><input id="sbDpInterval" type="number" min="0.5" step="0.5" placeholder="如 24 = 每隔 24H 需取出检查外观；到点后统计区按「继续执行」进入下一节点，总时长随检查时间自动顺延"></div>
@@ -2408,7 +2516,7 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
     <div class="form-grid2">
       <div class="field"><label>实验项目（必填）</label><input id="resvItem" placeholder="请输入实验项目"></div>
       <div class="field"><label>机种名称（必填）</label><div class="pre-input"><select class="pre-sel"><option>YT</option><option>UH</option></select><input id="resvModel" placeholder="如 123 或 转接盖" maxlength="30"></div></div>
-      <div class="field"><label id="resvSenderLabel">送样人</label><input id="resvSender"></div>
+      <div class="field"><label id="resvSenderLabel">测试员</label><input id="resvSender"><select id="resvSenderPick" data-staff="1" data-empty="选填" style="display:none"><option value="">选填</option></select></div>
       <div class="field"><label>实验时间（小时）</label><input id="resvHours" type="number" min="0.5" step="0.5" placeholder="选填，留空运行时补填"></div>
       <div class="field"><label>相机型号（选填）</label>
         <div class="cus-sel" id="resvCameraWrap">
@@ -2445,6 +2553,8 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
     <!-- 态二：创建表单 -->
     <div id="staticForm" class="hidden">
       <div class="form-grid2">
+        <!-- cam54：调用实验信息——只抄机种/相机/数量，不写 machine_id、不改实验状态（实验仍为「待运行」） -->
+        <div class="field" style="grid-column:1/-1"><label>调用实验信息（待运行 · 选填）</label><select id="stExp" onchange="applyStaticExpSel()"><option value="">不调用，手动填写</option></select></div>
         <!-- cam50.2：机种名称补前缀下拉（其余 5 处机种输入点早已是 .pre-input 结构，静置这处漏了） -->
         <div class="field" style="grid-column:1/-1"><label>机种名称（必填）</label><div class="pre-input"><select class="pre-sel"><option>YT</option><option>UH</option></select><input id="stModel" placeholder="如 123 或 转接盖" maxlength="30"></div></div>
         <div class="field"><label>开始时间（必填）</label><input type="datetime-local" id="stStart" onchange="staticStartChanged()"></div>
@@ -2533,7 +2643,7 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
     <h3>编辑实验信息</h3>
     <div class="sub">修改已创建的实验记录；状态改为「运行中」需该实验已指定机台</div>
     <div class="form-grid2">
-      <div class="field"><label>送样人（必填）</label><input id="editExpSender" maxlength="50" placeholder="请输入送样人"></div>
+      <div class="field"><label>测试员（必填）</label><select id="editExpSender" data-staff="1" data-empty="请选择测试员"><option value="">请选择测试员</option></select></div>
       <div class="field"><label>机种名称（必填）</label>
         <div class="pre-input" id="editExpModelYtBox"><select class="pre-sel"><option>YT</option><option>UH</option></select><input id="editExpModelYt" placeholder="如 123 或 转接盖" maxlength="30"></div>
         <input id="editExpModelRaw" placeholder="请输入机种名称" style="display:none">
@@ -2669,6 +2779,19 @@ try { if (localStorage.getItem('machine_theme') === 'dark') document.documentEle
   </div>
 </div>
 
+<!-- cam55：通用确认/输入弹窗（替代 16 处 confirm + 1 处 prompt；Promise 化，见 askDialog） -->
+<div id="askBg" class="mo-bg ask-bg hidden" onclick="if(event.target===this)askClose(false)">
+  <div class="modal ask-modal" role="dialog" aria-modal="true" aria-labelledby="askTitleTx">
+    <h3><span class="ask-ic" id="askIc"></span><span id="askTitleTx"></span></h3>
+    <div class="ask-body" id="askBody"></div>
+    <div class="field hidden" id="askInputWrap"><input id="askInput" autocomplete="off"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="askCancel" onclick="askClose(false)">取消</button>
+      <button type="button" class="btn btn-primary" id="askOk" onclick="askOk()">确定</button>
+    </div>
+  </div>
+</div>
+
 <!-- P1-2：锁死 supabase-js 具体版本（防 CDN 浮动版本投毒），三级 fallback 同版本号 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
 <script>if (typeof supabase === 'undefined') document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.45.4"><\/script>');</script>
@@ -2698,6 +2821,11 @@ var cameras = [];        // 相机库存列表（相机台账页）
 var sboxes = [];         // cam18：存储箱状态列表（storage_boxes 表；仅登录用户拉取）
 var ssamples = [];       // cam28：存储样品列表（storage_samples 表；一箱可投放多个机种，独立计时/取出）
 var expTpls = [];        // cam39：实验条件模板列表（exp_templates 表；随冷组拉取）
+// cam54：测试员名单（只读 RPC 返回 profiles 的 id / username / display_name 三列，不含 role）
+var STAFF_DIR = [];      // [{ id, username, name }]
+var staffDirTs = 0;      // 上次加载时间戳（TTL 短路与失败退避共用）
+var staffDirBusy = false;
+var STAFF_DIR_TTL = 900000;   // 15 分钟：人员变动不频繁，压低 RPC IO
 var currentRunMachine = null;  // 当前弹窗操作的机台
 var currentEditMachine = null; // 当前编辑的机台
 var currentEditCam = null;     // 当前编辑的相机型号
@@ -3309,6 +3437,65 @@ function toastOnce(key, msg, gapMs){
 }
 function openModal(id){ document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+
+/* ===== cam55：Promise 化确认框 =====
+   askConfirm(opts) → Promise<boolean>；askPrompt(opts) → Promise<string|null>（取消 = null，同原 prompt 语义）
+   opts: { title, body, okText, cancelText, danger, icon, inputType, value, placeholder, maxLength } */
+var ASK = null;   // 当前挂起的会话 { resolve, isPrompt }
+function askDialog(opts, isPrompt){
+  opts = opts || {};
+  return new Promise(function(resolve){
+    var bg = document.getElementById('askBg');
+    if (!bg) { resolve(isPrompt ? null : false); return; }        // 容器缺失：不阻塞原操作
+    if (ASK) ASK.resolve(ASK.isPrompt ? null : false);            // 连点：旧的按取消结算，防 Promise 悬空
+    var inpWrap = document.getElementById('askInputWrap');
+    var inp = document.getElementById('askInput');
+    var okBtn = document.getElementById('askOk');
+    bg.classList.toggle('danger', !!opts.danger);
+    document.getElementById('askIc').innerHTML = ic(opts.icon || (opts.danger ? 'alert' : 'alertc'));
+    document.getElementById('askTitleTx').textContent = opts.title || '请确认';
+    document.getElementById('askBody').textContent = opts.body || '';
+    document.getElementById('askCancel').textContent = opts.cancelText || '取消';
+    okBtn.textContent = opts.okText || '确定';
+    okBtn.className = 'btn ' + (opts.danger ? 'ask-ok-danger' : 'btn-primary');
+    if (isPrompt) {
+      inpWrap.classList.remove('hidden');
+      inp.type = opts.inputType || 'text';
+      inp.value = opts.value || '';
+      inp.maxLength = opts.maxLength || 64;
+      inp.placeholder = opts.placeholder || '';
+    } else {
+      inpWrap.classList.add('hidden');
+      inp.value = '';
+    }
+    ASK = { resolve: resolve, isPrompt: isPrompt };
+    bg.classList.remove('hidden');
+    // 只在打开期间挂 capture：先于 3404 灯箱 / 8656 相机浮层 / 9210 空闲预览那三条常驻 ESC 逻辑
+    document.addEventListener('keydown', askKey, true);
+    setTimeout(function(){
+      if (isPrompt) { inp.focus(); inp.select(); } else { okBtn.focus(); }
+    }, 30);   // 等 pop 动画起步再聚焦，避免焦点环与缩放打架
+  });
+}
+function askKey(ev){
+  if (!ASK) return;
+  if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); askClose(false); }
+  else if (ev.key === 'Enter' && ev.target && ev.target.tagName === 'INPUT') {
+    ev.preventDefault(); ev.stopPropagation(); askOk();   // 按钮上的 Enter 交给原生 click，避免双触发
+  }
+}
+function askOk(){ askClose(true); }
+function askClose(ok){
+  var bg = document.getElementById('askBg');
+  if (!bg || !ASK) return;
+  var s = ASK; ASK = null;
+  document.removeEventListener('keydown', askKey, true);
+  bg.classList.add('hidden');
+  var v = document.getElementById('askInput').value;
+  s.resolve(s.isPrompt ? (ok ? v : null) : !!ok);
+}
+function askConfirm(opts){ return askDialog(opts, false); }
+function askPrompt(opts){ return askDialog(opts, true); }
 function remainingText(endIso){
   var diff = new Date(endIso) - new Date();
   if (diff <= 0) return '已到预计结束时间';
@@ -3833,7 +4020,7 @@ async function createExperiment(){
   var cameraId = document.getElementById('expCamera').value;
   var camQtyRaw = document.getElementById('expCameraQty').value.trim();
   var camQty = camQtyRaw === '' ? null : parseInt(camQtyRaw, 10);
-  if (!sender || !model || !item) { toast('请填写送样人、机种名称（选前缀后填编号/名称）、实验项目'); return; }
+  if (!sender || !model || !item) { toast('请填写测试员、机种名称（选前缀后填编号/名称）、实验项目'); return; }
   if (isNaN(hours) || hours <= 0) { toast('实验时间请输入大于 0 的数字（小时）'); return; }
   if (!checkCommission(commission)) return;
   if (camQty !== null && (!cameraId || isNaN(camQty) || camQty <= 0)) {
@@ -3864,7 +4051,7 @@ async function createExperiment(){
   };
   var err = (await sb.from('experiments').insert(payload).select()).error;
   if (err) { toast('创建失败：' + friendlyErr(err)); return; }
-  document.getElementById('expSender').value = '';
+  document.getElementById('expSender').value = staffDirDefault();   // cam54：同一人连建多条是主场景，清空后落回自己
   document.getElementById('expModel').value = '';
   document.getElementById('expItem').value = '';
   document.getElementById('expHours').value = '';
@@ -4156,6 +4343,14 @@ function stageNowIdx(tl){ return stageNowIdxAt(tl, Date.now()); }
 // cam51：段内进度分母＝本段实际时长（t1−t0）——切换段按速率耗时、保持段按缩放/修正后时长，各段恒从 0% 起。
 // 旧口径误用目标阶段的保持 hrs 当切换段分母（25→60/12H 一进场即 95%）。d>0 对 NaN 为 false，自动落 0
 function stageSegDurMs(seg){ var d = (seg && seg.t0 != null && seg.t1 != null) ? (seg.t1 - seg.t0) : 0; return d > 0 ? d : 0; }
+// cam58：头卡指标用的时长文案（段长 / 已跑）
+function durTxt(ms){
+  var m = Math.round(ms / 60000);
+  if (m < 1) return '不到 1 分';
+  if (m < 60) return '约 ' + m + ' 分';
+  var h = m / 60;
+  return (m % 60 === 0 ? h : h.toFixed(1)) + ' 小时';
+}
 // 当前节点摘要 + 下一边界时刻（卡片第四行用）；无阶段返回 null
 // cam39.2：区分切换/保持——切换段左显「起始环境→目标环境」右为到达目标倒计时；末段右侧=实验结束
 function stageCurOf(e){
@@ -4337,17 +4532,18 @@ function renderStageSkipBody(cond){
   if (!cond) cond = { t: skNumRaw('skT'), rh: skNumRaw('skRh') };
   var seg = skPlan.seg, tgt = skPlan.target, nxt = skPlan.nextSeg;
   var curTxt = seg.type === 'ramp' ? ('切换中 ' + seg.from + ' → ' + stageValLabel(seg.st.t, seg.st.rh)) : stageLabel(seg.st);
-  // cam43：下一段文案（跳段至下一阶段的目标）；当前在切换段/已到末段则本模式不可用
+  // cam43：跳段至下一阶段在当前处于切换段/已到末段时不可用；cam56 起说明改短句，目标段由上方 sk-cur 显示
   var nextOk = !!nxt && seg.type !== 'ramp';
-  var nextTxt = !nxt ? '已是最后一段' : (nxt.type === 'ramp' ? ('切换：' + nxt.from + '→' + stageValLabel(nxt.st.t, nxt.st.rh)) : stageLabel(nxt.st));
   var par = skExps.length > 1 ? '<div style="font-size:11.5px;color:var(--text3);margin:-4px 0 8px">并行 ' + skExps.length + ' 项实验统一跳段，各自推进到各自的下一节点</div>' : '';
   body.innerHTML = '<div class="sk-cur">当前节点 <b>' + esc(curTxt) + '</b><span class="arr">→</span>下一节点 <b>' + esc(stageLabel(tgt.st)) + '</b></div>'
     + par
-    + '<div class="sk2-opt' + (skMode === 'ramp' ? ' sel' : '') + '" id="skOptRamp" onclick="pickSkMode(\'ramp\')"><span class="sk2-dot"></span><div class="sk2-body"><div class="sk2-t">按照速率转换</div><div class="sk2-d">从当前实际条件按预定速率转换到下一节点温湿度，到达后才开始保持计时（预计结束顺延）</div></div></div>'
-    + '<div class="sk2-opt' + (skMode === 'next' ? ' sel' : '') + (nextOk ? '' : ' disabled') + '" id="skOptNext" onclick="pickSkMode(\'next\')"><span class="sk2-dot"></span><div class="sk2-body"><div class="sk2-t">跳段至下一阶段</div><div class="sk2-d">' + (nextOk
-        ? ('跳过当前这一段，进入紧邻的下一段：<b>' + esc(nextTxt) + '</b>（切换段照常按速率执行）')
-        : (seg.type === 'ramp' ? '当前正在切换中，请用「跳段至下一节点」' : '已是最后一段，无下一阶段')) + '</div></div></div>'
-    + '<div class="sk2-opt' + (skMode === 'snap' ? ' sel' : '') + '" id="skOptSnap" onclick="pickSkMode(\'snap\')"><span class="sk2-dot"></span><div class="sk2-body"><div class="sk2-t">跳段至下一节点</div><div class="sk2-d">下一节点温湿度立即生效并开始保持计时，跳过转换过程（预计结束提前）</div></div></div>'
+    + '<div class="sk2-grid">'
+    + '<div class="sk2-opt' + (skMode === 'ramp' ? ' sel' : '') + '" id="skOptRamp" onclick="pickSkMode(\'ramp\')"><div class="sk2-t">按照速率转换</div><div class="sk2-d">从当前实际温湿度按设定速率转过去</div></div>'
+    + '<div class="sk2-opt' + (skMode === 'next' ? ' sel' : '') + (nextOk ? '' : ' disabled') + '" id="skOptNext" onclick="pickSkMode(\'next\')"><div class="sk2-t">跳段至下一阶段</div><div class="sk2-d">' + (nextOk
+        ? '只跳过当前这一段'
+        : (seg.type === 'ramp' ? '当前正在切换中，请用「跳段至下一节点」' : '已是最后一段，无下一阶段')) + '</div></div>'
+    + '<div class="sk2-opt' + (skMode === 'snap' ? ' sel' : '') + '" id="skOptSnap" onclick="pickSkMode(\'snap\')"><div class="sk2-t">跳段至下一节点</div><div class="sk2-d">直接到下一个要执行的节点</div></div>'
+    + '</div>'
     + '<div class="sk-cond" id="skCondWrap"' + (skMode === 'ramp' ? '' : ' style="display:none"') + '>'
     + '<div class="field"><label>转换起点温度（℃，常温留空）</label><input id="skT" type="number" step="0.1" value="' + esc(String(cond.t === '' || cond.t === null || cond.t === undefined ? '' : cond.t)) + '" oninput="updateSkPreview()" placeholder="留空=该维度不参与"></div>'
     + '<div class="field"><label>转换起点湿度（%，常温留空）</label><input id="skRh" type="number" step="0.1" value="' + esc(String(cond.rh === '' || cond.rh === null || cond.rh === undefined ? '' : cond.rh)) + '" oninput="updateSkPreview()" placeholder="留空=该维度不参与"></div>'
@@ -4494,8 +4690,10 @@ function renderFixTimeBody(){
   var par = ftExps.length > 1 ? '<div style="font-size:11.5px;color:var(--text3);margin:-4px 0 8px">并行 ' + ftExps.length + ' 项实验统一修正，各自按各自当前节点重锚</div>' : '';
   body.innerHTML = '<div class="sk-cur">当前节点 <b>' + esc(curTxt) + '</b><span class="arr">·</span>已运行 <b>' + fixHM(elMin) + '</b> / 剩余 <b>' + fixHM(rmMin) + '</b></div>'
     + par
-    + '<div class="sk2-opt' + (ftMode === 'el' ? ' sel' : '') + '" id="ftOptEl" onclick="pickFixMode(\'el\')"><span class="sk2-dot"></span><div class="sk2-body"><div class="sk2-t">已运行时间</div><div class="sk2-d">输入当前节点实际已运行时长，剩余=节点总时长−已运行，后续节点整体平移</div></div></div>'
-    + '<div class="sk2-opt' + (ftMode === 'rm' ? ' sel' : '') + '" id="ftOptRm" onclick="pickFixMode(\'rm\')"><span class="sk2-dot"></span><div class="sk2-body"><div class="sk2-t">结束剩余时间</div><div class="sk2-d">输入当前节点距结束的剩余时长，已运行不变，节点总时长随之调整</div></div></div>'
+    + '<div class="sk2-grid">'
+    + '<div class="sk2-opt' + (ftMode === 'el' ? ' sel' : '') + '" id="ftOptEl" onclick="pickFixMode(\'el\')"><div class="sk2-t">已运行时间</div><div class="sk2-d">按已跑多久重设，阶段窗口整体平移</div></div>'
+    + '<div class="sk2-opt' + (ftMode === 'rm' ? ' sel' : '') + '" id="ftOptRm" onclick="pickFixMode(\'rm\')"><div class="sk2-t">结束剩余时间</div><div class="sk2-d">按还剩多久重设，起点不动</div></div>'
+    + '</div>'
     + '<div class="sk-cond"><div class="field"><label id="ftValLabel">' + (ftMode === 'el' ? '已运行时间' : '结束剩余时间') + '（时 / 分）</label><div class="ft-hm"><div class="ft-hm-c"><span class="ft-hm-u">小时</span><input id="ftValH" type="number" step="1" min="0" oninput="updateFixPreview()" placeholder="0"></div><div class="ft-hm-c"><span class="ft-hm-u">分钟</span><input id="ftValM" type="number" step="1" min="0" max="59" oninput="updateFixPreview()" placeholder="0"></div></div></div></div>'
     + '<div class="sk-end" id="fixEndPreview"></div>';
   updateFixPreview();
@@ -4793,7 +4991,7 @@ async function saveTemplate(){
 async function deleteTpl(id){
   var tp = expTpls.find(function(x){ return x.id === id; });
   if (!tp) return;
-  if (!confirm('确认删除实验条件「' + tp.name + '」？\n（已创建的实验使用的是创建时的阶段快照，不受影响）')) return;
+  if (!(await askConfirm({ title: '删除实验条件', body: '确认删除实验条件「' + tp.name + '」？\n（已创建的实验使用的是创建时的阶段快照，不受影响）', okText: '删除', danger: true }))) return;
   var r = await sb.from('exp_templates').delete().eq('id', id);
   if (r.error) { toast('删除失败：' + friendlyErr(r.error)); return; }
   toast('实验条件已删除');
@@ -4857,14 +5055,99 @@ async function saveStageBase(){
   else if (touched) toast('保存成功，' + touched + ' 项运行中实验预计结束已按新速率重算');
   renderTpls();   // 模板列表总时长（含切换估算）随之刷新
 }
+// cam54：实验信息页筛选——楼层记忆与机台运行页的 CUR_FLOOR / 'mch_floor' 严格隔离（互不影响）
+var EXP_FLOOR = 'all';   // 'all' 或 CFG.floor_list 里的具体楼层
+var EXP_SORT = 'none';   // cam55：'none' | 'asc' | 'desc'——当次阅读偏好，不落 localStorage
+function loadExpFloorMem(){   // 必须在 CFG 就绪后调用（locList 依赖 CFG.floor_list）
+  var v = null;
+  try { v = localStorage.getItem('exp_floor'); } catch (e) {}
+  EXP_FLOOR = (v === 'all' || locList().indexOf(v) >= 0) ? v : 'all';
+}
+// 不能直接用 buildFloorSeg：它 onclick 硬编码 pickFloor，会污染机台运行页的 mch_floor 并重刷运行/看板
+function buildExpFloorSeg(){
+  var box = document.getElementById('expFloorSeg');
+  if (!box) return;
+  var arr = ['all'].concat(locList());
+  box.innerHTML = arr.map(function(v){
+    var tx = v === 'all' ? '全部' : v;
+    return '<button type="button" class="seg-btn" data-v="' + esc(v) + '" onclick="pickExpFloor(this.getAttribute(\'data-v\'))">' + esc(tx) + '</button>';
+  }).join('');
+  markSeg(box, EXP_FLOOR);   // 复用 markSeg：只打亮不重渲染（segSet 会硬拽 renderCamBoard，禁用）
+}
+function pickExpFloor(v){
+  EXP_FLOOR = v;
+  try { localStorage.setItem('exp_floor', v); } catch (e) {}
+  markSeg(document.getElementById('expFloorSeg'), v);
+  renderExpTable();
+}
+function pickExpTypeFilter(v){
+  markSeg(document.getElementById('expTypeFilterSeg'), v);   // 只打亮，不碰 CUR_FLOOR 与相机看板
+  renderExpTable();
+}
+// cam55：按预计结束时间排序。null = 「待运行/未排期」，语义是「未知」而不是「最早」或「最晚」，
+// 故升序降序一律沉底——当 0 会把待运行顶到最前把最该处理的挤出首屏，当无穷大又会在降序里伪装成「最晚」
+function expEndMs(e){
+  var t = (e && e.expected_end) ? new Date(e.expected_end).getTime() : NaN;
+  return isNaN(t) ? null : t;
+}
+function cmpExpEnd(a, b){
+  var ta = expEndMs(a), tb = expEndMs(b);
+  if (ta === null && tb === null) return 0;   // 都无预计结束：保持后端原序（created_at 倒序）
+  if (ta === null) return 1;
+  if (tb === null) return -1;
+  return EXP_SORT === 'desc' ? (tb - ta) : (ta - tb);
+}
+function pickExpSort(v){
+  EXP_SORT = v;
+  markSeg(document.getElementById('expSortSeg'), v);   // markSeg 只打亮，不重渲染
+  renderExpTable();
+}
+function resetExpFilter(){
+  EXP_FLOOR = 'all';
+  try { localStorage.setItem('exp_floor', 'all'); } catch (e) {}
+  markSeg(document.getElementById('expFloorSeg'), 'all');
+  markSeg(document.getElementById('expTypeFilterSeg'), 'all');
+  EXP_SORT = 'none';   // cam55：重置＝回默认视图，排序一并清掉
+  markSeg(document.getElementById('expSortSeg'), 'none');   // 无 data-v="none" 的按钮 → 全部熄灭
+  var el = document.getElementById('expFilterSender');
+  if (el) el.value = '';
+  renderExpTable();
+}
 function renderExpTable(){
   var t = document.getElementById('expTable');
   fillTplSelect();   // cam39：模板随冷组刷新后同步创建表单下拉（保留当前选择）
   // 已完成实验移至「已完成实验」页归档，此列表只保留待运行/运行中
-  var active = experiments.filter(function(e){ return e.status !== '已完成'; });
-  var html = '<thead><tr><th>送样人</th><th>机种名称</th><th>实验项目</th><th>委托单号</th><th>相机型号</th><th>使用/归还</th><th>未归还</th><th>实验时间</th><th>开始时间</th><th>预计结束</th><th>状态</th><th>机台</th><th>备注</th><th>操作</th></tr></thead><tbody>';
+  var all = experiments.filter(function(e){ return e.status !== '已完成'; });
+  // cam54：三条件纯前端叠加（测试员 / 类型 / 楼层）——筛选值每次从 DOM 现读，
+  // 否则 60s 轮询重渲染会把用户刚选的条件静默重置
+  var fSenderEl = document.getElementById('expFilterSender');
+  var fSender = fSenderEl ? (fSenderEl.value || '') : '';
+  var typeSegEl = document.getElementById('expTypeFilterSeg');
+  var fType = (typeSegEl && typeSegEl.getAttribute('data-val')) || 'all';
+  var fFloor = EXP_FLOOR || 'all';
+  var locById = {};
+  machines.forEach(function(m){ locById[m.id] = m.location || ''; });
+  var active = all.filter(function(e){
+    if (fSender && String(e.sender || '') !== fSender) return false;
+    if (fType === 'mch' && isStoExp(e)) return false;
+    if (fType === 'sto' && !isStoExp(e)) return false;
+    if (fFloor !== 'all' && e.machine_id) {
+      // 未分配机台的实验在任何楼层都显示，绝不「筛着筛着消失」
+      var mloc = locById[e.machine_id];
+      if (mloc != null && mloc !== fFloor) return false;
+    }
+    return true;
+  });
+  // cam55：排序在「过滤之后、拼表格之前」，只重排 active，不动 filtering 与计数口径
+  if (EXP_SORT !== 'none') active.sort(cmpExpEnd);
+  var filtering = !!(fSender || fType !== 'all' || fFloor !== 'all');
+  var html = '<thead><tr><th>测试员</th><th>机种名称</th><th>实验项目</th><th>委托单号</th><th>相机型号</th><th>使用/归还</th><th>未归还</th><th>实验时间</th><th>开始时间</th><th>预计结束</th><th>状态</th><th>机台</th><th>备注</th><th>操作</th></tr></thead><tbody>';
   if (!active.length) {
-    var expErr = LOAD_ERRS.experiments ? '⚠ 实验数据加载失败：' + esc(friendlyErr(LOAD_ERRS.experiments)) + '（请按 F12 查看 Console 红色报错并截图反馈）' : '暂无进行中的实验（已完成实验请到「已完成实验」页查看）';
+    var expErr = LOAD_ERRS.experiments
+      ? '⚠ 实验数据加载失败：' + esc(friendlyErr(LOAD_ERRS.experiments)) + '（请按 F12 查看 Console 红色报错并截图反馈）'
+      : (filtering && all.length
+        ? '没有符合筛选条件的实验（测试员 / 类型 / 楼层）· 点右侧「重置」查看全部'
+        : '暂无进行中的实验（已完成实验请到「已完成实验」页查看）');
     html += '<tr><td colspan="14" class="empty-tip">' + expErr + '</td></tr>';
   }
   active.forEach(function(e){
@@ -4908,6 +5191,16 @@ function renderExpTable(){
       + '</tr>';
   });
   t.innerHTML = html + '</tbody>';
+  // cam54：筛选计数 + 创建表单的测试员下拉兜底（select 没有 options 时赋 value 无效）
+  var cntEl = document.getElementById('expFilterCount');
+  if (cntEl) {
+    cntEl.innerHTML = filtering
+      ? '匹配 <b>' + active.length + '</b> / 共 <b>' + all.length + '</b> 条'
+      : '共 <b>' + all.length + '</b> 条';
+  }
+  var esEl = document.getElementById('expSender');
+  // cam54.1：静态 HTML 自带 1 个占位 option，旧的 !length 守卫恒 false → 改成「只剩占位项才重建」
+  if (esEl && esEl.options.length < 2) fillStaffSelect('expSender', '请选择测试员', staffDirDefault());
 }
 // 未归还数量：待运行/运行中 = 使用数量；已完成 = 使用数量 − 实际归还（未填视为全还）
 function unreturnedOf(e){
@@ -4916,7 +5209,7 @@ function unreturnedOf(e){
   return e.camera_qty;
 }
 async function deleteExperiment(id){
-  if (CFG.del_confirm !== false && !confirm('确定删除该实验信息吗？')) return;
+  if (CFG.del_confirm !== false && !(await askConfirm({ title: '删除实验信息', body: '确定删除该实验信息吗？', okText: '删除', danger: true }))) return;
   var err = (await sb.from('experiments').delete().eq('id', id)).error;
   if (err) { toast('删除失败：' + friendlyErr(err)); return; }
   var wasResv = experiments.some(function(x){ return x.id === id && x.status === '待运行'; });
@@ -4968,7 +5261,7 @@ function doneSync(){
 async function doneDeleteSelected(){
   var ids = doneSelIds();
   if (!ids.length) return;
-  if (CFG.del_confirm !== false && !confirm('确定删除选中的 ' + ids.length + ' 条已完成实验记录吗？\n此操作不可恢复。')) return;
+  if (CFG.del_confirm !== false && !(await askConfirm({ title: '批量删除已完成实验', body: '确定删除选中的 ' + ids.length + ' 条已完成实验记录吗？\n此操作不可恢复。', okText: '删除', danger: true }))) return;
   var err = (await sb.from('experiments').delete().in('id', ids)).error;
   if (err) { toast('删除失败：' + friendlyErr(err)); return; }
   // 详情用机种/项目名而不是 uuid 前缀，日志才能直接读懂
@@ -5052,7 +5345,7 @@ function openEditExp(id){
   var e = allExps().find(function(x){ return x.id === id; });   // cam38.4：可能编辑的是已完成实验
   if (!e) return;
   currentEditExp = e;
-  document.getElementById('editExpSender').value = e.sender || '';
+  fillStaffSelect('editExpSender', '请选择测试员', e.sender || '');   // cam54：先建选项再赋值（无 options 时赋 value 无效）
   // 机种名称：以任一已知前缀开头 → 前缀输入框（cam39.12：后缀任意字符串）；其他名称退回普通输入框
   var m = e.model_name || '';
   var pfx = modelPfxOf(m);
@@ -5097,7 +5390,7 @@ async function saveExpEdit(){
   var camQty = camQtyRaw === '' ? null : parseInt(camQtyRaw, 10);
   var retRaw = document.getElementById('editExpReturned').value.trim();
   var ret = retRaw === '' ? null : parseInt(retRaw, 10);
-  if (!sender || !model || !item) { toast('请填写送样人、机种名称、实验项目'); return; }
+  if (!sender || !model || !item) { toast('请填写测试员、机种名称、实验项目'); return; }
   if (isNaN(hours) || hours <= 0) { toast('实验时间请输入大于 0 的数字（小时）'); return; }
   if (!checkCommission(commission)) return;
   if (camQty !== null && (!cameraId || isNaN(camQty) || camQty <= 0)) { toast('填写相机使用数量时必须选择相机型号，且数量为大于 0 的整数'); return; }
@@ -5269,7 +5562,7 @@ async function deleteMachine(id){
   if (!m) return;
   var e = runningExpOf(id);
   var tip = e ? '该机台上正在运行实验「' + e.exp_item + '」，删除后实验将退回「待运行」状态。' : '';
-  if (CFG.del_confirm !== false && !confirm('确定删除机台「' + m.machine_code + '」吗？' + tip)) return;
+  if (CFG.del_confirm !== false && !(await askConfirm({ title: '删除机台', body: '确定删除机台「' + m.machine_code + '」吗？' + tip, okText: '删除', danger: true }))) return;
   if (e) {
     var e1 = (await sb.from('experiments').update({ status: '待运行', machine_id: null }).eq('id', e.id)).error;
     if (e1) { toast('实验状态重置失败：' + friendlyErr(e1)); return; }
@@ -5387,7 +5680,7 @@ function renderLogsTable(){
 }
 async function clearUsageLogs(){
   if (!IS_ADMIN) { toast('清空日志需管理员权限'); return; }
-  if (!confirm('确定清空全部使用日志吗？此操作不可恢复。')) return;
+  if (!(await askConfirm({ title: '清空使用日志', body: '确定清空全部使用日志吗？此操作不可恢复。', okText: '清空', danger: true }))) return;
   var r = await sb.from('usage_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
   if (r.error) { toast('清空失败：' + friendlyErr(r.error)); return; }
   toast('使用日志已清空');
@@ -5426,6 +5719,8 @@ function fillGroupSelects(){
   buildFloorSeg('srunLocSeg', false);   // 存储运行页：仅具体楼层（统计必须按楼层分开）
   buildFloorSeg('pvFloorSeg', true);    // 全屏看板：全部 + 各楼层
   syncFloorUI();
+  loadExpFloorMem();                    // cam54：实验信息页独立记忆（key=exp_floor；不碰 mch_floor）
+  buildExpFloorSeg();
   fillMchNameSelect('mchName');     // 添加区机台名称下拉（存储类用，cam17）
   var el = document.getElementById('editMchLoc');
   if (el) fill('editMchLoc', flrOpts);
@@ -5467,8 +5762,8 @@ function swVal(id){
 }
 var setGrpBuf = [];   // [{orig, name}] 编辑缓冲，保存时 diff 出改名并级联机台
 // cam38.4：设置页退出自动轮询后，提供手动刷新入口（会跳过未保存的编辑，避免覆盖表单）
-function refreshSetPage(){
-  if (CFG_DIRTY && !confirm('设置页有未保存的修改，刷新会丢弃这些修改。\n\n继续刷新？')) return;
+async function refreshSetPage(){
+  if (CFG_DIRTY && !(await askConfirm({ title: '刷新数据', body: '设置页有未保存的修改，刷新会丢弃这些修改。\n\n继续刷新？', okText: '继续刷新' }))) return;
   safeReload().then(function(ok){
     if (!ok) { toast('刷新失败，请检查网络后重试'); return; }
     renderSetPage();
@@ -5595,6 +5890,84 @@ function mchNameDel(i){
   CFG_DIRTY = true;
   renderMchNameTable();
 }
+// ===================== cam54：测试员名单（与下面的管理员 personnel 体系完全独立） =====================
+// 为什么不复用 loadStaff()：它的门槛是 IS_ADMIN，且直读 profiles（普通员工被 RLS 挡住），
+// 而所有登录用户都要能选「测试员」—— 走 security definer 的只读函数，缓存 15 分钟
+function staffDirDefault(){   // 默认值＝当前登录人姓名；访客无身份返回空
+  return (CUR_USER && !CUR_USER.guest && CUR_USER.name) ? CUR_USER.name : '';
+}
+function staffNameList(){
+  var out = [], seen = {};
+  function add(n){
+    n = String(n == null ? '' : n).replace(/^\s+|\s+$/g, '');
+    if (!n || seen[n]) return;
+    seen[n] = 1; out.push(n);
+  }
+  STAFF_DIR.forEach(function(p){ add(p.name); });
+  add(staffDirDefault());   // 自己永远可选
+  // RPC 未部署时的兜底：用历史姓名填，下拉不能空、老数据也要能选中
+  if (!STAFF_DIR.length) {
+    allExps().forEach(function(e){ add(e.sender); });
+    sboxes.forEach(function(b){ add(b.sender); });
+    ssamples.forEach(function(s){ add(s.sender); });
+  }
+  return out;
+}
+// 生成 option 串：cur 不在名单里就临时补一条，编辑老数据时姓名不会被冲成空
+function staffOptionsHtml(cur, emptyLabel){
+  var names = staffNameList();
+  cur = String(cur == null ? '' : cur);
+  if (cur && names.indexOf(cur) < 0) names = names.concat([cur]);
+  return '<option value="">' + esc(emptyLabel || '请选择测试员') + '</option>'
+    + names.map(function(n){
+        return '<option value="' + esc(n) + '"' + (n === cur ? ' selected' : '') + '>' + esc(n) + '</option>';
+      }).join('');
+}
+// 按 id 重建某个 select（keep 未传则沿用当前值）——select 没有 options 时赋 value 是无效的
+function fillStaffSelect(selId, emptyLabel, keep){
+  var sel = document.getElementById(selId);
+  if (!sel) return;
+  var cur = (keep === undefined) ? sel.value : keep;
+  sel.innerHTML = staffOptionsHtml(cur, emptyLabel || sel.getAttribute('data-empty') || '请选择测试员');
+  sel.value = cur || '';
+}
+// 名单异步到达后就地补选项：保留各处已选值，data-default="me" 且为空时落到自己
+function refillStaffSelects(){
+  Array.prototype.forEach.call(document.querySelectorAll('select[data-staff]'), function(sel){
+    var keep = sel.value;
+    if (!keep && sel.getAttribute('data-default') === 'me') keep = staffDirDefault();
+    fillStaffSelect(sel.id, sel.getAttribute('data-empty'), keep);
+  });
+}
+async function loadStaffDir(force){
+  if (!sb || !CUR_USER || CUR_USER.guest) return false;   // 访客走 anon，无执行权，直接跳过
+  var now = Date.now();
+  if (!force && staffDirTs && (now - staffDirTs) < STAFF_DIR_TTL) return true;
+  if (staffDirBusy) return false;
+  staffDirBusy = true;
+  var q;
+  try { q = sb.rpc('list_machine_staff'); } catch (e) { staffDirBusy = false; return false; }
+  // cam54.1：staffDirTs 只在成功时写 —— 失败也写会把「刚跑完 SQL」挡在 TTL 门外 15 分钟
+  return Promise.resolve(q).then(function(r){
+    staffDirBusy = false;
+    if (!r || r.error) {
+      STAFF_DIR = [];   // 不清空下拉：staffNameList 会回落到历史姓名
+      console.warn('[staff_dir] 读取失败（若尚未执行 新建文件夹/staff_dir.txt 属正常）:', r && r.error);
+      toastOnce('staff_dir', '测试员名单未就绪（已回退为历史姓名）——请管理员在 Supabase 执行 machine\\新建文件夹\\staff_dir.txt');
+      refillStaffSelects();
+      return false;
+    }
+    STAFF_DIR = (r.data || []).map(function(x){
+      return { id: x.id, username: x.username || '', name: x.display_name || x.username || '' };
+    }).filter(function(x){ return !!x.name; });
+    staffDirTs = Date.now();
+    refillStaffSelects();
+    return true;
+  }).catch(function(e){
+    staffDirBusy = false;
+    STAFF_DIR = []; console.warn('[staff_dir]', e); refillStaffSelects(); return false;
+  });
+}
 // ===================== 人员名单管理（cam34：profiles + 登录账号增删改，依赖 personnel_admin.txt 的 RPC） =====================
 var staffBuf = [];
 async function loadStaff(){
@@ -5684,7 +6057,7 @@ async function resetStaffPw(uid){
   if (!IS_ADMIN) { toast('需要管理员权限'); return; }
   var p = staffBuf.find(function(x){ return x.id === uid; });
   if (!p) return;
-  var pw = prompt('为「' + (p.display_name || p.username || '该账号') + '」设置新登录密码（至少 6 位）：');
+  var pw = await askPrompt({ title: '重置登录密码', body: '为「' + (p.display_name || p.username || '该账号') + '」设置新登录密码（至少 6 位）', okText: '确认重置', inputType: 'password', placeholder: '至少 6 位', maxLength: 32 });
   if (pw === null) return;
   pw = pw.trim();
   if (pw.length < 6) { toast('密码至少 6 位'); return; }
@@ -5698,7 +6071,7 @@ async function delStaff(uid){
   if (CUR_USER && CUR_USER.id === uid) { toast('不能删除自己当前登录的账号'); return; }
   var p = staffBuf.find(function(x){ return x.id === uid; });
   if (!p) return;
-  if (!confirm('确定删除「' + (p.display_name || p.username || '?') + '」？登录账号将一并删除，不可恢复')) return;
+  if (!(await askConfirm({ title: '删除账号', body: '确定删除「' + (p.display_name || p.username || '?') + '」？登录账号将一并删除，不可恢复', okText: '删除', danger: true }))) return;
   var r = await sb.rpc('admin_delete_user', { p_uid: uid });
   if (r.error) { toast('删除失败：' + staffErr(r.error)); return; }
   toast('已删除 ' + (p.username || '?'));
@@ -5751,7 +6124,7 @@ async function saveSettings(){
     var cg = mchCascades[mj];
     var used = machines.filter(function(m){ return isStorage(m) && m.machine_name === cg.orig; }).length;
     if (cg.orig === '三箱式存储' && used > 0) { toast('「三箱式存储」决定三箱结构，有 ' + used + ' 台机台使用中，不可改名（请先迁移）'); return; }
-    if (used > 0 && !confirm('机台名称「' + cg.orig + '」→「' + cg.name.trim() + '」将同步更新 ' + used + ' 台存储机台，确认继续？')) return;
+    if (used > 0 && !(await askConfirm({ title: '存储机台改名', body: '机台名称「' + cg.orig + '」→「' + cg.name.trim() + '」将同步更新 ' + used + ' 台存储机台，确认继续？', okText: '继续' }))) return;
   }
   for (var mk = 0; mk < setMchNameBuf.length; mk++) {
     var mn = setMchNameBuf[mk];
@@ -5771,7 +6144,7 @@ async function saveSettings(){
       affected += machines.filter(function(m){ return (m.group_name || '') === cascades[ci].orig; }).length;
     }
     if (affected > 50) { toast('组改名将同步 ' + affected + ' 台机台（上限 50），请分批或在机台管理迁移'); return; }
-    if (affected > 0 && !confirm('组改名将同步更新 ' + affected + ' 台机台的试验组归属，确认继续？')) return;
+    if (affected > 0 && !(await askConfirm({ title: '试验组改名', body: '组改名将同步更新 ' + affected + ' 台机台的试验组归属，确认继续？', okText: '继续' }))) return;
   }
   for (var k = 0; k < setGrpBuf.length; k++) {
     var g = setGrpBuf[k];
@@ -5852,7 +6225,7 @@ function clearImgCache(){
 function exportDoneCsv(){
   var list = allExps().filter(function(e){ return e.status === '已完成'; });   // cam38.4：改为归档缓存
   if (!list.length) { toast('暂无已完成实验记录'); return; }
-  var heads = ['送样人', '机种名称', '实验项目', '委托单号', '相机型号', '使用数量', '归还数量', '实验时长(小时)', '开始时间', '预计结束', '完成状态'];
+  var heads = ['测试员', '机种名称', '实验项目', '委托单号', '相机型号', '使用数量', '归还数量', '实验时长(小时)', '开始时间', '预计结束', '完成状态'];
   var camName = function(id){ var c = cameras.find(function(x){ return x.id === id; }); return c ? c.model_name : ''; };
   var lines = [heads.join(',')];
   list.forEach(function(e){
@@ -5883,7 +6256,7 @@ async function cleanDoneOld(){
     return e.status === '已完成' && e.expected_end && new Date(e.expected_end).getTime() < cutoff;
   });
   if (!old.length) { toast('没有早于 ' + days + ' 天的已完成记录'); return; }
-  if (!confirm('共 ' + old.length + ' 条已完成记录早于 ' + days + ' 天，删除后不可恢复。\n\n确认删除？')) return;
+  if (!(await askConfirm({ title: '清理历史记录', body: '共 ' + old.length + ' 条已完成记录早于 ' + days + ' 天，删除后不可恢复。\n\n确认删除？', okText: '删除', danger: true }))) return;
   // cam38.4：一条语句批量删除（原来逐条 delete，N 条记录要 N 次网络往返）
   var cutoffIso = new Date(cutoff).toISOString();
   var del = await sb.from('experiments').delete()
@@ -6152,7 +6525,7 @@ function mchCardHtml(m, interactive, pv){
       + '<div class="row"><span class="k">实验项目</span><span class="v">' + esc(e.exp_item) + '</span></div>'
       + '<div class="row"><span class="k">机种</span><span class="v">' + esc(modelsTxt) + '</span></div>'
       // cam39：第 3 行一行两列——左送样人、右实验时长；第 4 行——左当前节点、右下一节点倒计时（推算式，无阶段显示"-"）
-      + '<div class="row2"><div class="c2"><span class="k">送样人</span><span class="v">' + esc(sendersTxt) + '</span></div>'
+      + '<div class="row2"><div class="c2"><span class="k">测试员</span><span class="v">' + esc(sendersTxt) + '</span></div>'
       + '<div class="c2 r"><span class="k">实验时长</span><span class="v">' + e.duration_hours + 'H</span></div></div>'
       + (e.irradiance != null && e.irradiance !== '' ? '<div class="row"><span class="k">辐照度</span><span class="v">' + esc(e.irradiance) + ' W/m²</span></div>' : '')   // cam39.1：氙灯辐照度（开始运行时记录，有值才显示）
       + stageRowHtml(exps)
@@ -6346,7 +6719,7 @@ function sboxFoldHtml(m){
     // cam26.2 同款：空值整段不渲染
     var segs = [];
     if (s.model_name) segs.push('机种：' + esc(s.model_name));
-    if (s.sender) segs.push('送样人：' + esc(s.sender));
+    if (s.sender) segs.push('测试员：' + esc(s.sender));
     segs.push('项目：' + esc(s.exp_item));
     var row2 = '<div class="rv-meta"><span class="rv-meta-txt">箱' + b.box_no
       + (b.temp ? ' · ' + esc(b.temp) + (b.humidity ? ' / ' + esc(humTxt(b.humidity)) : '') : '') + boxIrrTxt(b)
@@ -6508,13 +6881,13 @@ function openSboxDeposit(m, b){
     dpSel.innerHTML = '<option value="">不调用，手动填写</option>'
       + (stoPend.length
         ? stoPend.map(function(e){
-            return '<option value="' + e.id + '">' + esc(e.exp_item) + '｜' + esc(e.model_name) + '｜送样人：' + (e.sender ? esc(e.sender) : '-') + '｜' + (e.duration_hours > 0 ? e.duration_hours + 'H' : '时长待定') + '</option>';
+            return '<option value="' + e.id + '">' + esc(e.exp_item) + '｜' + esc(e.model_name) + '｜测试员：' + (e.sender ? esc(e.sender) : '-') + '｜' + (e.duration_hours > 0 ? e.duration_hours + 'H' : '时长待定') + '</option>';
           }).join('')
         : '<option value="" disabled>（暂无待运行的存储类实验——在「实验信息」页创建时类型选「存储类」）</option>');
   }
   document.getElementById('sbDpItem').value = '';
   document.getElementById('sbDpModel').value = '';
-  document.getElementById('sbDpSender').value = '';
+  fillStaffSelect('sbDpSender', '选填', '');   // cam54：先建选项再赋值
   document.getElementById('sbDpRemark').value = '';
   document.getElementById('sbDpHours').value = '';
   document.getElementById('sbDpInterval').value = '';
@@ -6527,8 +6900,15 @@ function applySboxExpSel(){
   var e = experiments.find(function(x){ return x.id === sel.value && x.status === '待运行' && isStoExp(x); });
   if (!e) { toast('该实验已不在待运行列表，请刷新后重选'); fillSboxDpSelect(); return; }
   document.getElementById('sbDpItem').value = e.exp_item || '';
-  document.getElementById('sbDpModel').value = stripModelPrefix(e.model_name || '');
-  document.getElementById('sbDpSender').value = e.sender || '';
+  // cam54：修 cam39.8 遗留——原来只写后缀 input、没同步 .pre-sel，UH123 会被另存成 YT123
+  var dpM = document.getElementById('sbDpModel');
+  var dmm = e.model_name || '';
+  var dpPref = modelPfxOf(dmm);
+  var dpHas = !!dmm && modelPrefixes().some(function(p){ return dmm.slice(0, p.length).toUpperCase() === p.toUpperCase(); });
+  var dpPfxSel = (dpM && dpM.parentNode) ? dpM.parentNode.querySelector('.pre-sel') : null;
+  if (dpPfxSel) dpPfxSel.value = dpHas ? dpPref : grpPrefix();
+  if (dpM) dpM.value = dpHas ? dmm.slice(dpPref.length) : dmm;
+  fillStaffSelect('sbDpSender', '选填', e.sender || '');   // cam54：重建兜住「名单刚异步到达」的竞态
   document.getElementById('sbDpHours').value = e.duration_hours > 0 ? e.duration_hours : '';
 }
 // cam39.8：投放弹窗内重扫待运行存储类实验（投放后立即再投下一条时保持下拉最新）
@@ -6544,7 +6924,7 @@ function openSboxDepositSelectOnly(m, b){
   dpSel.innerHTML = '<option value="">不调用，手动填写</option>'
     + (stoPend.length
       ? stoPend.map(function(e){
-          return '<option value="' + e.id + '">' + esc(e.exp_item) + '｜' + esc(e.model_name) + '｜送样人：' + (e.sender ? esc(e.sender) : '-') + '｜' + (e.duration_hours > 0 ? e.duration_hours + 'H' : '时长待定') + '</option>';
+          return '<option value="' + e.id + '">' + esc(e.exp_item) + '｜' + esc(e.model_name) + '｜测试员：' + (e.sender ? esc(e.sender) : '-') + '｜' + (e.duration_hours > 0 ? e.duration_hours + 'H' : '时长待定') + '</option>';
         }).join('')
       : '<option value="" disabled>（暂无待运行的存储类实验——在「实验信息」页创建时类型选「存储类」）</option>');
 }
@@ -6698,7 +7078,7 @@ function renderSboxSams(){
       + '<div class="form-grid2">'
       + '<div class="field"><label>实验项目</label><input id="sse_item_' + s.id + '" value="' + esc(s.exp_item || '') + '"></div>'
       + '<div class="field"><label>机种</label><div class="pre-input"><select class="pre-sel">' + modelPrefixes().map(function(p){ return '<option value="' + esc(p) + '"' + (p.toUpperCase() === modelPfxOf(s.model_name || '').toUpperCase() ? ' selected' : '') + '>' + esc(p) + '</option>'; }).join('') + '</select><input id="sse_model_' + s.id + '" value="' + esc(stripModelPrefix(s.model_name)) + '" placeholder="如 123 或 转接盖" maxlength="30"></div></div>'
-      + '<div class="field"><label>送样人</label><input id="sse_sender_' + s.id + '" value="' + esc(s.sender || '') + '"></div>'
+      + '<div class="field"><label>测试员</label><select id="sse_sender_' + s.id + '" data-staff="1" data-empty="选填">' + staffOptionsHtml(s.sender || '', '选填') + '</select></div>'
       + '<div class="field"><label>备注</label><input id="sse_remark_' + s.id + '" value="' + esc(s.remark || '') + '"></div>'
       + '<div class="field"><label>到期时间（留空 = 长期）</label><input type="datetime-local" id="sse_end_' + s.id + '" value="' + isoToLocalVal(s.planned_end) + '"></div>'
       + (s.interval_hours ? '<div class="field"><label>下次检查时间（每 ' + esc(s.interval_hours) + 'H 检查）</label><input type="datetime-local" id="sse_chk_' + s.id + '" value="' + isoToLocalVal(s.next_check_at) + '"></div>' : '')
@@ -6753,7 +7133,7 @@ function openSboxExp(m, b, isEdit){
   document.getElementById('sboxExpTitle').textContent = m.machine_code + ' · 箱' + b.box_no + (isEdit ? ' 编辑实验信息' : ' 登记实验信息');
   document.getElementById('sbExpItem').value = b.exp_item || '';
   document.getElementById('sbExpModel').value = stripModelPrefix(b.model_name);   // cam35：机种 YT 前缀（加载剥前缀）
-  document.getElementById('sbExpSender').value = b.sender || '';
+  fillStaffSelect('sbExpSender', '选填', b.sender || '');   // cam54：先建选项再赋值
   document.getElementById('sbExpRemark').value = b.remark || '';
   openModal('sboxExpModal');
 }
@@ -6792,7 +7172,7 @@ function openSboxDetail(m, b){
     + '<div class="row"><span class="k">结束方式</span><span class="v">' + (b.planned_end ? fmtShort(b.planned_end) + ' 自动结束' : '一直运行（未设时长）') + '</span></div>'
     + '<div class="row"><span class="k">实验项目</span><span class="v">' + (b.exp_item ? esc(b.exp_item) : '未登记') + '</span></div>'
     + '<div class="row"><span class="k">机种</span><span class="v">' + (b.model_name ? esc(b.model_name) : '—') + '</span></div>'
-    + '<div class="row"><span class="k">送样人</span><span class="v">' + (b.sender ? esc(b.sender) : '—') + '</span></div>'
+    + '<div class="row"><span class="k">测试员</span><span class="v">' + (b.sender ? esc(b.sender) : '—') + '</span></div>'
     + (b.remark ? '<div class="row"><span class="k">备注</span><span class="v">' + esc(b.remark) + '</span></div>' : '')
     + '</div>';
   openModal('sboxDetailModal');
@@ -6806,7 +7186,7 @@ function sboxDetailEdit(){
 async function sboxDetailStop(){
   if (!curSbox || !curSbox.box) return;
   var m = curSbox.m, b = curSbox.box;
-  if (!confirm('确定结束 ' + m.machine_code + ' 箱' + b.box_no + ' 的运行吗？')) return;
+  if (!(await askConfirm({ title: '结束运行', body: '确定结束 ' + m.machine_code + ' 箱' + b.box_no + ' 的运行吗？', okText: '结束运行', danger: true }))) return;
   var err = (await sb.from('storage_boxes').update({ status: '已结束', updated_at: new Date().toISOString() }).eq('id', b.id)).error;
   if (err) { toast('结束失败：' + friendlyErr(err)); return; }
   closeModal('sboxDetailModal');
@@ -6824,7 +7204,7 @@ async function sboxReset(machineId, boxNo, ev){
   if (!b || b.status !== '已结束') return;
   var left = boxSamples(machineId, boxNo);
   if (left.length) { toast('箱' + boxNo + ' 内还有 ' + left.length + ' 个样品未取，请先在上方统计区点击「已取」'); return; }
-  if (!confirm('复位 ' + m.machine_code + ' 箱' + boxNo + ' 回空闲？当前温湿度将被清空')) return;
+  if (!(await askConfirm({ title: '复位存储箱', body: '复位 ' + m.machine_code + ' 箱' + boxNo + ' 回空闲？当前温湿度将被清空', okText: '复位', danger: true }))) return;
   var resetPatch = { status: '空闲', temp: null, humidity: null, started_at: null, planned_end: null, exp_item: null, model_name: null, sender: null, remark: null, updated_at: new Date().toISOString() };
   if (isXenon(m)) resetPatch.irradiance = null;   // cam39.5：氙灯箱复位清辐照度（仅氙灯带键，列未建时不影响其他箱）
   var err = (await sb.from('storage_boxes').update(resetPatch).eq('id', b.id)).error;
@@ -7024,7 +7404,7 @@ async function pickSample(sid, ev){
   var s = ssamples.find(function(x){ return x.id === sid; });
   if (!s || s.status === '已取') return;
   var m = machines.find(function(x){ return x.id === s.machine_id; }) || {};
-  if (!confirm('确认已取出 ' + (m.machine_code || '?') + ' 箱' + s.box_no + ' 的「' + s.exp_item + '」？将结束存放并写入已完成实验')) return;
+  if (!(await askConfirm({ title: '取出样品', body: '确认已取出 ' + (m.machine_code || '?') + ' 箱' + s.box_no + ' 的「' + s.exp_item + '」？将结束存放并写入已完成实验', okText: '确认取出' }))) return;
   var start = s.started_at || new Date().toISOString();
   var end = s.planned_end || new Date().toISOString();
   var hours = Math.max(0.5, Math.round((new Date(end) - new Date(start)) / 3600e3 * 2) / 2);
@@ -7097,7 +7477,7 @@ function resvFoldHtml(machineId){
   var items = list.map(function(e, i){
     var segs = [];
     // cam29：访客创建的预约——「送样人」文案改「预约人」（同一 sender 字段，仅展示区分）
-    var senderLabel = e.is_guest ? '预约人' : '送样人';
+    var senderLabel = e.is_guest ? '预约人' : '测试员';
     if (e.model_name) segs.push('机种：' + esc(e.model_name));
     if (e.sender) segs.push(senderLabel + '：' + esc(e.sender));
     if (e.exp_item) segs.push('项目：' + esc(e.exp_item));
@@ -7174,6 +7554,12 @@ function syncResvToggleLabel(){
   var anyClosed = machines.some(function(m){ return resvOf(m.id).length && !resvIsOpen(m.id); });
   lab.textContent = anyClosed ? '展开预约试验' : '收起预约试验';
 }
+// cam54：预约人取值——访客读自由文本 input，员工读人员下拉（两者互斥显示）
+function resvSenderVal(){
+  var isG = !!(CUR_USER && CUR_USER.guest);
+  var el = document.getElementById(isG ? 'resvSender' : 'resvSenderPick');
+  return (el && el.value ? el.value : '').replace(/^\s+|\s+$/g, '');
+}
 function openResvModal(ev, machineId){
   if (ev) { ev.preventDefault(); ev.stopPropagation(); }
   var m = machines.find(function(x){ return x.id === machineId; });
@@ -7183,15 +7569,20 @@ function openResvModal(ev, machineId){
   if (resvOf(machineId).length >= (parseInt(CFG.resv_max, 10) || 3)) { toast('机台 ' + m.machine_code + ' 预约已满 ' + (parseInt(CFG.resv_max, 10) || 3) + ' 项，请先删除或运行'); return; }
   currentResvMachine = m;
   var isG = !!(CUR_USER && CUR_USER.guest);
-  // cam29：访客语义——「送样人」改「预约人」且必填（同一 sender 字段，仅文案变化）
-  document.getElementById('resvSenderLabel').textContent = isG ? '预约人（必填）' : '送样人';
+  // cam29：访客语义——改「预约人」且必填（同一 sender 字段，仅文案变化）；cam54：员工侧改为从人员名单选「测试员」
+  document.getElementById('resvSenderLabel').textContent = isG ? '预约人（必填）' : '测试员';
   var senderEl = document.getElementById('resvSender');
   // cam49.2：placeholder 必须跟着必填/选填走 —— 原来固定写「选填」，与访客态的「预约人（必填）」标签自相矛盾
   senderEl.placeholder = isG ? '请输入预约人姓名' : '选填';
+  // cam54：访客没有 profiles 记录、也拿不到 RPC 执行权，必须保留自由文本；员工走下拉
+  senderEl.style.display = isG ? '' : 'none';
+  var resvPickEl = document.getElementById('resvSenderPick');
+  if (resvPickEl) resvPickEl.style.display = isG ? 'none' : '';
   document.getElementById('resvModalTitle').textContent = '机台 ' + m.machine_code + '（' + m.location + '）· 创建预约实验排程';
   document.getElementById('resvItem').value = '';
   document.getElementById('resvModel').value = '';
-  document.getElementById('resvSender').value = '';
+  senderEl.value = '';
+  fillStaffSelect('resvSenderPick', '选填', '');   // cam54：员工侧下拉先建选项再清空
   document.getElementById('resvHours').value = '';
   document.getElementById('resvCamera').value = '';
   document.getElementById('resvCamQty').value = '';
@@ -7204,7 +7595,7 @@ async function saveResv(){
   var resvModelEl = document.getElementById('resvModel');
   var resvTail = resvModelEl.value.trim();   // cam39.12：后缀任意字符串
   var model = resvTail ? (pfxOfInput(resvModelEl) + resvTail) : '';
-  var sender = document.getElementById('resvSender').value.trim();
+  var sender = resvSenderVal();   // cam54：访客读自由文本 input、员工读人员下拉
   var hoursRaw = document.getElementById('resvHours').value.trim();
   var hours = hoursRaw === '' ? 0 : parseFloat(hoursRaw);
   var cameraId = document.getElementById('resvCamera').value;
@@ -7256,17 +7647,17 @@ function openRunModal(machineId){
   }
   var optOf = function(e){
     var hourTxt = e.duration_hours > 0 ? e.duration_hours + 'H' : '时长待定';
-    return '<option value="' + e.id + '">' + esc(e.exp_item) + '｜' + esc(e.model_name) + '｜送样人：' + (e.sender ? esc(e.sender) : '-') + '｜' + hourTxt + '</option>';
+    return '<option value="' + e.id + '">' + esc(e.exp_item) + '｜' + esc(e.model_name) + '｜测试员：' + (e.sender ? esc(e.sender) : '-') + '｜' + hourTxt + '</option>';
   };
   // cam25：本机预约选项带队列序号（①②…），排序与预约卡片一致（同源 resvOf）
   var resvOpt = function(e, i){
     var hourTxt = e.duration_hours > 0 ? e.duration_hours + 'H' : '时长待定';
-    return '<option value="' + e.id + '">' + queueLabel(i) + ' ' + esc(e.exp_item) + '｜' + esc(e.model_name) + '｜送样人：' + (e.sender ? esc(e.sender) : '-') + '｜' + hourTxt + '</option>';
+    return '<option value="' + e.id + '">' + queueLabel(i) + ' ' + esc(e.exp_item) + '｜' + esc(e.model_name) + '｜测试员：' + (e.sender ? esc(e.sender) : '-') + '｜' + hourTxt + '</option>';
   };
   // cam38.1：多选 UI 用带复选框的面板（原生 select multiple 在 Windows 无勾选框，不符合直觉）
   var rowBase = function(e, prefix){
     var hourTxt = e.duration_hours > 0 ? e.duration_hours + 'H' : '时长待定';
-    var txt = prefix + esc(e.exp_item) + '｜' + esc(e.model_name) + '｜送样人：' + (e.sender ? esc(e.sender) : '-') + '｜' + hourTxt;
+    var txt = prefix + esc(e.exp_item) + '｜' + esc(e.model_name) + '｜测试员：' + (e.sender ? esc(e.sender) : '-') + '｜' + hourTxt;
     return '<label class="rm-row" title="' + txt + '"><input type="checkbox" value="' + e.id + '" onchange="syncRunHours()"><span>' + txt + '</span></label>';
   };
   var resvRow = function(e, i){ return rowBase(e, queueLabel(i) + ' '); };
@@ -7442,28 +7833,66 @@ function openStopModal(machineId){
       var ix = stageNowIdx(tl0);
       if (ix >= 0) curSeg = tl0[ix];
     }
-    var ringHtml = '', nomMs = 0;
+    // cam57：环永远画。原 cam44/cam50.5 在「时间轴跑完」与「无阶段快照」两种情况都走 .no-ring，
+    //        文字左移 80px（102→22），头卡与下方网格对不齐、右侧大片留白
+    var nowMs = Date.now();
+    var tlDone = !!(tl0 && tl0.length && nowMs >= tl0[tl0.length - 1].t1);
+    var stMs = x.start_time ? new Date(x.start_time).getTime() : 0;
+    var enMs = x.expected_end ? new Date(x.expected_end).getTime() : 0;
+    var nomMs = 0, pct = 0, ringAttr = '';
     if (curSeg) {
       // cam51：与时间线进度条同口径——分母＝本段实际时长（t1−t0），切换段一进场就是 0%
       nomMs = stageSegDurMs(curSeg);
-      var pct = nomMs > 0 ? Math.min(100, Math.max(0, (1 - (curSeg.t1 - Date.now()) / nomMs) * 100)) : 0;
-      var off = (169.646 * (1 - pct / 100)).toFixed(2);
-      // 已到点（t1<=now）也照画 100% 满环——不留空白占位，避免头卡左侧塌陷
-      ringHtml = '<div class="sr-ring"><svg viewBox="0 0 64 64">'
-        + '<circle class="t" cx="32" cy="32" r="27" fill="none" stroke-width="6"/>'
-        + '<circle class="f" cx="32" cy="32" r="27" fill="none" stroke-width="6" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="' + off + '"/></svg>'
-        + '<div class="sr-ring-txt">' + pct.toFixed(0) + '%</div></div>';
+      pct = nomMs > 0 ? Math.min(100, Math.max(0, (1 - (curSeg.t1 - nowMs) / nomMs) * 100)) : 0;
+    } else if (tlDone) {
+      pct = 100;
+    } else if (stMs && enMs > stMs) {
+      // 无阶段快照：只有「开始→预计结束」可用，画整条实验进度（此时实验可能仍在运行中）
+      nomMs = enMs - stMs;
+      pct = Math.min(100, Math.max(0, (nowMs - stMs) / nomMs * 100));
+      ringAttr = ' data-end="' + enMs + '" data-nom="' + nomMs + '"';
     }
-    // cam44：无快照（curSeg 为空）时不画环形——用 .no-ring 去掉左侧 gap，避免头卡左边缘空一块
-    var headRight = curSeg
-      ? '<div class="sr-kv-k sr-hk">本阶段剩余</div><div class="sr-big" data-end="' + curSeg.t1 + '" data-nom="' + nomMs + '">' + cdText(new Date(curSeg.t1).toISOString()) + '</div>'
-        + '<div class="sr-meta">' + (curSeg.type === 'hold' ? esc(stageLabel(curSeg.st)) : '切换：' + esc(curSeg.from + '→' + stageValLabel(curSeg.st.t, curSeg.st.rh))) + '</div>'
-      : '<div class="sr-kv-k sr-hk">状态</div><div class="sr-big" style="font-size:18px">' + esc(xi.label) + '</div>'
-        + '<div class="sr-meta">' + esc(x.exp_item) + '</div>';
+    // cam57：环内永远是百分比（进行中=本段、已结束=100%），不用图标——小尺寸下对勾会糊成一团
+    var ringTxt = (tlDone || nomMs > 0) ? pct.toFixed(0) + '%' : '—';
+    var off = (169.646 * (1 - pct / 100)).toFixed(2);
+    var ringHtml = '<div class="sr-ring' + (tlDone ? ' done' : '') + '"' + ringAttr + '><svg viewBox="0 0 64 64">'
+      + '<circle class="t" cx="32" cy="32" r="27" fill="none" stroke-width="6"/>'
+      + '<circle class="f" cx="32" cy="32" r="27" fill="none" stroke-width="6" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="' + off + '"/></svg>'
+      + '<div class="sr-ring-txt">' + ringTxt + '</div></div>';
+    // cam58：三格指标（1.7fr/1fr/1.05fr）铺满环右侧整宽——原来三行文字只占到弹窗 55% 宽，右侧大片留白
+    var endSh = x.expected_end ? fmtShort(x.expected_end).split(' ') : null;
+    var endHM = endSh ? endSh[1] : '—';
+    var endDay = endSh ? endSh[0] : '—';
+    var durSub = (x.duration_hours != null && x.duration_hours !== '') ? ' · 共 ' + x.duration_hours + 'H' : '';
+    var headRight;
+    if (curSeg) {
+      headRight = '<div class="sr-c"><div class="sr-c-k">本阶段剩余</div><div class="sr-big" data-end="' + curSeg.t1 + '" data-nom="' + nomMs + '">' + cdText(new Date(curSeg.t1).toISOString()) + '</div>'
+        + '<div class="sr-c-s">' + (curSeg.type === 'hold' ? esc(stageLabel(curSeg.st)) : '切换：' + esc(curSeg.from + '→' + stageValLabel(curSeg.st.t, curSeg.st.rh))) + '</div></div>'
+        + '<div class="sr-c"><div class="sr-c-k">阶段</div><div class="sr-c-v mono">' + (ix + 1) + ' / ' + tl0.length + '</div>'
+        + '<div class="sr-c-s">' + (curSeg.type === 'hold' ? '保持段' : '切换段') + ' · ' + durTxt(nomMs) + '</div></div>'
+        + '<div class="sr-c"><div class="sr-c-k">预计结束</div><div class="sr-c-v mono">' + endHM + '</div>'
+        + '<div class="sr-c-s">' + endDay + durSub + '</div></div>';
+    } else if (tlDone) {
+      headRight = '<div class="sr-c"><div class="sr-c-k">状态</div><div class="sr-big" style="color:var(--green)">已结束</div>'
+        + '<div class="sr-c-s">' + esc(x.exp_item) + '</div></div>'
+        + '<div class="sr-c"><div class="sr-c-k">阶段</div><div class="sr-c-v mono">' + tl0.length + ' / ' + tl0.length + '</div>'
+        + '<div class="sr-c-s">全部完成</div></div>'
+        + '<div class="sr-c"><div class="sr-c-k">结束时刻</div><div class="sr-c-v mono">' + endHM + '</div>'
+        + '<div class="sr-c-s">' + endDay + durSub + '</div></div>';
+    } else {
+      // 无阶段快照：时间轴未生成（老数据/模板被改），只能用「开始→预计结束」整条进度
+      var stColor = xi.cls === 'ended' ? ' style="color:var(--red)"' : (xi.cls === 'warn' ? ' style="color:var(--orange)"' : '');
+      headRight = '<div class="sr-c"><div class="sr-c-k">状态</div><div class="sr-big"' + stColor + '>' + esc(xi.label) + '</div>'
+        + '<div class="sr-c-s">' + esc(x.exp_item) + '</div></div>'
+        + '<div class="sr-c"><div class="sr-c-k">实验进度</div><div class="sr-c-v mono">' + (nomMs > 0 ? pct.toFixed(0) + '%' : '—') + '</div>'
+        + '<div class="sr-c-s">' + (stMs ? '已跑 ' + durTxt(nowMs - stMs) : '—') + '</div></div>'
+        + '<div class="sr-c"><div class="sr-c-k">预计结束</div><div class="sr-c-v mono">' + endHM + '</div>'
+        + '<div class="sr-c-s">' + endDay + durSub + '</div></div>';
+    }
     var camModel = (cameras.find(function(c){ return c.id === x.camera_id; }) || {}).model_name || '-';
-    var rows = '<div class="sr-head' + (curSeg ? '' : ' no-ring') + '">' + ringHtml
+    var rows = '<div class="sr-head">' + ringHtml
       + '<div style="min-width:0;flex:1"><div class="sr-kv-k" style="font-size:12px;color:var(--text2);font-weight:700">机台 ' + esc(m.machine_code) + ' · ' + esc(m.location) + '</div>'
-      + headRight + '</div></div>'
+      + '<div class="sr-cells">' + headRight + '</div></div></div>'
       // 信息网格：实验项目/机种、下一节点预计/实验时长、辐照度/开始时间、预计结束（cam47.3：辐照度属氙灯箱专属、缺席时不渲染，若「预计结束」恒为 .full 跨两列就会在第 3 行右侧留空；故有辐照度才满宽，无辐照度落普通格紧跟开始时间，形成「起—止」同一行）
       + '<div class="sr-kv">'
       + '<div><div class="sr-kv-k">实验项目</div><div class="sr-kv-v" title="' + esc(x.exp_item) + '">' + esc(x.exp_item) + '</div></div>'
@@ -7531,7 +7960,7 @@ async function batchCloseOverdue(){
   });
   if (!overdue.length) { toast('没有已到结束时间的运行中实验'); return; }
   var names = overdue.map(function(e){ return '「' + e.exp_item + '」' + e.sender; }).join('、');
-  if (CFG.del_confirm !== false && !confirm('共 ' + overdue.length + ' 条超期实验：\n' + names + '\n\n确认批量收尾？\n机台将恢复空闲，使用中的相机按全数归还记录。')) return;
+  if (CFG.del_confirm !== false && !(await askConfirm({ title: '超期实验批量收尾', body: '共 ' + overdue.length + ' 条超期实验：\n' + names + '\n\n确认批量收尾？\n机台将恢复空闲，使用中的相机按全数归还记录。', okText: '批量收尾', danger: true }))) return;
   // cam38.4：先一条语句批量置为已完成（原来逐条 update，N 条 = N 次往返），
   // 再只为登记过相机的实验补「实际归还数量」（通常 0～2 条）
   var ids = overdue.map(function(x){ return x.id; });
@@ -7597,6 +8026,46 @@ function openStaticModal(){
   openModal('staticModal');
   loadStatics(false);
 }
+// cam54：静置快捷选择——只列「待运行 + 已配相机」的实验（静置表单相机必填，没相机的选了也填不满）
+function fillStaticExpSelect(){
+  var sel = document.getElementById('stExp');
+  if (!sel) return;
+  var cur = sel.value;
+  var list = experiments.filter(function(e){
+    return e.status === '待运行' && e.camera_id && (parseInt(e.camera_qty, 10) || 0) > 0;
+  }).sort(function(a, b){ return new Date(b.created_at) - new Date(a.created_at); });   // 新的在前：静置多半紧跟最近一次实验
+  sel.innerHTML = '<option value="">不调用，手动填写</option>'
+    + (list.length
+      ? list.map(function(e){
+          var cm = cameras.find(function(c){ return c.id === e.camera_id; }) || {};
+          return '<option value="' + e.id + '">' + esc(e.exp_item) + '｜' + esc(e.model_name)
+            + '｜测试员：' + (e.sender ? esc(e.sender) : '-')
+            + '｜' + (cm.model_name ? esc(cm.model_name) : '相机') + ' ×' + (e.camera_qty || 0)
+            + '｜' + (e.duration_hours > 0 ? e.duration_hours + 'H' : '时长待定') + '</option>';
+        }).join('')
+      : '<option value="" disabled>（暂无待运行且已配相机的实验）</option>');
+  sel.value = cur || '';
+}
+function applyStaticExpSel(){
+  var sel = document.getElementById('stExp');
+  if (!sel || !sel.value) return;
+  var e = experiments.find(function(x){ return x.id === sel.value && x.status === '待运行'; });
+  if (!e) { toast('该实验已不在待运行列表，请重新选择'); fillStaticExpSelect(); return; }
+  // 机种＝前缀下拉 + 后缀：只写后缀会把 UH123 存成 YT123（cam39.8 那个老坑）
+  var mEl = document.getElementById('stModel');
+  var mm = e.model_name || '';
+  var pref = modelPfxOf(mm);
+  var hasPfx = !!mm && modelPrefixes().some(function(p){ return mm.slice(0, p.length).toUpperCase() === p.toUpperCase(); });
+  var pfxSel = (mEl && mEl.parentNode) ? mEl.parentNode.querySelector('.pre-sel') : null;
+  if (pfxSel) pfxSel.value = hasPfx ? pref : grpPrefix();
+  if (mEl) mEl.value = hasPfx ? mm.slice(pref.length) : mm;
+  var camEl = document.getElementById('staticCamera');
+  if (camEl && e.camera_id) { camEl.value = e.camera_id; renderCamSelPanel('staticCamera'); }
+  var qEl = document.getElementById('stQty');
+  if (qEl) qEl.value = String(parseInt(e.camera_qty, 10) || 1);
+  // 结束时间不跟随实验时长：ended_at 是「静置到期」，与实验跑多久无关，代改还会和 +30 天跟随逻辑打架
+  toast('已带入机种 / 相机 / 数量；结束时间仍为默认 +30 天，请按需修改');
+}
 function staticGoForm(){
   staticViewMode = 'form';
   staticPaintView();
@@ -7623,6 +8092,8 @@ function staticFormReset(){
   if (e) e.value = isoToLocalVal(staticPlusDays(now, 30).toISOString());
   if (q) q.value = '1';
   if (c) { c.value = ''; renderCamSelPanel('staticCamera'); }
+  var se = document.getElementById('stExp');
+  if (se) { se.value = ''; fillStaticExpSelect(); }   // cam54：复位来源下拉，顺便刷新候选（上次投放的可能已不再待运行）
   // cam50：新建表单从零开始——清空检验选中集、复位勾选、重画网格。必须放在 s/e 赋值之后（网格依赖这两个值）
   staticCalSel.st = [];
   var ic = document.getElementById('stInsOn');
@@ -7793,6 +8264,13 @@ function createStatic(){
   // cam50.2：相机型号由选填改必填——没型号的静置记录在列表里只剩「N 台」，跟台数统计对不上
   var camId = (cEl && cEl.value) ? cEl.value : '';
   if (!camId) { toast('请选择相机型号'); return; }
+  // cam54：调用的实验必须仍「待运行」，否则带入的机种/相机已过期（同 confirmSboxDeposit 的守卫）
+  var stSel = document.getElementById('stExp');
+  var stExpId = (stSel && stSel.value) ? stSel.value : '';
+  if (stExpId) {
+    var ste = experiments.find(function(x){ return x.id === stExpId && x.status === '待运行'; });
+    if (!ste) { toast('该实验已不在待运行列表，请重新选择'); fillStaticExpSelect(); return; }
+  }
   // cam50：中途检验——勾选却一个日期都没选是无效状态，直接拦掉；未勾选写空数组
   // staticClampSel 而不是 staticCalSel：防止「刚改完时间、onchange 还没触发就按回车」带出越界日期
   var insCb = document.getElementById('stInsOn');
@@ -7840,11 +8318,11 @@ function createStatic(){
     toast('创建失败：网络异常');
   });
 }
-function deleteStatic(id){
+async function deleteStatic(id){
   if (!sb) return;
   var r = statics.find(function(x){ return x.id === id; });
   if (!r) return;
-  if (CFG.del_confirm !== false && !confirm('确定删除静置记录「' + r.model_name + '」吗？\n结束时间：' + staticShortDT(r.ended_at) + '，删除后不可恢复。')) return;
+  if (CFG.del_confirm !== false && !(await askConfirm({ title: '删除静置记录', body: '确定删除静置记录「' + r.model_name + '」吗？\n结束时间：' + staticShortDT(r.ended_at) + '，删除后不可恢复。', okText: '删除', danger: true }))) return;
   Promise.resolve(sb.from('static_tests').delete().eq('id', id)).then(function(res){
     if (res && res.error) { toast('删除失败：' + res.error.message); return; }
     statics = statics.filter(function(x){ return x.id !== id; });
@@ -8568,7 +9046,7 @@ async function saveCamEdit(){
   if (await safeReload()) renderCamPage();
 }
 async function deleteCamera(id){
-  if (CFG.del_confirm !== false && !confirm('确定删除该相机型号吗？\n若已有实验记录引用该型号，将无法删除。')) return;
+  if (CFG.del_confirm !== false && !(await askConfirm({ title: '删除相机型号', body: '确定删除该相机型号吗？\n若已有实验记录引用该型号，将无法删除。', okText: '删除', danger: true }))) return;
   var err = (await sb.from('cameras').delete().eq('id', id)).error;
   if (err) {
     toast('删除失败：' + (/restrict|foreign|violat/i.test(err.message || '') ? '该型号已被实验记录引用，请先清理关联实验' : friendlyErr(err)));
@@ -8796,7 +9274,7 @@ function renderCamBoard(){
       } else {
         tag = over ? '<span class="over">' + ic('alert') + '已超期未还</span>' : (dd === 0 ? '（今日结束、板子空闲）' : (dd === 1 ? '（明日结束、板子空闲）' : '（实验结束、板子空闲）'));
       }
-      return '<div class="cam-ret-item">' + camName + '｜机种：' + esc(e.model_name) + '｜实验项目：' + esc(e.exp_item) + '｜送样人：' + esc(e.sender) + qtyPart + '｜预计 ' + fmtDT(new Date(e.expected_end)) + tag + '</div>';
+      return '<div class="cam-ret-item">' + camName + '｜机种：' + esc(e.model_name) + '｜实验项目：' + esc(e.exp_item) + '｜测试员：' + esc(e.sender) + qtyPart + '｜预计 ' + fmtDT(new Date(e.expected_end)) + tag + '</div>';
     }).join('');
   }
   // —— 到期日历（未来 N 天，窗口来自设置）——
@@ -9164,7 +9642,7 @@ function openPvDetail(machineId){
     rvHtml = rv.map(function(r, i){
       var segs = [];
       if (r.model_name) segs.push('机种：' + esc(r.model_name));
-      if (r.sender) segs.push((isSt ? '预约人：' : '送样人：') + esc(r.sender));
+      if (r.sender) segs.push((isSt ? '预约人：' : '测试员：') + esc(r.sender));
       segs.push('项目：' + esc(r.exp_item));
       segs.push('时长：' + r.duration_hours + 'H');
       return '<div class="pd-rv-wrap"><div class="pd-rv"><b class="pd-no">' + (i + 1) + '</b>'
@@ -9195,7 +9673,7 @@ function pdSampleRow(s){
   else right = '<span style="color:var(--text3)">长期</span>';
   var segs = [];
   if (s.model_name) segs.push('机种：' + esc(s.model_name));
-  if (s.sender) segs.push('送样人：' + esc(s.sender));
+  if (s.sender) segs.push('测试员：' + esc(s.sender));
   segs.push('项目：' + esc(s.exp_item));
   return '<div class="pd-sam' + (ended ? ' ended' : '') + '"><span class="pd-sam-main">' + segs.join('<span class="pd-sep">｜</span>') + '</span><span class="pd-sam-time">' + right + '</span></div>';
 }
@@ -9231,6 +9709,7 @@ function startRefreshTimer(){
   if (!CUR_USER) return;   // 未登录不启动自动刷新，避免匿名数据请求
   var sec = parseInt(CFG.refresh_sec, 10);
   if (isNaN(sec) || sec < 5) sec = 60;   // cam38.4：兜底与默认值统一为 60 秒
+  loadStaffDir(false);   // cam54.1：本函数是登录/刷新恢复/设置保存的唯一汇合点，名单挂这一处即可
   refreshTimer = setInterval(async function(){
     if (document.hidden) return;
     if (!CUR_USER) return;
@@ -9259,6 +9738,7 @@ function startRefreshTimer(){
         if (Date.now() - archTs > COLD_TTL) await loadArchive(true);
       }
       if (key === 'set' && CFG_DIRTY) return;    // 设置页有未保存编辑时跳过重渲染，防止覆盖表单
+      loadStaffDir(false);   // cam54：TTL 15 分钟，正常轮询里几乎零 IO（名单变了也能自己更新）
       if (active) renderCurrent(key);
     }
   }, sec * 1000);
@@ -9371,15 +9851,17 @@ setInterval(function(){
   // cam44：结束使用弹窗头卡环形进度每秒推进——与上面同一口径（分母=模板标称），只改 dashoffset 与百分比，不重渲染
   document.querySelectorAll('.sr-head').forEach(function(head){
     var big = head.querySelector('.sr-big[data-nom]');
-    if (!big) return;
-    var t1 = +big.getAttribute('data-end'), nom = +big.getAttribute('data-nom');
+    // cam57：无阶段快照时进度参数挂在 .sr-ring 上（大字只显示状态，不跳倒计时）
+    var par = big || head.querySelector('.sr-ring[data-nom]');
+    if (!par) return;
+    var t1 = +par.getAttribute('data-end'), nom = +par.getAttribute('data-nom');
     if (!(nom > 0) || !(t1 > 0)) return;
     var pct = Math.min(100, Math.max(0, (1 - (t1 - Date.now()) / nom) * 100));
     var cir = head.querySelector('.sr-ring circle.f');
     if (cir) cir.setAttribute('stroke-dashoffset', (169.646 * (1 - pct / 100)).toFixed(2));
     var tx = head.querySelector('.sr-ring-txt');
     if (tx) tx.textContent = pct.toFixed(0) + '%';
-    big.textContent = cdText(new Date(t1).toISOString());
+    if (big) big.textContent = cdText(new Date(t1).toISOString());
   });
   // cam50.5：阶段到点 → 详情原地重画（当前段高亮前进、头卡换到下一节点）；不重拉数据、不重开弹窗
   //          stopModal 重跑 openStopModal（纯内存推算，零 IO），先存后恢复滚动位置；
@@ -9475,7 +9957,7 @@ function applyPageAhead(key){
   } catch (e) {}
 })();
 (async function init(){
-  console.log('[machine] version cam53');   // cam53：详情弹窗「送样人」→「下一节点预计」——手机上卡片 .mb-nx 被三层 CSS 挤成 0 宽（.mb-eend 不让收缩 + 外层 nowrap/overflow:hidden），改在 openStopModal（.sr-kv 第2行左格）与 openPvDetail（.detail-grid 第3行）原位替换，卡片布局未动；新增 stageNextTxt（末段=实验结束、无快照=—，取 stageCurOf().nextEnd 与卡片 .mb-nx 同一 seg.t1）；送样人仅移除这两处显示，表单/表格/导出/搜索全部保留   // cam52：设置页把「转橙色/红色/呼吸闪烁」的句子换成实时色块演示（srDemoSync 随输入变），删掉相机预览与机台管理页头的目录复述；备注「存储类」自动打标改只读徽标，不再只写在 placeholder 里   // cam51：阶段进度分母改为「段内实际时长」（t1−t0）——切换段按速率耗时、保持段按缩放/修正后时长，各段恒从 0% 起；旧口径误用目标阶段的保持 hrs 当切换段分母，25→60/12H 一进场即 95%、60→25/8H 93%、25→-40/12H 82%、-40→85/6H 65%。抽出 stageSegDurMs 供时间线进度条与头卡环形共用（原头卡 data-nom 手抄同一式子）   // cam50.5：①「结束使用」详情 6 项在手机端恢复严格 1 行 2 列——560 断点里的 .sr-kv{grid-template-columns:1fr} 是唯一把它压成单列的原因（.sr-kv 全站仅 #stopDetail 一个使用点），改回 1fr 1fr 并把单元格 padding 10→8 给日期多留 4px；顺手抹平同断点内 .sr-head 的负边距（原 -18px -16px 与 .modal padding:22px 不匹配，上边压住 h3 眉标、左右各内缩 6px，改回 0 -22px 满宽）；给送样人/开始时间/预计结束补 title，2 列下省略后仍可查全文 ②阶段进度倒计时实时化——根因是 .tl-left 的文本在 stageTimelineHtml 首屏拼死、没有任何 data 属性，1s ticker 只改 .tl-prog 的 <b> 宽度和 .sr-head 的 .sr-big，从没重写它（截图里顶部 00:59:25 在走、阶段行 00:59:31 不动）；现把「剩余」前缀与倒计时拆成 .tl-pre/.tl-cd 两段，tick 里按 .tl-cd[data-end] 每秒重写，data-end 必须存 ISO 串（存毫秒数会 new Date('1752…') 得 Invalid Date，getTime 是 NaN 则永不触发）；到点后原地重画详情（stopModal 重跑 openStopModal 并恢复滚动位置，pvDetail 只换 .tlwrap 内层、不重调 openPvDetail 以免打网络与清滚动）；openStopModal 取当前段加「未全部跑完」判定——stageNowIdxAt 在 allDone 时返回最后一段，头卡会永远停在「本阶段剩余 00:00:00 + 100% 环」；另修 .modal 全站无 max-height 导致内容超屏时上下双向被切、底部按钮够不着，#stopModal 专属加 max-height + overflow-y（100dvh 兜底） ③实验信息创建表单手机端 1 行 2 列——.form-grid 是 flex-wrap 且字段无宽度基准，宽度由 input 内在宽度决定，窄屏换行后右缘参差；新增 @media(max-width:768px) 作用域锁 #page-exp（.form-grid 全站 6 处：exp/tpl/mch×2/cam/camview，其余 5 页零改动），2 列 grid + 全部 min-width:0（全局 .field input{min-width:150px} 恒压过 width）+ .fw 整行项（实验项目/类型/备注，不用 nth-child 防后续插字段错位）；机种名称前缀 44→36px、text-indent 52→40px（半列下原设置只剩几十像素文字区）；相机型号下拉 .cs-panel{min-width:250px} 在右列会横向溢出视口，本页改右对齐定宽 240 + max-width 锁视口    // cam50.4：两处高度对齐（用户截图）——①实验信息表单「相机型号」自定义下拉 .cs-trigger 比同排原生 input 高 4px（实测 40 vs 36：padding 9/12、border 1px、字号 14px 全一样，差在 <button> 的匿名行盒是 20px 而 input 是 16px），改显式 height:36px + 纵向 padding 归零靠 flex 居中，四处分 .cus-sel（实验信息/预约/静置/编辑实验）一并生效 ②实验条件页右上角「新建实验条件」原挂 .btn-sm（27px，字号 12）比卡片里「保存基础条件」.btn（38px，字号 14）矮一截，去掉 btn-sm 使两者同款同高。   // cam50.3：看板头部三控件统一高度（用户截图：楼层分段 ≈47px / 「存储运行」≈30px / 时钟 33px，align-items:center 下三者中线对齐但上下各差 7~8px）——根因同 cam50.1：没有基准高度，谁的内文行盒大谁就高；现由 .pv-head 给 --pv-ctl-h:36px，分段 / .seg-btn / 存储运行 / 时钟全部取该高度（.seg 留 3px 纵向 padding 让白底药丸内缩，.seg-btn 纵向 padding 归零防裁字；#idlePreview .seg 是 ID 选择器故按同权重追加覆盖），按钮字号 12.5→14、时钟 17→18 填满盒子；机台运行看板与存储运行看板共用同一 .pv-head，一处生效两处。   // cam50.2：静置试验表单三处（用户截图反馈）——①机种名称补前缀下拉：其余 5 处机种输入点早就是 .pre-input + .pre-sel，只有静置这处是裸 input，创建出来记成「123」而不是「YT123」，列表里跟别处对不上；createStatic 改 pfxOfInput(下拉) + 后缀拼接，staticFormReset 连前缀一起归位 ②相机型号由「选填」改「必填」并加提交校验，空态下拉文案由「不选」改「请选择」（camSelItems 加可选第二参，只 staticCamera 传，其余三处零回归）③中途检验日期控件重设计：去掉左侧 58px 月份列——它是为「11月→12月」跨月标签才定宽的，代价是每行白吃一列、日期格只剩 46px；改为换月处插居中细线月分隔条，日期区回到满宽 7 列、格高 26→34px（窄屏 30px）；新增「今天」金环描边态与选中实心块区分；区间外日期由 visibility:hidden 改淡灰显数字（看得懂这段为什么不能点）；:focus-visible 焦点环 + :active 回弹；选中摘要由一行纯文字改可点标签，点标签即取消该天（新增 staticCalRemove），staticCalToggle 重写 className 时保留 td 类    // cam50.1：修复「静置存储」按钮比左侧楼层分段控件矮一截（用户截图反馈）——根因不是某一个写死的值，而是工具条里三类控件各按内容算高：.seg 随内文行高浮动（「全部」37px / 「1F」32px，中文 normal 行高比拉丁大）、.field select 38px、.btn-sm 29px，并排时右侧按钮永远差 3~9px。现由 .run-tools 提供 --ctl-h:34px 统一基准，seg/seg-btn/select/btn-sm 一律取该高度且纵向 padding 归零（文字靠 flex 居中，不裁字）；机台运行页同一工具条一并修好（原本四种高度各不相同）。    // cam50：静置试验新增「中途检验日期」——只记计划哪天检查一次、不记是否已完成（static_tests 加 inspect_dates jsonb，存本地日期串数组，不用 timestamptz 以免跨时区偏一天）；表单勾选「中途检验」后展开周历网格（周一为首列，只在开始日之后、结束日之前可选），点格子多选，选中集 staticCalSel 按 ctx 分开互不污染，取消勾选只隐藏不清空；日期算法全链路只用「年/月/日 整数 + 本地正午锚点」，不用 new Date('YYYY-MM-DD')、不用 toISOString().slice、不用 (t2-t1)/86400000（夏令时 23/25 小时的日子会算错）；KPI 由 4 格扩为 5 格「今日检验」，行内新增检验徽标（今日/下次/已过/未设置四态，四态都可点开改日期，否则「全部已过」的老记录就没有修改入口），导航角标三段短路天然按记录去重；#stEnd 的 onchange 由内联置 staticEndAuto=false 改为 staticEndChanged()，staticStartChanged 去掉首行 return 短路——否则「改过结束时间后再改开始时间」网格完全不更新；createStatic 对 inspect_dates 做 PGRST204 降级重试，列没建也不连累老的创建流程；需先执行 machine\static_tests_inspect.txt // cam49.2：使用日志「创建/删除预约」的「使用人」列原记 CUR_USER.name（访客登录态恒为「访客」），查不出是谁下的单，改记单上填的「预约人」姓名——logUsage 新增可选第三参 actor 覆写署名，身份列仍按 role 显示「访客」徽标，其余调用点不传即零改动；同时修复创建预约弹窗「预约人」输入框 placeholder 写死「选填」、与访客态「预约人（必填）」标签自相矛盾的问题，改为按身份切换（访客=请输入预约人姓名，员工=选填） // cam49.1：静置创建表单的「相机型号」下拉原本是 .cus-sel 内的绝对定位面板，被 #staticForm 的 overflow:auto 齐平裁掉，只露一两行；现改为按需浮层化（csNeedFloat 检测祖先滚动容器 → csPlacePanel 用 fixed 坐标现算 top/left/width，并按上下剩余空间自动翻转、按可用高度收 maxHeight），其余三处下拉不在滚动容器里故行为不变 // cam49：①登录页「记住账号密码」——AES-GCM 密文存本机，密钥＝SHA-256(浏览器家族|系统大类|platform|逻辑核数|每安装随机盐)；设备指纹刻意剔除 UA 版本号，否则 Chrome 自动升级就会「密码解不开」；非安全上下文（非 https/localhost/file）自动降级为只记工号，勾选框文案同步说明 ②存储运行页楼层右侧新增「静置存储」——static_tests 表 + 单弹窗两态（列表/创建表单），列表按结束日分组（今天/明天/逾期置顶），创建表单结束时间默认随开始 +30 天，手动改过就不再跟随；独立 loadStatics() + 60s TTL，不动 loadData 的 7 路并发 ③访客预约提醒——导航「预 N」徽标，已读按人记在 resv_reads（复合主键 resv_id+user_id），所以一个人看过不会让别人的提示消失；人已在机台运行页时不显示徽标，改机台卡片边缘流光 + toast 并即时标记已读；看板详情里显示「N 人已查看」；resvPageSettled 守卫避免登录过程中把残留的运行页误判成「人已在页面」而漏提醒。需先执行 machine\\static_tests.txt 与 machine\\resv_reads.txt // cam48.1：结束使用弹窗尾按钮文案缩短为「结束使用」；.modal-actions .btn 是 flex-shrink:0 + white-space:nowrap 的按内容宽度，文案缩短后宽度自动收窄（实测 134→107px），无需另设宽度 // cam48：实验基础条件新增「负温区降温速率」exp_rate_t_neg（目标温度 < 0℃ 的切换段按它算，含跨 0℃ 段）——实测 25→−20℃ 实际约 0.75℃/min，此前只能套一档下降速率导致预估偏快；留空回落 exp_rate_t_dn，老数据零影响；时长算法 stageRampMinBetween 与显示 rampRateTxt 同优先级改造（负温 → 下降 → 上升），显示侧追加「·负温」标识；需同步执行 settings_write_base6.txt 扩 RLS 白名单 // cam47.5：切换段标出温度速率与温度/湿度各自耗时——「段时长÷温差」不再被误读成温度变慢（时长取两者长者，速率本身没变） // cam47.4：机台运行页副标题删除「点击运行中的机台可结束使用（每 30 秒自动刷新）」；结束使用入口仍在机台卡片本身，无需文案提示 // cam47.3：结束使用弹窗「预计结束」按辐照度存在与否切换栅格占位——无辐照度（非氙灯箱）时从 .full 改普通格、紧跟「开始时间」同行，填掉原来那个空格洞；有辐照度时仍满宽跨两列，避免 7 字段排满 3 行后落单留新洞。条件与辐照度格同款 != null && !== ''（0 是有效值，不能用真值判断） // cam47.2：访客进入改为「先定页（applyPageAhead 只切 active 不取数）→ 拉数据 → switchPage 渲染 → 最后撤遮罩」，原顺序是撤遮罩在前、切页在 await 之后，网络窗口里露出的就是 HTML 写死 active 的「实验信息」页；遮罩期按钮显示「正在进入…」并 disabled，数据回来复位；.then 里加 CUR_USER.guest 守卫防止中途登录被抢回 run 页；顺带删掉与 switchPage 重复的那次 renderRunGrid。 // cam47.1：使用日志全中文——①补齐 stage_skip/time_fix/tpl_save/tpl_delete/stage_base_save/sbox_cond 六个动作的中文标签与分类（标签是渲染时查表，旧记录同样立即变中文）②删除详情不再写 uuid 前 8 位，改记「机种 · 实验项目」；已完成记录在 archExps 不在 experiments，原查找必然落空才只剩乱码 // cam47：已完成实验页重构——11 列宽表改 5 列分层表（主行＝机种＋实验项目，副行＝送样人·委托单·相机型号），「未归还」独立成红胶囊不再靠红字挤在数字里；新增勾选列 + 底部浮动批量删除条，批量删走一次 .in() 请求（cam38.4：不做 N+1 写），选中态存 doneSel 对象所以搜索重渲染不丢勾选、渲染时按现存记录自愈剔除死 id。 // cam46.3：边缘流光改 SVG rect + stroke-dashoffset（弃 conic + @property）——实测 prefers-reduced-motion=reduce 时 animation:none 把 conic 动画整体关掉，只剩静止两段弧，就是「边缘一条线、不跑」；SVG 沿真实路径跑、角速度恒定、pathLength=100 归一化使两条 7% 对称线尺寸无关；reduce 环境改减速 2.6s 而非停止。 // cam46.2：边缘流光从「1 条彗星」改成「2 条 180° 对称光带」——①prefers-reduced-motion 下原规则写 background:none，把描边连动画一起抹掉（实测 getComputedStyle 得 anim=none/bg=none，用户开「减少动画」就完全看不到反馈），改静止整圈金描边②.srt 去 overflow:hidden，否则 .srt-m 悬停上浮 2px 与投影被裁（上浮等于没做）③统计区实验行 .ss-row 加 ss-jump 可点击定位（原只有顶部四格可点，弹窗内 .ss-row 不受影响）。cam46：存储运行页 8 项——①指标格可点→滚到对应机台卡并打 3s 边缘流光（.mcell.flux + conic 描边，@property 驱动角度，prefers-reduced-motion 降级）②指标格悬停上浮 2px（零值格 .z 不浮不可点）③页头删「每 30 秒自动刷新」④单箱机台省略「箱1」⑤空箱提示「点击设置温湿度开始运行」→「点击运行」⑥开始运行弹窗删说明段、placeholder 去单位 ⑦温湿度输入加 ℃/% 后缀（.iu 承载边框，input 去边框）⑧箱卡→箱行：1/3 箱统一通栏单列（旧 .sb-n3 三列每格仅 62px 文字全截断），箱区 flex:1 + 行高 1fr 让单箱撑满余高、162px 等高不破；温湿度数字 17px（单箱 21px）、单位降级 10px，旧数据 ℃/%RH 后缀由 envSplit 剥离；已结束改左侧 3px 红条 + 背景脉冲  |  cam45：存储运行页统计区标题行改「单行指标带」——①楼层徽标 + 运行中/待取/待检查/空闲箱 四格（数字 21px 800 等宽）②状态形状三通道：实心圆=运行中、实心圆=待取、菱形=待检查(需人处理)、方框=空闲箱，配文字标签，不靠颜色单独表达 ③待取/待检查 >0 整格染淡底 + 深色数字（新增 --amber-deep/--red-deep，原 --orange/--red 在淡底上仅 2.1:1 不达标）④零值格降级为空心标记 + --text2 数字 ⑤「按到期时间升序」并入条带右侧，原文字汇总行删除，净省约 30px ⑥空态提示补 ss-empty 类使其通栏（原只占半列）; cam44.1：修复 cam44 时间线换皮的三个实质缺陷（用户反馈"设计成这样、实际却是那样"）——①**臆造类名**：cam44 写了 .sr-tl .tl-name / .tl-name .tl-tag，但 DOM 里从来没有这两个类（时间线结构是 .tl-item>.tl-dot+.tl-t>.tl-tx+body），规则全部空转；②**状态语义塌陷**：.tl-dot 被 display:none 后「已完成/进行中/未执行」在结构上无差异，只剩 opacity 区分（违反"不能只靠颜色或透明度传达状态"），用户截图里绿勾缩在标题内、与进度条并成两条绿线；现恢复 .tl-dot 作状态列（done=实心绿/cur=金色脉冲/todo=空心灰/ramp·skip=菱形），并隐藏 .tl-done-ic/.tl-run-ic 让位；③**标题互相抢视觉**：h3 与头卡两个大标题叠加，.sr-modal 未定义过样式，现把 h3 降为 11px 灰色眉标、头卡负边距从 -22px 改为与 padding-top 匹配；另当前段右侧「剩余 00:14:39」在 sr-tl 下去掉「剩余」二字（进度条本身即该语义），进度条定宽 88px 不再 flex:1 挤压标题。——cam44：机台运行弹窗 UI 重构（方案A）——①停止运行弹窗：标题精简为「结束使用」（并行时标项数），机台号/位置移入每项头卡；头卡新增环形进度（r=27，C=169.646，dashoffset=C×(1−pct/100)，口径与 .tl-prog 一致=分母恒为模板标称 st.hrs），大号等宽倒计时 + 阶段名；原两列胶囊改 1px 发丝网格 .sr-kv（实验项目/机种/送样人/时长/辐照度/开始/预计结束）；相机归还原裸 input 改 .sr-stepper 步进器（±1，上限锁死应归数——confirmStop 对超归会中止，放开上限会让用户白填）+ 差异提示 stopQtyCheck；时间线经 stageTimelineHtml(e,{skin:'run'}) 换肤 .sr-tl（去左边框圆点、当前段金色高亮块、未到段降透明度），看板第二调用点不传参故零回归。②跳段/修正时间两弹窗同步换 .sk2-* 模式卡（新前缀，旧 .sk-* 保留不删——原类名被两弹窗共用 14 处，直接改必连带回归）；选中态底色改 var(--gold-light) 以适配暗色。③1s ticker 追加环形 dashoffset/百分比刷新（复用既有定时器，setInterval 总数仍为 6，只改属性不重渲染，零 IO）。——cam43.5：进度条改为「1 − 剩余/模板标称」（.tl-prog 带 data-t1/data-nom），修正时间后剩余变小→进度自动变大；标题恒显标称，被修正时后缀「修正 ±Xmin」——cam43.4：阶段时间线进行中节点标题显示实际保持窗口（非模板标称）——cam43.3：阶段进度条每秒推进（.tl-prog 带 data-t0/data-t1，1s ticker 现算宽度）——修正时间后进度条随新窗口自动更新——cam43.2：修正时间弹窗「已运行时间/结束剩余时间」改为小时+分钟两列并列输入（ftValH/ftValM，分钟 0~59，合成 v=h+m/60 后仍统一存分钟）——cam43.1：运行中弹窗加宽至 560px（四颗按钮排一行，结束设备使用不再单独换行）——cam43：①新增「跳段至下一阶段」（mode:'next'）——跳过当前所在的那一段，进入紧邻下一段（切换段照常按速率执行），与「跳段至下一节点」并存：段2(保持中)点 next → 段3(切换)→段4；当前在切换段或已到末段时置灰。stageNowIdxAt(tl,ts) 参数化定位，重放按事件时刻 T 重算下标不存死下标；弹窗三张模式卡（ramp/next/snap），仅 ramp 显示起点温湿度 ②初始湿度按首节点判定——实验条件第一个阶段无湿度时，初始切换段不带湿度（不参与时长计算、界面不显示 %RH）；老实验快照同样生效（stageRampMin 与 stageTimeline 成对改）——cam42.3：温度转换速率按升降方向拆分——设置页「温度上升转换速率」（原 bcRateT/exp_rate_t，升温 ΔT>=0 用）右侧新增「温度下降转换速率」bcRateDn（新 settings 键 exp_rate_t_dn，降温 ΔT<0 用，留空=同上升速率不写库）；cfgStageBase rate 加 td（未配置回落 t），stageRampMinBetween ΔT<0 择 td（老实验快照无 rate.td 回落 t，老数据行为逐毫秒不变）；湿度速率不拆分；SQL：settings_write_base5.txt 白名单 4键→5键（需 Supabase 执行）——cam42.2：①snap 跳段后被跳过的「切换」条目不再消失——保留为零时长留痕标记段（{type:'skip', t0:t1:跳段时刻, from, st, origMin}，不参与时间累计/后续平移/末段终点，预计结束与倒计时数值完全不变），阶段进度显示灰点删除线「切换：A→B / 已跳段跳过 · 原约 N 分钟」；stageFixApply 包含法与上一段终点跟随跳过零长标记段；ramp 模式不变 ②stageTimelineHtml 进度 pct 加零长段除零防护——cam42.1：①跳段落点保持段改按模板标称时长计时（st.hrs×3600000，「跳到下一节点就只执行该节点的 1H」——修复原窗口取 t1-t0 会把保持段缩放系数的拉伸带给节点，例如实验时长手改大时 1H 被拉成 1H13m、看起来像混入了转换时间；转换时间本就不混入，实测验证）②运行弹窗按钮行重设计（取消/跳段/修正时间/结束设备使用：图标+文字 nowrap 防竖排，flex-wrap 整颗换行，modal-actions 通用规则）——cam42：修正时间——运行详情弹窗跳段旁新增「修正时间」入口与弹窗，两方式二选一（①已运行时间：剩余=节点总时长−已运行，窗口整体平移 D 不变 ②结束剩余时间：已运行不动、终点=now+剩余，D 弹性伸缩），剩余/预计结束实时预览动态重算；stage_jumps 追加 mode:'fix' 记录（kind:'el'|'rm', val:分钟, si, end），stageSkipReplay 按 mode 分派 stageFixApply 重放（包含法定位当前段、方式1上一段终点跟随新起点、后续段整体平移），预计结束同步重写——cam41.1：卡片末排双列（下一节点预计+预计结束）+ 相机归还统计排除存储类 + 机台运行楼层改分段控件 + 基础条件去说明文字——cam41：保存成功」+ settings 移入热轮询 + 侧栏连通性指示器——cam40.3：批量去除界面说明文字——①结束使用弹窗 sub ②存储运行页副标题「存储类机台（试验组=存储类）的运行看板；」③设置页 7 处（页副标题/两列 set-col-desc×2/机种前缀括号段/人员 h-sub/新增人员小注/数据维护 h-sub）——cam40.2：跳段执行弹窗去掉顶部说明文字（sub 行删除）——cam40.1：存储实验统计今日应取红「今」徽章（时间块前，今日到期才显示）+ 机台卡片跳段按钮移除（只留运行详情弹窗入口，stageSkipBtnHtml/.mb-acts 删除）——cam40：跳段执行——运行中机台修正当前节点（以实际工况为准）：卡片小按钮+运行详情弹窗入口，两模式（①按照速率转换：手填起点温湿度（预填推算值）按速率爬到下一节点，转换完成后开始保持→预计结束顺延 ②跳段至下一节点：目标温湿度立即生效开始保持→预计结束提前）；持久化 experiments.stage_jumps jsonb 数组追加式（{ts,mode,to:阶段下标,from_cond,end}，审计留痕多端一致），stageTimeline 顺序重放（stageSkipApply：截断到 T→模式1 插新切换段→目标保持整段起计→后续段整体平移），段补 si=阶段下标/fromCond 数值，消费面（卡片节点/倒计时/详情时间线/看板）单点派生自动跟随；expected_end 跳段时重写（全站倒计时/相机归还锚点），编辑实验运行中改时长也改按时间轴终点重算（跳段后终点≠开始+时长）；stageRampMin 重构出 stageRampMinBetween 两点切换时长助手复用同语义（某维度任一侧空则不参与）；SQL：experiments_stage_jumps.txt 建列；cam39.19：实验条件列表阶段链去背景胶囊改 → 指引——.tpl-chip 去掉 background/padding/border-radius 变纯文字，阶段间箭头由 .tpl-chip:not(:last-child)::after 生成（附着前段末尾，换行不出孤箭头；末段无箭头），.tpl-chain gap:4px 0 列距由箭头 padding 8px 对称承担；cam39.18：存储卡片顶部灰线统一去除 + 实验条件徽章去框纯文字 + 湿度去 RH 只留 %——①machine-box::before 顶部 4px 状态色条只在挂 idle 类时显灰色渐变条，storageCellHtml 仅空闲箱挂 idle、运行中/已结束无类导致无条，同页有线无线不一致；sbox-wrap 统一 ::before display:none 去除（状态由圆点+文字表达）②.env-badge 去背景框去边框只留文字居中（display:block+text-align:center）③新增 humTxt() 把湿度展示的 RH 后缀去掉只留 %（95%RH→95%），仅显示层不动库内值，env-badge 行/实验折叠行/投放与箱内编辑弹窗副标题共四处接入；cam39.17：存储卡片实验条件徽章去金色居中 + 三分区条目改单行——①存储箱卡环境条件（70℃/95%RH·辐照度）由 11px 灰字改金色徽章 .env-badge（storageCellHtml 一处改动，存储运行页与存储看板同款生效）②看板 pv-head 与 pv-grid 之间新增 #pvAlert 关键信息区（空态 :empty 整块隐藏）：机台运行看板=「即将截图」横向条目（遍历运行中机台实验的推算时间轴，当前保持段为截图节点且距段结束≤30min 才显示；条目=机台排号/实验项目/机种/当前节点/剩余倒计时(.ss-cd data-end 由 1s ticker 刷新)，按剩余时间升序，限高 22vh 内部滚动；到点节点自动前进、条目随重渲染消失，无呼吸灯——呼吸灯仅整实验结束沿用结束卡红边；ticker 归零分支补看板打开时无条件重渲染）③存储运行看板=今日应取/明日应取/进行中（后天及以后+长期）三分区（ssamples 按 planned_end 分桶：今日含已逾期、明日、≥后天或 null；条目=机台/实验项目/机种/预计结束；已到点未取（含逾期多日）留今日应取置顶并红色呼吸闪烁 sbFlash 复用，标「待取」）；全部纯前端内存推算，零 IO 零 schema；cam39.12：机种前缀改下拉+后缀任意字符串——①CFG 新增 model_prefixes 列表（默认 YT,UH；设置页「机种名称前缀」改逗号分隔输入，保存同时写 model_prefix=第一项兼容旧逻辑）②6 处机种输入点（创建/预约/投放/箱运行/箱内编辑/编辑弹窗）静态 YT 标签 .pre-tag 改内嵌 .pre-sel 下拉（CSS 仿原标签外观，input 缩进 52px），后缀去掉纯数字 oninput 过滤与 inputmode，placeholder「如 123 或 转接盖」，maxlength 12→30 ③拼接助手 pfxOfInput（按各自容器下拉取前缀，不再全局单值 grpPrefix）、modelPrefixes/modelPfxOf/fillModelPfxSels（applyCfgDom 同步保留已选）④stripModelPrefix 按列表剥离（最长匹配优先）⑤编辑弹窗前缀模式判定改「以任一前缀开头且余串非空」，下拉回显机种原前缀 ⑥保存/日志标签同步（默认机种前缀/机种前缀列表）；cam39.11：实验条件确认改弹窗——创建实验点选模板后不再在输入框下方内联显示实验条件（#expTplPreview 及其 CSS 已删），改为弹出「实验条件确认」弹窗：逐阶段列出名称/环境/时长/截图标记（金色相机图标）+ 总时长（含切换）+ 截图次数说明，点「确定」关闭保持选中、点「取消选择」清空模板回自定义输入；总时长仍在弹窗打开时自动填入实验时间（可手改）；applyTplPreview 重构为 openExpTplCf/confirmExpTpl/cancelExpTpl 三函数；cam39.10：创建实验去掉「开始时间/预计结束时间」两只读输入框——创建后为待运行，两时间在点「运行」（confirmRun 以运行时刻写入）/存储投放（以投放时刻写入）时才落库，符合建表注释原意（start_time='实际开始运行时间'）；列表两列保留、待运行行显示 '—'（原有 null 回落）；附带修复：预约实验经编辑弹窗置「运行中」原先误用创建时刻算预计结束，现走 !start_time 补当下时刻分支；删 updateEndTimePreview/refreshStartTime 及每分钟定时器；cam39.9：编辑实验弹窗补「类型」分段（cam39.8 遗漏）——editExpTypeSeg 与创建侧同款 markSeg 单一真源；openEditExp 按 isStoExp(e) 初始化，备注输入框只显示去掉「存储类」标记的正文（标记由类型分段管理）；saveExpEdit 落库按 editExpTypeVal 计算：存储类='存储类'+正文、机台类=纯正文（切类型自动加/去标记）；cam39.8：实验类型（机台类/存储类）+ 存储运行调用实验——①实验信息创建表单新增「类型」分段（默认机台类，markSeg 不触发 renderCamBoard）与「备注」输入框：选存储类把「存储类」写入备注开头（isStoExp 判定=备注以「存储类」开头），创建后复位②实验信息列表操作列前新增备注列（存储类金标+余下文字），编辑实验弹窗同步备注字段（保存时存储类保持标记在前）③存储运行投放样品弹窗新增「调用实验信息」下拉（只列存储类·待运行），选中自动回填项目/机种/送样人/时长；confirmSboxDeposit 记 storage_samples.exp_id 并把原实验转「运行中」挂到本存储机台（失败不阻断投放）④pickSample 取样时若有 exp_id 直接回写原实验为已完成（时长=实际存放时长、机台释放），不重复插行；本地 active→归档分流⑤机台运行页选择实验排除存储类（others 过滤 !isStoExp）；SQL 见 experiments_remark.txt（experiments.remark + storage_samples.exp_id）；cam39.7：截图节点勾选 + 相机标记 + 网页图标——①模板编辑弹窗每阶段新增「截图」勾选列（stage-row .sr-c/.sr-shot，存 stages[].shot，随 v2 快照定格；无任何 shot 字段的旧模板/旧快照回落旧行为「各保持段结束前30min、末段除外」，hasShotFlag/shotCount/stageShotNode 三助手）②修复表头「时长H」后的空方框＝删除列占位格 .sr-del 被按钮样式画出边框，表头格 visibility:hidden ③运行详情弹窗时间线：截图节点的节点名前加金色相机图标 ic('camera')（mdi 精确路径经 Iconify API 获取）④机台卡片第 4 行：当前保持段为截图节点 → 倒计时前加相机图标+空格（图标放 .stage-cd 外层 .cd-wrap 内，防每秒 ticker 重写 textContent 抹掉）⑤<head> 新增 favicon：金色圆角底+白色 mdi monitor 图标（纯 data URI 零请求）；cam39.6：运行详情弹窗（openStopModal）前四项信息压为一行两列——实验项目|机种名称、送样人|实验时长（.detail-rows .row2 新样式：单元格沿用 .row 胶囊外观，值过长省略号+title 悬停看全文；辐照度及之后各行保持单行不变）；cam39.5：氙灯辐照度补进箱式启动流程（用户实测「氙灯试验箱无辐照度的输入框」——cam39.1 误加在机台 runModal，而氙灯试验箱是箱式存储设备，走 sboxStartModal→storage_boxes，机台 runModal 流程对它根本不经过）——①箱启动弹窗新增 #sbIrrField 辐照度输入（openSboxStart 按 isXenon 控显隐+清空）②confirmSboxStart 校验（≥0 数字，留空 null）后写入 storage_boxes.irradiance（SQL 见 machine_irradiance.txt 补充段 alter table storage_boxes add column if not exists irradiance numeric）；仅氙灯带键防列未建时 PGRST204 波及其他箱③boxIrrTxt 展示助手，七个位置同步：箱卡行/运行卡 rv-meta/投放弹窗当前环境/箱内实验详情当前环境/箱运行详情新增辐照度行/存储统计条件串/看板详情箱头（均有值才显示）④pickSample 取样入档时把箱辐照度带入 experiments.irradiance（已有三处 e.irradiance 展示自动生效）⑤sboxReset 复位清辐照度（仅氙灯带键+本地置 null）；cam39.4：阶段时间线紧凑重设计（运行详情弹窗 + 看板详情共用 stageTimelineHtml，一处改两处同步）——①每节点 4 行压 2 行：删「📷截图时间点」行（截图点信息整体移除，创建实验预览的「截图 N 次」总次数保留）、删状态行（「已完成」三字由绿勾图标代替、「xx 开始」删除——时间范围已含开始时间）②状态图标：已完成=标题后绿色圆勾 ic('check')，进行中=金色播放标 ic('play')（IC 表新增 mdi play 路径）+同行进度条（.tl-currow flex：进度条 flex:1 + 右侧剩余时间）③CSS 收紧：.tl-item padding 12px→8px、.tl-t flex 化+标题 .tl-tx 过长省略、删 .tl-shot 两条规则；cam39.3：实验项目改组合框（单输入框双用途）——①删除「下拉框+隐藏输入框」两件套，expItem 输入框常驻可自由打字（自定义项目）②点击/聚焦输入框浮出模板列表（复用 .cs-panel 浮层样式，按已输入文字实时过滤，每项标注阶段数）③列表项 onmousedown+preventDefault 保住输入框焦点（规避 blur 竞态提前收起浮层），选中写回模板名+显示阶段预览+自动带总时长④手动改字与选中模板名不一致即清选中态、隐预览、视为自定义；blur 延时 150ms 收起，Esc/点外部经全局监听兜底⑤createExperiment 改读 expItemSelId 状态变量（含「文字与模板名不一致→自定义」兜底），提交逻辑与 stages 快照 v2 不变；cam39.2：实验基础条件与切换段——①实验条件页新增「基础条件」卡（常温起始 25℃/98%RH、温度速率 1℃/min、湿度速率 0.3%RH/min，存 settings 表 4 键，全局共用）②节点时间轴升级：相邻节点环境差÷速率=切换时长（温度/湿度并行取大者，第一段从常温起始值起切），到达目标才开始保持计时、切换不计入保持；实验快照升级 v2（{v:2,amb,rate,list}，创建时定格基础条件），v1 旧快照维持纯保持段不变 ③手改总时长=保持段按比例缩放、切换段按设备速率固定 ④卡片第四行切换中显「起始→目标环境 + 到达倒计时」、保持中末段右侧改「实验结束」⑤详情时间线插入切换段节点（灰菱形+虚线，标注起止环境与耗时，无截图点；📷仍锚在各保持段结束前 30min）⑥模板编辑弹窗实时估算行 + 列表总时长含切换；cam39.1：①氙灯试验箱开始运行弹窗新增辐照度输入（W/m²，experiments.irradiance 数值列，SQL 见 machine_irradiance.txt，卡片/详情/看板详情三处展示）②存储设备运行中可改环境条件：右键实验详情弹窗新增「修改环境条件」→ 单箱 1 组/三箱式 3 箱逐箱编辑 storage_boxes.temp/humidity ③机台管理页筛选三件套：关键词（编号/名称/排号/备注/组/位置）+ 位置 + 试验组，纯前端过滤；cam39：实验条件（实验项目模板）——①新菜单页「实验条件」：创建/编辑/删除模板（阶段=名称+温度+湿度+时长，存 exp_templates.stages jsonb，SQL 见 exp_templates.txt）②创建实验「实验项目」双模式：选模板（自动带出阶段与总时长）或自定义输入；选中模板把阶段快照定格存入 experiments.stages ③机台卡片改行：第3行=送样人|实验时长（一行两列）、第4行=当前节点|下一节点倒计时（推算式：按 start_time+stages+duration_hours 前端推算，零额外 IO）、第5行=预计结束不变 ④运行详情弹窗/看板详情弹窗新增阶段时间线（已过✓/当前进度条/未到灰，📷标注各阶段结束前30min截图点）⑤节点切换每秒计时器自动重渲染 ⑥结束设备使用按钮 loading 防重复点击 ⑦看板 pvRowFit 行高下限 110→160；cam38.8：相机预览「按机种聚合」①只显示仍占用的机种（实验全结束且相机还清的行直接消失）②状态细分「占用中（运行 X）/ 已结束·未归还 Y 台」③内存自愈：experiments 混入已完成行时本地立即分流进归档（YT222「始终占用中」＝页面挂夜内存陈旧，强刷即愈）④visibilitychange 回前台 ≥30s 全量对账一次（根治后台 tab 定时器节流导致的陈旧）；cam38.7：看板行高按「该视图全部机台」计行数（①存储运行页统计只统计当前楼层机台的样品，该楼层无存储机台时也清空统计②楼层写入 localStorage，刷新/重开浏览器仍停在上次选的楼层③全屏看板右上角新增「全部/1F/3F」分段，按楼层过滤并与运行页/存储页共用同一记忆）；cam38.4：降低 Supabase 磁盘 IO（Nano 基线仅 5MB/s，收到预算耗尽预警）——①loadData 参数化分组（hot/storage/cold）按页按需拉取，轮询从「6 表全量」降到「2 张小表」②已完成实验分流 archExps 懒加载（allExps），轮询只取待运行+运行中③日志页/设置页停留时停轮询（设置页补「刷新数据」按钮）④storage_samples 排除「已取」⑤轮询间隔 30→60 秒，设置上限 300⑥清理/批量收尾由 N 次往返改为单语句批量；cam38.3：消除首屏两处闪现（bootOv 加载层 + restorePageAhead + 主题前移）
+  console.log('[machine] version cam58');   // cam58：结束使用弹窗头卡改三段指标横条——环右侧 1.7fr/1fr/1.05fr 铺满整宽（本阶段剩余＋阶段 x/y＋预计结束），进行中/已结束/无快照三态统一，原右侧约 200px 空地收掉；cam57：①结束使用弹窗头卡环永远画——时间轴跑完=100%绿环＋对勾、大字恢复28px＋「起→止」，无阶段快照=按开始/预计结束画整条进度（原来两种情况都走 no-ring，文字左移80px塌陷）②阶段时间线节点间补连线，跟随状态变色（完成绿/当前金/未完灰，切换与跳过段虚线）③ticker 支持 .sr-ring[data-nom]；cam56：①修正时间/跳段执行两弹窗的模式选项改为并排选项卡（去单选圆点，选中金边米底，≤560px 竖排堆叠，说明文案改短句）②待运行弹窗「多项并行实验」文字与开关右对齐；cam55：①实验信息筛选栏新增「最早优先/最晚优先」按预计结束时间排序（纯前端重排，未排期实验恒沉底，不落 localStorage）②全站 37 个 select 统一为自绘实心三角（--sel-arrow 变量，替掉 5 套并行样式与浏览器原生箭头）③16 处 confirm + 1 处 prompt 改为 Promise 化自定义弹窗 askConfirm/askPrompt（危险操作固定深红 #b91c1c，ESC 取消、输入框内 Enter 确认）   // cam54：①「送样人」改「测试员」并改成人员下拉（六个入口 input→select，默认当前登录人；新增 list_machine_staff 只读 RPC，普通员工也能取名单，未执行 staff_dir.txt 时降级为历史姓名）②实验信息页新增筛选栏（测试员/类型/楼层，楼层记忆独立 key=exp_floor，不与机台运行页共用；未分配机台的实验任何楼层都显示）③静置创建支持从实验信息快捷选择（只抄机种/相机/数量，不改实验状态、不占机台）④顺手修存储投放回填机种时前缀不同步（UH123→YT123）   // cam53：详情弹窗「送样人」→「下一节点预计」——手机上卡片 .mb-nx 被三层 CSS 挤成 0 宽（.mb-eend 不让收缩 + 外层 nowrap/overflow:hidden），改在 openStopModal（.sr-kv 第2行左格）与 openPvDetail（.detail-grid 第3行）原位替换，卡片布局未动；新增 stageNextTxt（末段=实验结束、无快照=—，取 stageCurOf().nextEnd 与卡片 .mb-nx 同一 seg.t1）；送样人仅移除这两处显示，表单/表格/导出/搜索全部保留   // cam52：设置页把「转橙色/红色/呼吸闪烁」的句子换成实时色块演示（srDemoSync 随输入变），删掉相机预览与机台管理页头的目录复述；备注「存储类」自动打标改只读徽标，不再只写在 placeholder 里   // cam51：阶段进度分母改为「段内实际时长」（t1−t0）——切换段按速率耗时、保持段按缩放/修正后时长，各段恒从 0% 起；旧口径误用目标阶段的保持 hrs 当切换段分母，25→60/12H 一进场即 95%、60→25/8H 93%、25→-40/12H 82%、-40→85/6H 65%。抽出 stageSegDurMs 供时间线进度条与头卡环形共用（原头卡 data-nom 手抄同一式子）   // cam50.5：①「结束使用」详情 6 项在手机端恢复严格 1 行 2 列——560 断点里的 .sr-kv{grid-template-columns:1fr} 是唯一把它压成单列的原因（.sr-kv 全站仅 #stopDetail 一个使用点），改回 1fr 1fr 并把单元格 padding 10→8 给日期多留 4px；顺手抹平同断点内 .sr-head 的负边距（原 -18px -16px 与 .modal padding:22px 不匹配，上边压住 h3 眉标、左右各内缩 6px，改回 0 -22px 满宽）；给送样人/开始时间/预计结束补 title，2 列下省略后仍可查全文 ②阶段进度倒计时实时化——根因是 .tl-left 的文本在 stageTimelineHtml 首屏拼死、没有任何 data 属性，1s ticker 只改 .tl-prog 的 <b> 宽度和 .sr-head 的 .sr-big，从没重写它（截图里顶部 00:59:25 在走、阶段行 00:59:31 不动）；现把「剩余」前缀与倒计时拆成 .tl-pre/.tl-cd 两段，tick 里按 .tl-cd[data-end] 每秒重写，data-end 必须存 ISO 串（存毫秒数会 new Date('1752…') 得 Invalid Date，getTime 是 NaN 则永不触发）；到点后原地重画详情（stopModal 重跑 openStopModal 并恢复滚动位置，pvDetail 只换 .tlwrap 内层、不重调 openPvDetail 以免打网络与清滚动）；openStopModal 取当前段加「未全部跑完」判定——stageNowIdxAt 在 allDone 时返回最后一段，头卡会永远停在「本阶段剩余 00:00:00 + 100% 环」；另修 .modal 全站无 max-height 导致内容超屏时上下双向被切、底部按钮够不着，#stopModal 专属加 max-height + overflow-y（100dvh 兜底） ③实验信息创建表单手机端 1 行 2 列——.form-grid 是 flex-wrap 且字段无宽度基准，宽度由 input 内在宽度决定，窄屏换行后右缘参差；新增 @media(max-width:768px) 作用域锁 #page-exp（.form-grid 全站 6 处：exp/tpl/mch×2/cam/camview，其余 5 页零改动），2 列 grid + 全部 min-width:0（全局 .field input{min-width:150px} 恒压过 width）+ .fw 整行项（实验项目/类型/备注，不用 nth-child 防后续插字段错位）；机种名称前缀 44→36px、text-indent 52→40px（半列下原设置只剩几十像素文字区）；相机型号下拉 .cs-panel{min-width:250px} 在右列会横向溢出视口，本页改右对齐定宽 240 + max-width 锁视口    // cam50.4：两处高度对齐（用户截图）——①实验信息表单「相机型号」自定义下拉 .cs-trigger 比同排原生 input 高 4px（实测 40 vs 36：padding 9/12、border 1px、字号 14px 全一样，差在 <button> 的匿名行盒是 20px 而 input 是 16px），改显式 height:36px + 纵向 padding 归零靠 flex 居中，四处分 .cus-sel（实验信息/预约/静置/编辑实验）一并生效 ②实验条件页右上角「新建实验条件」原挂 .btn-sm（27px，字号 12）比卡片里「保存基础条件」.btn（38px，字号 14）矮一截，去掉 btn-sm 使两者同款同高。   // cam50.3：看板头部三控件统一高度（用户截图：楼层分段 ≈47px / 「存储运行」≈30px / 时钟 33px，align-items:center 下三者中线对齐但上下各差 7~8px）——根因同 cam50.1：没有基准高度，谁的内文行盒大谁就高；现由 .pv-head 给 --pv-ctl-h:36px，分段 / .seg-btn / 存储运行 / 时钟全部取该高度（.seg 留 3px 纵向 padding 让白底药丸内缩，.seg-btn 纵向 padding 归零防裁字；#idlePreview .seg 是 ID 选择器故按同权重追加覆盖），按钮字号 12.5→14、时钟 17→18 填满盒子；机台运行看板与存储运行看板共用同一 .pv-head，一处生效两处。   // cam50.2：静置试验表单三处（用户截图反馈）——①机种名称补前缀下拉：其余 5 处机种输入点早就是 .pre-input + .pre-sel，只有静置这处是裸 input，创建出来记成「123」而不是「YT123」，列表里跟别处对不上；createStatic 改 pfxOfInput(下拉) + 后缀拼接，staticFormReset 连前缀一起归位 ②相机型号由「选填」改「必填」并加提交校验，空态下拉文案由「不选」改「请选择」（camSelItems 加可选第二参，只 staticCamera 传，其余三处零回归）③中途检验日期控件重设计：去掉左侧 58px 月份列——它是为「11月→12月」跨月标签才定宽的，代价是每行白吃一列、日期格只剩 46px；改为换月处插居中细线月分隔条，日期区回到满宽 7 列、格高 26→34px（窄屏 30px）；新增「今天」金环描边态与选中实心块区分；区间外日期由 visibility:hidden 改淡灰显数字（看得懂这段为什么不能点）；:focus-visible 焦点环 + :active 回弹；选中摘要由一行纯文字改可点标签，点标签即取消该天（新增 staticCalRemove），staticCalToggle 重写 className 时保留 td 类    // cam50.1：修复「静置存储」按钮比左侧楼层分段控件矮一截（用户截图反馈）——根因不是某一个写死的值，而是工具条里三类控件各按内容算高：.seg 随内文行高浮动（「全部」37px / 「1F」32px，中文 normal 行高比拉丁大）、.field select 38px、.btn-sm 29px，并排时右侧按钮永远差 3~9px。现由 .run-tools 提供 --ctl-h:34px 统一基准，seg/seg-btn/select/btn-sm 一律取该高度且纵向 padding 归零（文字靠 flex 居中，不裁字）；机台运行页同一工具条一并修好（原本四种高度各不相同）。    // cam50：静置试验新增「中途检验日期」——只记计划哪天检查一次、不记是否已完成（static_tests 加 inspect_dates jsonb，存本地日期串数组，不用 timestamptz 以免跨时区偏一天）；表单勾选「中途检验」后展开周历网格（周一为首列，只在开始日之后、结束日之前可选），点格子多选，选中集 staticCalSel 按 ctx 分开互不污染，取消勾选只隐藏不清空；日期算法全链路只用「年/月/日 整数 + 本地正午锚点」，不用 new Date('YYYY-MM-DD')、不用 toISOString().slice、不用 (t2-t1)/86400000（夏令时 23/25 小时的日子会算错）；KPI 由 4 格扩为 5 格「今日检验」，行内新增检验徽标（今日/下次/已过/未设置四态，四态都可点开改日期，否则「全部已过」的老记录就没有修改入口），导航角标三段短路天然按记录去重；#stEnd 的 onchange 由内联置 staticEndAuto=false 改为 staticEndChanged()，staticStartChanged 去掉首行 return 短路——否则「改过结束时间后再改开始时间」网格完全不更新；createStatic 对 inspect_dates 做 PGRST204 降级重试，列没建也不连累老的创建流程；需先执行 machine\static_tests_inspect.txt // cam49.2：使用日志「创建/删除预约」的「使用人」列原记 CUR_USER.name（访客登录态恒为「访客」），查不出是谁下的单，改记单上填的「预约人」姓名——logUsage 新增可选第三参 actor 覆写署名，身份列仍按 role 显示「访客」徽标，其余调用点不传即零改动；同时修复创建预约弹窗「预约人」输入框 placeholder 写死「选填」、与访客态「预约人（必填）」标签自相矛盾的问题，改为按身份切换（访客=请输入预约人姓名，员工=选填） // cam49.1：静置创建表单的「相机型号」下拉原本是 .cus-sel 内的绝对定位面板，被 #staticForm 的 overflow:auto 齐平裁掉，只露一两行；现改为按需浮层化（csNeedFloat 检测祖先滚动容器 → csPlacePanel 用 fixed 坐标现算 top/left/width，并按上下剩余空间自动翻转、按可用高度收 maxHeight），其余三处下拉不在滚动容器里故行为不变 // cam49：①登录页「记住账号密码」——AES-GCM 密文存本机，密钥＝SHA-256(浏览器家族|系统大类|platform|逻辑核数|每安装随机盐)；设备指纹刻意剔除 UA 版本号，否则 Chrome 自动升级就会「密码解不开」；非安全上下文（非 https/localhost/file）自动降级为只记工号，勾选框文案同步说明 ②存储运行页楼层右侧新增「静置存储」——static_tests 表 + 单弹窗两态（列表/创建表单），列表按结束日分组（今天/明天/逾期置顶），创建表单结束时间默认随开始 +30 天，手动改过就不再跟随；独立 loadStatics() + 60s TTL，不动 loadData 的 7 路并发 ③访客预约提醒——导航「预 N」徽标，已读按人记在 resv_reads（复合主键 resv_id+user_id），所以一个人看过不会让别人的提示消失；人已在机台运行页时不显示徽标，改机台卡片边缘流光 + toast 并即时标记已读；看板详情里显示「N 人已查看」；resvPageSettled 守卫避免登录过程中把残留的运行页误判成「人已在页面」而漏提醒。需先执行 machine\\static_tests.txt 与 machine\\resv_reads.txt // cam48.1：结束使用弹窗尾按钮文案缩短为「结束使用」；.modal-actions .btn 是 flex-shrink:0 + white-space:nowrap 的按内容宽度，文案缩短后宽度自动收窄（实测 134→107px），无需另设宽度 // cam48：实验基础条件新增「负温区降温速率」exp_rate_t_neg（目标温度 < 0℃ 的切换段按它算，含跨 0℃ 段）——实测 25→−20℃ 实际约 0.75℃/min，此前只能套一档下降速率导致预估偏快；留空回落 exp_rate_t_dn，老数据零影响；时长算法 stageRampMinBetween 与显示 rampRateTxt 同优先级改造（负温 → 下降 → 上升），显示侧追加「·负温」标识；需同步执行 settings_write_base6.txt 扩 RLS 白名单 // cam47.5：切换段标出温度速率与温度/湿度各自耗时——「段时长÷温差」不再被误读成温度变慢（时长取两者长者，速率本身没变） // cam47.4：机台运行页副标题删除「点击运行中的机台可结束使用（每 30 秒自动刷新）」；结束使用入口仍在机台卡片本身，无需文案提示 // cam47.3：结束使用弹窗「预计结束」按辐照度存在与否切换栅格占位——无辐照度（非氙灯箱）时从 .full 改普通格、紧跟「开始时间」同行，填掉原来那个空格洞；有辐照度时仍满宽跨两列，避免 7 字段排满 3 行后落单留新洞。条件与辐照度格同款 != null && !== ''（0 是有效值，不能用真值判断） // cam47.2：访客进入改为「先定页（applyPageAhead 只切 active 不取数）→ 拉数据 → switchPage 渲染 → 最后撤遮罩」，原顺序是撤遮罩在前、切页在 await 之后，网络窗口里露出的就是 HTML 写死 active 的「实验信息」页；遮罩期按钮显示「正在进入…」并 disabled，数据回来复位；.then 里加 CUR_USER.guest 守卫防止中途登录被抢回 run 页；顺带删掉与 switchPage 重复的那次 renderRunGrid。 // cam47.1：使用日志全中文——①补齐 stage_skip/time_fix/tpl_save/tpl_delete/stage_base_save/sbox_cond 六个动作的中文标签与分类（标签是渲染时查表，旧记录同样立即变中文）②删除详情不再写 uuid 前 8 位，改记「机种 · 实验项目」；已完成记录在 archExps 不在 experiments，原查找必然落空才只剩乱码 // cam47：已完成实验页重构——11 列宽表改 5 列分层表（主行＝机种＋实验项目，副行＝送样人·委托单·相机型号），「未归还」独立成红胶囊不再靠红字挤在数字里；新增勾选列 + 底部浮动批量删除条，批量删走一次 .in() 请求（cam38.4：不做 N+1 写），选中态存 doneSel 对象所以搜索重渲染不丢勾选、渲染时按现存记录自愈剔除死 id。 // cam46.3：边缘流光改 SVG rect + stroke-dashoffset（弃 conic + @property）——实测 prefers-reduced-motion=reduce 时 animation:none 把 conic 动画整体关掉，只剩静止两段弧，就是「边缘一条线、不跑」；SVG 沿真实路径跑、角速度恒定、pathLength=100 归一化使两条 7% 对称线尺寸无关；reduce 环境改减速 2.6s 而非停止。 // cam46.2：边缘流光从「1 条彗星」改成「2 条 180° 对称光带」——①prefers-reduced-motion 下原规则写 background:none，把描边连动画一起抹掉（实测 getComputedStyle 得 anim=none/bg=none，用户开「减少动画」就完全看不到反馈），改静止整圈金描边②.srt 去 overflow:hidden，否则 .srt-m 悬停上浮 2px 与投影被裁（上浮等于没做）③统计区实验行 .ss-row 加 ss-jump 可点击定位（原只有顶部四格可点，弹窗内 .ss-row 不受影响）。cam46：存储运行页 8 项——①指标格可点→滚到对应机台卡并打 3s 边缘流光（.mcell.flux + conic 描边，@property 驱动角度，prefers-reduced-motion 降级）②指标格悬停上浮 2px（零值格 .z 不浮不可点）③页头删「每 30 秒自动刷新」④单箱机台省略「箱1」⑤空箱提示「点击设置温湿度开始运行」→「点击运行」⑥开始运行弹窗删说明段、placeholder 去单位 ⑦温湿度输入加 ℃/% 后缀（.iu 承载边框，input 去边框）⑧箱卡→箱行：1/3 箱统一通栏单列（旧 .sb-n3 三列每格仅 62px 文字全截断），箱区 flex:1 + 行高 1fr 让单箱撑满余高、162px 等高不破；温湿度数字 17px（单箱 21px）、单位降级 10px，旧数据 ℃/%RH 后缀由 envSplit 剥离；已结束改左侧 3px 红条 + 背景脉冲  |  cam45：存储运行页统计区标题行改「单行指标带」——①楼层徽标 + 运行中/待取/待检查/空闲箱 四格（数字 21px 800 等宽）②状态形状三通道：实心圆=运行中、实心圆=待取、菱形=待检查(需人处理)、方框=空闲箱，配文字标签，不靠颜色单独表达 ③待取/待检查 >0 整格染淡底 + 深色数字（新增 --amber-deep/--red-deep，原 --orange/--red 在淡底上仅 2.1:1 不达标）④零值格降级为空心标记 + --text2 数字 ⑤「按到期时间升序」并入条带右侧，原文字汇总行删除，净省约 30px ⑥空态提示补 ss-empty 类使其通栏（原只占半列）; cam44.1：修复 cam44 时间线换皮的三个实质缺陷（用户反馈"设计成这样、实际却是那样"）——①**臆造类名**：cam44 写了 .sr-tl .tl-name / .tl-name .tl-tag，但 DOM 里从来没有这两个类（时间线结构是 .tl-item>.tl-dot+.tl-t>.tl-tx+body），规则全部空转；②**状态语义塌陷**：.tl-dot 被 display:none 后「已完成/进行中/未执行」在结构上无差异，只剩 opacity 区分（违反"不能只靠颜色或透明度传达状态"），用户截图里绿勾缩在标题内、与进度条并成两条绿线；现恢复 .tl-dot 作状态列（done=实心绿/cur=金色脉冲/todo=空心灰/ramp·skip=菱形），并隐藏 .tl-done-ic/.tl-run-ic 让位；③**标题互相抢视觉**：h3 与头卡两个大标题叠加，.sr-modal 未定义过样式，现把 h3 降为 11px 灰色眉标、头卡负边距从 -22px 改为与 padding-top 匹配；另当前段右侧「剩余 00:14:39」在 sr-tl 下去掉「剩余」二字（进度条本身即该语义），进度条定宽 88px 不再 flex:1 挤压标题。——cam44：机台运行弹窗 UI 重构（方案A）——①停止运行弹窗：标题精简为「结束使用」（并行时标项数），机台号/位置移入每项头卡；头卡新增环形进度（r=27，C=169.646，dashoffset=C×(1−pct/100)，口径与 .tl-prog 一致=分母恒为模板标称 st.hrs），大号等宽倒计时 + 阶段名；原两列胶囊改 1px 发丝网格 .sr-kv（实验项目/机种/送样人/时长/辐照度/开始/预计结束）；相机归还原裸 input 改 .sr-stepper 步进器（±1，上限锁死应归数——confirmStop 对超归会中止，放开上限会让用户白填）+ 差异提示 stopQtyCheck；时间线经 stageTimelineHtml(e,{skin:'run'}) 换肤 .sr-tl（去左边框圆点、当前段金色高亮块、未到段降透明度），看板第二调用点不传参故零回归。②跳段/修正时间两弹窗同步换 .sk2-* 模式卡（新前缀，旧 .sk-* 保留不删——原类名被两弹窗共用 14 处，直接改必连带回归）；选中态底色改 var(--gold-light) 以适配暗色。③1s ticker 追加环形 dashoffset/百分比刷新（复用既有定时器，setInterval 总数仍为 6，只改属性不重渲染，零 IO）。——cam43.5：进度条改为「1 − 剩余/模板标称」（.tl-prog 带 data-t1/data-nom），修正时间后剩余变小→进度自动变大；标题恒显标称，被修正时后缀「修正 ±Xmin」——cam43.4：阶段时间线进行中节点标题显示实际保持窗口（非模板标称）——cam43.3：阶段进度条每秒推进（.tl-prog 带 data-t0/data-t1，1s ticker 现算宽度）——修正时间后进度条随新窗口自动更新——cam43.2：修正时间弹窗「已运行时间/结束剩余时间」改为小时+分钟两列并列输入（ftValH/ftValM，分钟 0~59，合成 v=h+m/60 后仍统一存分钟）——cam43.1：运行中弹窗加宽至 560px（四颗按钮排一行，结束设备使用不再单独换行）——cam43：①新增「跳段至下一阶段」（mode:'next'）——跳过当前所在的那一段，进入紧邻下一段（切换段照常按速率执行），与「跳段至下一节点」并存：段2(保持中)点 next → 段3(切换)→段4；当前在切换段或已到末段时置灰。stageNowIdxAt(tl,ts) 参数化定位，重放按事件时刻 T 重算下标不存死下标；弹窗三张模式卡（ramp/next/snap），仅 ramp 显示起点温湿度 ②初始湿度按首节点判定——实验条件第一个阶段无湿度时，初始切换段不带湿度（不参与时长计算、界面不显示 %RH）；老实验快照同样生效（stageRampMin 与 stageTimeline 成对改）——cam42.3：温度转换速率按升降方向拆分——设置页「温度上升转换速率」（原 bcRateT/exp_rate_t，升温 ΔT>=0 用）右侧新增「温度下降转换速率」bcRateDn（新 settings 键 exp_rate_t_dn，降温 ΔT<0 用，留空=同上升速率不写库）；cfgStageBase rate 加 td（未配置回落 t），stageRampMinBetween ΔT<0 择 td（老实验快照无 rate.td 回落 t，老数据行为逐毫秒不变）；湿度速率不拆分；SQL：settings_write_base5.txt 白名单 4键→5键（需 Supabase 执行）——cam42.2：①snap 跳段后被跳过的「切换」条目不再消失——保留为零时长留痕标记段（{type:'skip', t0:t1:跳段时刻, from, st, origMin}，不参与时间累计/后续平移/末段终点，预计结束与倒计时数值完全不变），阶段进度显示灰点删除线「切换：A→B / 已跳段跳过 · 原约 N 分钟」；stageFixApply 包含法与上一段终点跟随跳过零长标记段；ramp 模式不变 ②stageTimelineHtml 进度 pct 加零长段除零防护——cam42.1：①跳段落点保持段改按模板标称时长计时（st.hrs×3600000，「跳到下一节点就只执行该节点的 1H」——修复原窗口取 t1-t0 会把保持段缩放系数的拉伸带给节点，例如实验时长手改大时 1H 被拉成 1H13m、看起来像混入了转换时间；转换时间本就不混入，实测验证）②运行弹窗按钮行重设计（取消/跳段/修正时间/结束设备使用：图标+文字 nowrap 防竖排，flex-wrap 整颗换行，modal-actions 通用规则）——cam42：修正时间——运行详情弹窗跳段旁新增「修正时间」入口与弹窗，两方式二选一（①已运行时间：剩余=节点总时长−已运行，窗口整体平移 D 不变 ②结束剩余时间：已运行不动、终点=now+剩余，D 弹性伸缩），剩余/预计结束实时预览动态重算；stage_jumps 追加 mode:'fix' 记录（kind:'el'|'rm', val:分钟, si, end），stageSkipReplay 按 mode 分派 stageFixApply 重放（包含法定位当前段、方式1上一段终点跟随新起点、后续段整体平移），预计结束同步重写——cam41.1：卡片末排双列（下一节点预计+预计结束）+ 相机归还统计排除存储类 + 机台运行楼层改分段控件 + 基础条件去说明文字——cam41：保存成功」+ settings 移入热轮询 + 侧栏连通性指示器——cam40.3：批量去除界面说明文字——①结束使用弹窗 sub ②存储运行页副标题「存储类机台（试验组=存储类）的运行看板；」③设置页 7 处（页副标题/两列 set-col-desc×2/机种前缀括号段/人员 h-sub/新增人员小注/数据维护 h-sub）——cam40.2：跳段执行弹窗去掉顶部说明文字（sub 行删除）——cam40.1：存储实验统计今日应取红「今」徽章（时间块前，今日到期才显示）+ 机台卡片跳段按钮移除（只留运行详情弹窗入口，stageSkipBtnHtml/.mb-acts 删除）——cam40：跳段执行——运行中机台修正当前节点（以实际工况为准）：卡片小按钮+运行详情弹窗入口，两模式（①按照速率转换：手填起点温湿度（预填推算值）按速率爬到下一节点，转换完成后开始保持→预计结束顺延 ②跳段至下一节点：目标温湿度立即生效开始保持→预计结束提前）；持久化 experiments.stage_jumps jsonb 数组追加式（{ts,mode,to:阶段下标,from_cond,end}，审计留痕多端一致），stageTimeline 顺序重放（stageSkipApply：截断到 T→模式1 插新切换段→目标保持整段起计→后续段整体平移），段补 si=阶段下标/fromCond 数值，消费面（卡片节点/倒计时/详情时间线/看板）单点派生自动跟随；expected_end 跳段时重写（全站倒计时/相机归还锚点），编辑实验运行中改时长也改按时间轴终点重算（跳段后终点≠开始+时长）；stageRampMin 重构出 stageRampMinBetween 两点切换时长助手复用同语义（某维度任一侧空则不参与）；SQL：experiments_stage_jumps.txt 建列；cam39.19：实验条件列表阶段链去背景胶囊改 → 指引——.tpl-chip 去掉 background/padding/border-radius 变纯文字，阶段间箭头由 .tpl-chip:not(:last-child)::after 生成（附着前段末尾，换行不出孤箭头；末段无箭头），.tpl-chain gap:4px 0 列距由箭头 padding 8px 对称承担；cam39.18：存储卡片顶部灰线统一去除 + 实验条件徽章去框纯文字 + 湿度去 RH 只留 %——①machine-box::before 顶部 4px 状态色条只在挂 idle 类时显灰色渐变条，storageCellHtml 仅空闲箱挂 idle、运行中/已结束无类导致无条，同页有线无线不一致；sbox-wrap 统一 ::before display:none 去除（状态由圆点+文字表达）②.env-badge 去背景框去边框只留文字居中（display:block+text-align:center）③新增 humTxt() 把湿度展示的 RH 后缀去掉只留 %（95%RH→95%），仅显示层不动库内值，env-badge 行/实验折叠行/投放与箱内编辑弹窗副标题共四处接入；cam39.17：存储卡片实验条件徽章去金色居中 + 三分区条目改单行——①存储箱卡环境条件（70℃/95%RH·辐照度）由 11px 灰字改金色徽章 .env-badge（storageCellHtml 一处改动，存储运行页与存储看板同款生效）②看板 pv-head 与 pv-grid 之间新增 #pvAlert 关键信息区（空态 :empty 整块隐藏）：机台运行看板=「即将截图」横向条目（遍历运行中机台实验的推算时间轴，当前保持段为截图节点且距段结束≤30min 才显示；条目=机台排号/实验项目/机种/当前节点/剩余倒计时(.ss-cd data-end 由 1s ticker 刷新)，按剩余时间升序，限高 22vh 内部滚动；到点节点自动前进、条目随重渲染消失，无呼吸灯——呼吸灯仅整实验结束沿用结束卡红边；ticker 归零分支补看板打开时无条件重渲染）③存储运行看板=今日应取/明日应取/进行中（后天及以后+长期）三分区（ssamples 按 planned_end 分桶：今日含已逾期、明日、≥后天或 null；条目=机台/实验项目/机种/预计结束；已到点未取（含逾期多日）留今日应取置顶并红色呼吸闪烁 sbFlash 复用，标「待取」）；全部纯前端内存推算，零 IO 零 schema；cam39.12：机种前缀改下拉+后缀任意字符串——①CFG 新增 model_prefixes 列表（默认 YT,UH；设置页「机种名称前缀」改逗号分隔输入，保存同时写 model_prefix=第一项兼容旧逻辑）②6 处机种输入点（创建/预约/投放/箱运行/箱内编辑/编辑弹窗）静态 YT 标签 .pre-tag 改内嵌 .pre-sel 下拉（CSS 仿原标签外观，input 缩进 52px），后缀去掉纯数字 oninput 过滤与 inputmode，placeholder「如 123 或 转接盖」，maxlength 12→30 ③拼接助手 pfxOfInput（按各自容器下拉取前缀，不再全局单值 grpPrefix）、modelPrefixes/modelPfxOf/fillModelPfxSels（applyCfgDom 同步保留已选）④stripModelPrefix 按列表剥离（最长匹配优先）⑤编辑弹窗前缀模式判定改「以任一前缀开头且余串非空」，下拉回显机种原前缀 ⑥保存/日志标签同步（默认机种前缀/机种前缀列表）；cam39.11：实验条件确认改弹窗——创建实验点选模板后不再在输入框下方内联显示实验条件（#expTplPreview 及其 CSS 已删），改为弹出「实验条件确认」弹窗：逐阶段列出名称/环境/时长/截图标记（金色相机图标）+ 总时长（含切换）+ 截图次数说明，点「确定」关闭保持选中、点「取消选择」清空模板回自定义输入；总时长仍在弹窗打开时自动填入实验时间（可手改）；applyTplPreview 重构为 openExpTplCf/confirmExpTpl/cancelExpTpl 三函数；cam39.10：创建实验去掉「开始时间/预计结束时间」两只读输入框——创建后为待运行，两时间在点「运行」（confirmRun 以运行时刻写入）/存储投放（以投放时刻写入）时才落库，符合建表注释原意（start_time='实际开始运行时间'）；列表两列保留、待运行行显示 '—'（原有 null 回落）；附带修复：预约实验经编辑弹窗置「运行中」原先误用创建时刻算预计结束，现走 !start_time 补当下时刻分支；删 updateEndTimePreview/refreshStartTime 及每分钟定时器；cam39.9：编辑实验弹窗补「类型」分段（cam39.8 遗漏）——editExpTypeSeg 与创建侧同款 markSeg 单一真源；openEditExp 按 isStoExp(e) 初始化，备注输入框只显示去掉「存储类」标记的正文（标记由类型分段管理）；saveExpEdit 落库按 editExpTypeVal 计算：存储类='存储类'+正文、机台类=纯正文（切类型自动加/去标记）；cam39.8：实验类型（机台类/存储类）+ 存储运行调用实验——①实验信息创建表单新增「类型」分段（默认机台类，markSeg 不触发 renderCamBoard）与「备注」输入框：选存储类把「存储类」写入备注开头（isStoExp 判定=备注以「存储类」开头），创建后复位②实验信息列表操作列前新增备注列（存储类金标+余下文字），编辑实验弹窗同步备注字段（保存时存储类保持标记在前）③存储运行投放样品弹窗新增「调用实验信息」下拉（只列存储类·待运行），选中自动回填项目/机种/送样人/时长；confirmSboxDeposit 记 storage_samples.exp_id 并把原实验转「运行中」挂到本存储机台（失败不阻断投放）④pickSample 取样时若有 exp_id 直接回写原实验为已完成（时长=实际存放时长、机台释放），不重复插行；本地 active→归档分流⑤机台运行页选择实验排除存储类（others 过滤 !isStoExp）；SQL 见 experiments_remark.txt（experiments.remark + storage_samples.exp_id）；cam39.7：截图节点勾选 + 相机标记 + 网页图标——①模板编辑弹窗每阶段新增「截图」勾选列（stage-row .sr-c/.sr-shot，存 stages[].shot，随 v2 快照定格；无任何 shot 字段的旧模板/旧快照回落旧行为「各保持段结束前30min、末段除外」，hasShotFlag/shotCount/stageShotNode 三助手）②修复表头「时长H」后的空方框＝删除列占位格 .sr-del 被按钮样式画出边框，表头格 visibility:hidden ③运行详情弹窗时间线：截图节点的节点名前加金色相机图标 ic('camera')（mdi 精确路径经 Iconify API 获取）④机台卡片第 4 行：当前保持段为截图节点 → 倒计时前加相机图标+空格（图标放 .stage-cd 外层 .cd-wrap 内，防每秒 ticker 重写 textContent 抹掉）⑤<head> 新增 favicon：金色圆角底+白色 mdi monitor 图标（纯 data URI 零请求）；cam39.6：运行详情弹窗（openStopModal）前四项信息压为一行两列——实验项目|机种名称、送样人|实验时长（.detail-rows .row2 新样式：单元格沿用 .row 胶囊外观，值过长省略号+title 悬停看全文；辐照度及之后各行保持单行不变）；cam39.5：氙灯辐照度补进箱式启动流程（用户实测「氙灯试验箱无辐照度的输入框」——cam39.1 误加在机台 runModal，而氙灯试验箱是箱式存储设备，走 sboxStartModal→storage_boxes，机台 runModal 流程对它根本不经过）——①箱启动弹窗新增 #sbIrrField 辐照度输入（openSboxStart 按 isXenon 控显隐+清空）②confirmSboxStart 校验（≥0 数字，留空 null）后写入 storage_boxes.irradiance（SQL 见 machine_irradiance.txt 补充段 alter table storage_boxes add column if not exists irradiance numeric）；仅氙灯带键防列未建时 PGRST204 波及其他箱③boxIrrTxt 展示助手，七个位置同步：箱卡行/运行卡 rv-meta/投放弹窗当前环境/箱内实验详情当前环境/箱运行详情新增辐照度行/存储统计条件串/看板详情箱头（均有值才显示）④pickSample 取样入档时把箱辐照度带入 experiments.irradiance（已有三处 e.irradiance 展示自动生效）⑤sboxReset 复位清辐照度（仅氙灯带键+本地置 null）；cam39.4：阶段时间线紧凑重设计（运行详情弹窗 + 看板详情共用 stageTimelineHtml，一处改两处同步）——①每节点 4 行压 2 行：删「📷截图时间点」行（截图点信息整体移除，创建实验预览的「截图 N 次」总次数保留）、删状态行（「已完成」三字由绿勾图标代替、「xx 开始」删除——时间范围已含开始时间）②状态图标：已完成=标题后绿色圆勾 ic('check')，进行中=金色播放标 ic('play')（IC 表新增 mdi play 路径）+同行进度条（.tl-currow flex：进度条 flex:1 + 右侧剩余时间）③CSS 收紧：.tl-item padding 12px→8px、.tl-t flex 化+标题 .tl-tx 过长省略、删 .tl-shot 两条规则；cam39.3：实验项目改组合框（单输入框双用途）——①删除「下拉框+隐藏输入框」两件套，expItem 输入框常驻可自由打字（自定义项目）②点击/聚焦输入框浮出模板列表（复用 .cs-panel 浮层样式，按已输入文字实时过滤，每项标注阶段数）③列表项 onmousedown+preventDefault 保住输入框焦点（规避 blur 竞态提前收起浮层），选中写回模板名+显示阶段预览+自动带总时长④手动改字与选中模板名不一致即清选中态、隐预览、视为自定义；blur 延时 150ms 收起，Esc/点外部经全局监听兜底⑤createExperiment 改读 expItemSelId 状态变量（含「文字与模板名不一致→自定义」兜底），提交逻辑与 stages 快照 v2 不变；cam39.2：实验基础条件与切换段——①实验条件页新增「基础条件」卡（常温起始 25℃/98%RH、温度速率 1℃/min、湿度速率 0.3%RH/min，存 settings 表 4 键，全局共用）②节点时间轴升级：相邻节点环境差÷速率=切换时长（温度/湿度并行取大者，第一段从常温起始值起切），到达目标才开始保持计时、切换不计入保持；实验快照升级 v2（{v:2,amb,rate,list}，创建时定格基础条件），v1 旧快照维持纯保持段不变 ③手改总时长=保持段按比例缩放、切换段按设备速率固定 ④卡片第四行切换中显「起始→目标环境 + 到达倒计时」、保持中末段右侧改「实验结束」⑤详情时间线插入切换段节点（灰菱形+虚线，标注起止环境与耗时，无截图点；📷仍锚在各保持段结束前 30min）⑥模板编辑弹窗实时估算行 + 列表总时长含切换；cam39.1：①氙灯试验箱开始运行弹窗新增辐照度输入（W/m²，experiments.irradiance 数值列，SQL 见 machine_irradiance.txt，卡片/详情/看板详情三处展示）②存储设备运行中可改环境条件：右键实验详情弹窗新增「修改环境条件」→ 单箱 1 组/三箱式 3 箱逐箱编辑 storage_boxes.temp/humidity ③机台管理页筛选三件套：关键词（编号/名称/排号/备注/组/位置）+ 位置 + 试验组，纯前端过滤；cam39：实验条件（实验项目模板）——①新菜单页「实验条件」：创建/编辑/删除模板（阶段=名称+温度+湿度+时长，存 exp_templates.stages jsonb，SQL 见 exp_templates.txt）②创建实验「实验项目」双模式：选模板（自动带出阶段与总时长）或自定义输入；选中模板把阶段快照定格存入 experiments.stages ③机台卡片改行：第3行=送样人|实验时长（一行两列）、第4行=当前节点|下一节点倒计时（推算式：按 start_time+stages+duration_hours 前端推算，零额外 IO）、第5行=预计结束不变 ④运行详情弹窗/看板详情弹窗新增阶段时间线（已过✓/当前进度条/未到灰，📷标注各阶段结束前30min截图点）⑤节点切换每秒计时器自动重渲染 ⑥结束设备使用按钮 loading 防重复点击 ⑦看板 pvRowFit 行高下限 110→160；cam38.8：相机预览「按机种聚合」①只显示仍占用的机种（实验全结束且相机还清的行直接消失）②状态细分「占用中（运行 X）/ 已结束·未归还 Y 台」③内存自愈：experiments 混入已完成行时本地立即分流进归档（YT222「始终占用中」＝页面挂夜内存陈旧，强刷即愈）④visibilitychange 回前台 ≥30s 全量对账一次（根治后台 tab 定时器节流导致的陈旧）；cam38.7：看板行高按「该视图全部机台」计行数（①存储运行页统计只统计当前楼层机台的样品，该楼层无存储机台时也清空统计②楼层写入 localStorage，刷新/重开浏览器仍停在上次选的楼层③全屏看板右上角新增「全部/1F/3F」分段，按楼层过滤并与运行页/存储页共用同一记忆）；cam38.4：降低 Supabase 磁盘 IO（Nano 基线仅 5MB/s，收到预算耗尽预警）——①loadData 参数化分组（hot/storage/cold）按页按需拉取，轮询从「6 表全量」降到「2 张小表」②已完成实验分流 archExps 懒加载（allExps），轮询只取待运行+运行中③日志页/设置页停留时停轮询（设置页补「刷新数据」按钮）④storage_samples 排除「已取」⑤轮询间隔 30→60 秒，设置上限 300⑥清理/批量收尾由 N 次往返改为单语句批量；cam38.3：消除首屏两处闪现（bootOv 加载层 + restorePageAhead + 主题前移）
   // cam39.10：删 refreshStartTime 及每分钟定时器——创建表单已无开始时间框
   if (!sb) { AUTH_READY = true; showLogin('脚本库未加载，请检查网络后刷新'); bootDone(); return; }   // cam38.3：SDK 缺失也要撤掉加载层
   try {
